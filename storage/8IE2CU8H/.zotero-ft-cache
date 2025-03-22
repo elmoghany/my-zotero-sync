@@ -1,0 +1,657 @@
+DREAMRUNNER: Fine-Grained Compositional Story-to-Video Generation
+with Retrieval-Augmented Motion Adaptation
+Zun Wang Jialu Li Han Lin Jaehong Yoon Mohit Bansal UNC Chapel Hill
+{zunwang,jialuli,hanlincs,jhyoon,mbansal}@cs.unc.edu
+https://zunwang1.github.io/DreamRunner
+LLM Planning
+Fine-Tuning
+Motion Textual Query Sitting
+.
+.
+.
+Video Database
+Query
+Retrieval
+Prompt
+Write a story of the witch and her cat
+Retrieval
+Query
+Reference Images
+Diffusion Model with SR3AI
+Character Priors
+Motion Priors
+High-Level Plan
+scene2: the study room motion2: writing, sipping, sitting narration2: .. the witch is writing..and sipping tea.. her cat sitting..
+scene1, motion1, narration1
+scene3, motion3, narration3
+...
+Motion Query Sipping ...
+LLM Planning
+Fine-Tuning
+Fine-Grained Plan
+Background: study room Frm1: (cap, bbox) pairs Frm6: (cap, bbox) pairs
+..the witch walks among the moonlit flowers in her garden with her cat, whispering a soft farewell..
+..the witch writes about her adventures in her notes, sipping a calming tea, her cat is sitting beside..
+..the witch reads her spellbook, gestures with her hands to cast a charm with her cat lying behind..
+...
+woman sipping a cup of coffee
+..
+cat ..
+witch
+cat sits.. study room.. notes.. witch sips..
+...
+...
+a man is sipping while wearing a sweater
+a woman is sipping a cup of coffee
+...
+...
+...
+(2.1) Motion Retrieval and Prior Learning
+(2.2) Subject Prior Learning
+(1) Plan Generation
+(3) Video Generation with Region-Based Diffusion LLM Planning
+Figure 1. Overall pipeline for DREAMRUNNER. (1) plan generation stage: we employ an LLM to craft a hierarchical video plan (i.e., “High-Level Plan” and “Fine-Grained Plan”) from a user-provided generic story narration. (2.1) motion retrieval and prior learning stage: we retrieve videos relevant to the desired motions from a video database for learning the motion prior through test-time finetuning. (2.2) subject prior learning stage: we use reference images for learning the subject prior through test-time fine-tuning. (3) video generation with region-based diffusion stage: we equipt diffusion model with a novel spatial-temporal region-based 3D attention and prior injection module (i.e., SR3AI) for video generation with fine-grained control.
+Abstract
+Storytelling video generation (SVG) aims to produce coherent and visually rich multi-scene videos that follow a structured narrative. Existing methods primarily employ LLM for high-level planning to decompose a story into scene-level descriptions, which are then independently generated and stitched together. However, these approaches struggle with generating high-quality videos aligned with the complex single-scene description, as visualizing such complex description involves coherent composition of multiple characters and events, complex motion synthesis and muti-character customization. To address these challenges, we propose DREAMRUNNER, a novel story-to-video generation method: First, we structure the input script using a large language model (LLM) to facilitate both coarsegrained scene planning as well as fine-grained object-level layout planning. Next, DREAMRUNNER presents retrieval
+augmented test-time adaptation to capture target motion priors for objects in each scene, supporting diverse motion customization based on retrieved videos, thus facilitating the generation of new videos with complex, scripted motions. Lastly, we propose a novel spatial-temporal regionbased 3D attention and prior injection module SR3AI for fine-grained object-motion binding and frame-by-frame spatial-temporal semantic control. We compare DREAMRUNNER with various SVG baselines, demonstrating stateof-the-art performance in character consistency, text alignment, and smooth transitions. Additionally, DREAMRUNNER exhibits strong fine-grained condition-following ability in compositional text-to-video generation, significantly outperforming baselines on T2V-ComBench. Finally, we validate DREAMRUNNER’s robust ability to generate multiobject interactions with qualitative examples.
+1
+arXiv:2411.16657v3 [cs.CV] 18 Mar 2025
+
+
+1. Introduction
+Advancing storytelling video generation (SVG) is crucial for real-world video generation applications, enabling the creation of rich, immersive narratives with multiple realistic scenes, characters, and interactive events. Unlike existing short-form video generation approaches [8, 11, 13, 15, 20, 28, 45, 52, 56, 62, 71, 73], these models allow characters and objects to evolve across scenes, enhancing the coherence of generated content to align more closely with human storytelling. Such capabilities hold vast potential in media, gaming, and interactive storytelling. Existing SVG methods [17, 18, 40, 74, 78, 81] primarily employ high-level planning with a large language model (LLM), breaking down a story into multiple key scene descriptions. Each scene is then generated independently as a separate video and later stitched together to form a complete long-form storytelling video. Generating high-quality single-scene video exhibits three key challenges: 1) Coherent composition: As a highly complex textual form, a story, even at the single-scene level (e.g. “a woman in red dress on the left and a man in a tailcoat on the right is walking towards each other, they meet in the middle and start ballroom dancing in the room”), typically involves multiple objects/characters with distinct motion trajectories, attributes, and sequentially occurring events, all of which must be coherently composed in the generated video. 2) Complex motion synthesis: The complex scene descriptions often feature intricate character motions (e.g. “ballroom dancing”) that are difficult to generate from the base text-to-video (T2V) models. 3) Multi-character customization: These descriptions usually involve multiple characters with pre-defined reference images (e.g. for both the woman and the man), requiring the T2V model to maintain their visual appearance consistent with the references. However, recent SVG methods often feed single-scene descriptions directly as textual conditions to the T2V model with limited constraints, resulting in suboptimal fidelity, missed events/objects, unclear motions, and support for only single-character customization. To address the aforementioned challenges, we propose DREAMRUNNER, a novel SVG framework for enhancing the fine-grained alignment between scene descriptions and generated videos. The core idea is that, beyond high-level planning, we also leverage the LLM for compositional reasoning—decomposing complex scene descriptions into a detailed, frame-by-frame layout plan of multiple entities with sequential motions/events—followed by region-based attention to ensure plan adherence for coherent composition, Additionally, we employ a retrieval-augmented prior learning approach for complex motion synthesis while injecting learned priors only to its corresponding regions for multi-character customization. Specifically, DREAMRUNNER presents three essential processes in the framework: (1) Dual-Level Video Plan Generation, (2) Motion Re
+trieval and Subject/Motion Prior Learning, and (3) SpatialTemporal Region-Based 3D Attention and Prior Injection (SR3AI). In (1) plan generation stage, given a user-provided story narration (e.g. “write a story of the witch and her cat’s one day”), we employ an LLM for hierarchical planning: first generate a high-level plan with character-driven, motion-rich event descriptions across scenes, then decompose the scene descriptions into detailed, entity-specific frame-level layout plans within each scene The generated frame-level plan serves as the fine-grained guidance for T2V. In (2) prior learning stage, we learn both subject and motion priors to improve character consistency and motion fidelity. We learn customized subject priors [50] on character reference images to adapt the model to specific appearances. Then we frame complex motion synthesis as a customization task akin to character customization to learn motion priors, aiming to capture specific visual patterns of relevant motions. We propose a novel automatic retrieval pipeline that selects motion-relevant videos from a largescale video database [58] as references. We then apply test-time fine-tuning [75] to learn customized motion priors. Note that unlike most motion customization methods that use a single prompt as textual condition (e.g.“A person is dancing”) for all reference videos, we propose using pervideo prompts to improve motion specificity and customization performance. Both motion and character priors are learned by updating only parameter-efficient modules [22] within specific layers of DiT [44]. In (3) video generation, we introduce SR3AI, a novel spatial-temporal region-based 3D attention and prior injection module that enables finegrained control without additional training. Unlike previous work only supports spatial control [24, 36, 37, 66] or temporal control [7], SR3AI utilizes the frame-level layout plan as guidance, allows spatial-temporal controls to generate temporally sequential events/motions, multiple objects with specific attributes, movement trajectories, spatial relationships, etc. To achieve this, we first encode multiple conditions from the fine-grained plan. Then, within SR3AI, we compute the corresponding visual latents in latent space for each condition based on the spatial-temporal layouts, ensuring each condition attends only to its designated spatialtemporal latent region via masking attention to unrelated areas. This spatial-temporal region-based attention provides precise control and coherent composition over multiple objects and motions/events. Additionally, we extend this region-based design to inject learned character and motion priors directly into their corresponding regions within the diffusion model, seamlessly integrating multiple priors while avoiding conflicts and achieving multi-character multi-motion customization.
+We validate the effectiveness of DREAMRUNNER on two tasks: story-to-video generation and compositional text-tovideo generation. For story-to-video generation, we collect
+2
+
+
+a story dataset, DreamStorySet, and compare DREAMRUNNER with prior SoTA methods (i.e., VideoDirectGPT [37] and VLogger [81]). DREAMRUNNER achieves a 13.1% relative improvement in character consistency (CLIP + DINO score) and an 8.56% relative gain in text-following capability (CLIP + ViCLIP score) over these approaches. Additionally, it enhances sequential event generation within a single scene, achieving a 27.2% relative improvement in DINO score for smooth multi-event transitions, underscoring its effectiveness. In compositional text-to-video generation, DREAMRUNNER outperforms baseline methods on T2V-CompBench [54] across all dimensions, demonstrating its strength in compositional generation. Notably, despite being based on open-source models [68], DREAMRUNNER achieves the highest scores in dynamic attribute binding and object interaction, along with comparable results in spatial relationships and motion binding to closedsource models. This highlights the potential of our approach to bridge the performance gap between open- and closedsource models. Lastly, we provide qualitative examples to showcase the effectiveness of DREAMRUNNER in coherent composition and multi-character customization, etc. In summary, our main contributions include:
+• A retrieval-augmented prior learning approach to enhance the synthesis of complex motions. • A spatiotemporal region-based attention module for coherent composition of multiple objects and sequential events, along with a region-based LoRA injection design for multi-character, multi-motion customization. • SoTA performance in both compositional T2V and SVG.
+2. Related Work
+Storytelling Video Generation. Storytelling video generation [17, 18, 39, 40, 74, 78, 81] aims to create multiscene videos based on given scripts. VideoDirectorGPT [37] and Vlogger [81] use LLMs for high-level planning, decomposing scripts into multi-scene conditions, and generating videos scene by scene. Animate-A-Story [18] further improves motion control by using retrieval-augmented videos as depth conditions. Recently, DreamStory [17] and MovieDreamer [74] generate keyframes using text-toimage models, which are then animated with image-tovideo models [9] to create a coherent flow. Customization methods [14, 29, 32, 43, 50, 53, 60, 69, 77] are also involved to keep the consistency of reference images. Unlike these approaches, our work is designed to address the videocentric challenge of generating multi-characters, motionrich videos with smooth, natural transitions between different actions using dual-level LLM planning.
+Compositional Generation. Recent advances in diffusion models have enhanced compositional text-to-video generation by improving coherence, semantic alignment, and user
+control. Several methods leverage LLMs for scene planning [13, 36, 37, 46, 76], while others employ regional masks for multi-object control [24, 55, 61, 66, 70] or framelevel semantic conditioning [7, 65]. Additionally, LoRAbased compositional techniques integrate diverse concepts within the generation process [16, 33, 67, 79]. However, these approaches do not explicitly bind objects to their corresponding actions/events spatial-temporally. Our method ensures fine-grained control over both objects and motions, maintaining a cohesive object-action link throughout the video.
+Motion Customization. Motion customization is a key challenge in video generation. One approach focuses on pixel-level motion learning for video editing, aiming to replicate low-level motions from reference images while maintaining frame consistency [25, 38, 48, 63, 72]. Another emphasizes learning generic motion priors, such as human or camera movements, from curated video collections [59, 64, 75, 80], capturing high-level semantic actions for realistic motion synthesis. Most methods use testtime fine-tuning with motion LoRAs or adapters for adaptation. Our approach follows this pipeline but improves it by learning motion priors from retrieved videos in large-scale databases, enabling more diverse and contextually relevant motion customization. Additionally, we replace the singleprompt condition with per-video detailed prompts, enhancing motion specificity and generation quality.
+3. Methodology
+Task Setup. Storytelling video generation focuses on creating multi-scene, character-driven videos based on a given topic. The characters are defined by reference images (e.g., images of a witch), and the topic is presented as an instructional prompt (e.g., "witch’s one day"). The generated videos should align with the given topic and accurately reflect the characteristics and behavior of the characters. Method Overview. Our approach employs a hierarchical system where an LLM generates event-based scripts across multiple scenes, followed by detailed plans specifying the layout and motion transitions of key objects per scene (Sec. 3.1). A video diffusion model then synthesizes each scene step by step. We train motion priors from retrieval videos aligned with the LLM-generated plans, sourced from a large-scale video-language database, and character priors using the reference images (Sec. 3.2). Finally, we inject these priors and detailed plans into the video generation process in a zero-shot manner using our spatial-temporal regional diffusion module SR3AI (Sec. 3.3). Base Generation Model. We leverages CogVideoX [68] as the foundational text-to-video backbone. CogVideoX employs a DiT-based architecture that integrates full 3D attention, and generates 6-second videos at 8 fps conditioned
+3
+
+
+The forest
+[V*] teddy is strolling in the forest
+A dirt path in the forest
+The rock The forest
+[V*] teddy is strolling in the forest
+A dirt path in the forest
+The rock The forest
+[V*] teddy is strolling in the forest
+A dirt path in the forest
+The rock The forest
+[V*] teddy is sitting on the rock
+A dirt path in the forest
+The rock
+visual latent attends its corresponding textual embeddings (in same color) and all visual latents (including itself) textual embeddings attends itself and its corresponding visual latents (in same color)
+Visual Latents
+garden.. flower.. cat..
+witch whispering farwell..
+witch is walking among..
+T!
+Latents Z" T# ...
+Z$%&'()*+,#
+Feed Forword
+Z$%&'()*+
+Region-Based 3D-Attn
+Feed Forword
+......
+Z$%&'()*+-#
+Latents Z",#
+Mask./"01
+Spatial-Temporal-Region-Based 3D Attention (with Frame-Level Plan)
+Latent Frame 1 Latent Frame 2-3 Latent Frame 4-6
+Text Encoder
+Conditions
+Denoising
+Diffusion Model
+Frame-Level Fine-Grained Plan + Conditions
+Frame 6: [witch, whispering, [v1] witch whispering to ..], [0.6, 0.0, 1.0, 0.8], [cat, walking, [v2] cat walking ..], [0.0, 0.2, 0.4, 0.8], ...
+C1: garden with .. C2: moonlit flowers.. C3: [v2] cat walking..
+C4: [v1] witch walking among the moonlit flower.. C5: [v1] witch whispering ..
+Background: A large garden with moonlit flowers
+Frame-Level Plan Conditions
+Single-Scene Narration
+The witch walks among the moonlit flowers in her garden with her cat, whispering a farewell..
+LLM ...
+.
+.
+.
+Video Database
+video 1: a person is sittin video 2: the person is sitt
+Captions
+video 1
+Retrie
+Frame 1: [witch, walking, [v1] witch walking in ..], [0.6, 0.0, 1.0, 0.8], [cat, walking, [v2] cat walking among..], [0.0, 0.2, 0.4, 0.8], ...
+A large garden with moonlit flowers
+A [v1] witch is whispering farewell to the moonlit flowers
+Moonlit flowers in the garden
+A [v1] witch is walking among the moonlit flowers in her garden
+A [v2] cat near the witch among the moonlit flowers
+Textual Condition embeddings
+garden.. flower.. cat..
+witch whispering farwell..
+witch is walking among..
+garden.. flower.. cat..
+witch whispering farwell..
+witch is walking among..
+garden.. flower.. cat..
+witch whispering farwell..
+witch is walking among..
+Wx = W!x + A"#$%& B"#$%& (Mask"#$%& x) +A%'$ B%'$ (Mask%'$ x)
+Spatial-Temporal-Region-Based LoRA Injection (with Frame-Level Plan)
+Wx = W!x + A"'()#*+ B"'()#*+ (Mask"'()#*+ x) + A"&#,-./#*+ B"&#,-./#*+ (Mask"&#,-./#*+ x)
+Motion LoRA Injection
+Character LoRA Injection
+Character LoRA Masks
+Mask0%" Mask.%$+/23 Mask.1/45'(/23
+Motion LoRA Masks
+Region-Based 3D-Attn
+Figure 2. Implementation details for region-based diffusion. We extend the vanilla self-attention mechanism to spatial-temporalregion-based 3D attention (see upper orange part), which is capable of aligning different regions with their respective text descriptions via region-specific masks. The region-based character and motion LoRAs (see lower yellow and blue parts) are then injected interleavingly to the attention and FFN layers in each transformer block (see the right part). Note that though we resize the visual latents into sequential 2D latent frames for better visualization, they are flattened and concatenated with all conditions when performing region-based attention. Fig. 3 and Appendix A.3 provide example of the region-based attention mask and more details of region-based LoRA injection, respectively.
+on input text. In our method, we extend CogVideoX by training character and motion priors in distinct layers (see Sec. 3.2) and by modifying its 3D attention (see Sec. 3.3) for better motion and character binding.
+3.1. Generating Dual-Level Plans with LLMs
+Story-Level Croase-Grained Planning. We use an LLM to generate a sequence of scene descriptions. Specifically, given the task requirements, a single in-context example, and the specified story topic, we prompt GPT-4o [41] to generate 6„8 descriptions that focus on character-driven, motion-rich events. Each description is in the format of scene, motions, narrations, where we first define the related motions then generate corresponding event narration. This description list serves as a high-level catalog that directs the story’s progression across scenes, ensuring that each event is consistent with the narrative flow of the video.
+Scene-Level Fine-Grained Planning. After generat
+ing a list of single-scene descriptions with narrations, we create detailed, entity-level plans for each latent frame. Each plan consists of an overall background description followed by entity-specific details for each latent frame. As shown in the yellow Frame-Level Plan box at the top of Fig. 2, the background provides a global scene description (e.g., “A large garden"), formatted as Background: background description. Entity-level details specify each entity’s description, motion (e.g., "A [v1] witch is walking among the moonlit flowers in her garden"), and bounding box layout, formatted as: Frame: [entity name, entity motion, entity description], [x0,y0,x1,y1]. Here, [x0,y0,x1,y1] denotes the top-left and bottom-right corners of the bounding box, with coordinates normalized to r0, 1s. Entities without motion are labeled "none". Each scene includes plans for six key frames, with each frame guiding one second of video generation (we interpolate key frames to match the #frames of visual latents), resulting in a
+4
+
+
+six-second output using CogVideoX. Detailed prompt templates for both levels’ planning are in Appendix H.
+3.2. Motion Retrieval and Prior Learning
+Retrieving Motion-Related Videos from Database. We employ a retrieval-augmented approach to fine-tune motion priors at test time, enhancing the model’s capacity to generate complex and diverse motions. Based on motion descriptions generated from the LLM planning, we retrieve relevant videos from a large-scale video database [58]. Our retrieval pipeline first uses BM25 [49] for initial text-based retrieval, followed by attribute-based filtering and clip segmentation via object tracking [26]. We then compute semantic similarity scores using CLIP [47] and ViCLIP [58] to refine the selection, ensuring high-quality motion-aligned videos (see Appendix A.1 for details). By following this process, we retrieve 4 „ 20 video clips per motion, which are then used as reference videos for learning motion priors. Motion Prior Training. We follow recent motion customization methods [75] to apply test-time fine-tuning for learning specific motion priors. Typically, reference videos are used to fine-tune a video diffusion model [1, 56] with LoRA, injecting temporal LoRAs into temporal attention layers to capture motion patterns (e.g., jumping) and per-video-specific LoRAs into spatial layers to capture unique video characteristics. Only temporal LoRAs are used during inference. Since our approach is based on CogVideoX [68], which employs 3D full attention instead of separate spatial and temporal attention, we manually designate even layers as “spatial” and odd layers as “temporal” to separate the learning of spatial and temporal LoRAs. We train LoRAs on top-ranked retrieved videos with all backbone parameters frozen, optimizing both a standard diffusion loss for frame reconstruction and an appearancedebiased temporal loss to focus on motion-specific learning. Loss details are in Appendix A.2. Note that unlike previous methods using a single-prompt condition for all the retrieved videos, we utilize video caption provided from the video database as per-video prompt. This helps the model implicitly separate motion-unrelated backgrounds, appearances, etc, allowing it to focus on motion-specific patterns. Note that when injecting spatial/temporal LoRAs to target transformer layers, we only inject them to the linear q, k, v projection in each block, and the final feedforward layers. Subject Prior Learning. We learn the subject’s appearance by injecting LoRA modules into the spatial transformer layers. To train these LoRAs, we create videos by repeating reference images multiple times (48 time, similar to the output frame number of CogVideoX) and focus on reconstructing the first frame of the video during training, preventing overfitting to the static, repeated video. Notably, the subject priors are learned within spatial LoRAs, while the motion priors are learned within temporal LoRAs. Since their injec
+tions target different layers, there is no overlap, effectively avoiding conflicts between multiple LoRAs.
+3.3. Spatial-Temporal-Region-Based Diffusion
+Region-Based 3D Attention. We build our model on CogVideoX [68], a text-to-video generation model designed on top of a Diffusion Transformer (DiT). Unlike methods that use separate spatial and temporal attention for efficient video modeling, CogVideoX employs a 3D full attention module, integrating self-attention across concatenated embeddings of all visual latents and the text condition embeddings. We extend this module to enable region-specific conditioning via masking, aligning different regions with their respective text descriptions. Specifically, given a fine-grained plan with N region-specific text descriptions C1, C2, . . . , CN and corresponding layouts L1, L2, . . . , LN across frames, we encode each text condition Ci to produce embeddings T1, T2, . . . , TN (Fig. 2 top right). At each attention layer, we identify the visual latents corresponding to each layout Li in the latent space. We then perform masked self-attention on the concatenation of T1, T2, . . . , TN and L1, L2, . . . , LN . The self-attention mask is defined as follows: for each region’s visual latents Li, attention is allowed to its corresponding text condition embeddings Ti and all visual latents L1, L2, . . . , LN . Conversely, for each condition embeddings Ti, attention is restricted to itself and its corresponding latents Li. This design ensures each region is conditioned on its specific textual description while maintaining interactions among visual latents through unmasked attention among L1, L2, . . . , LN . No modifications are made to other modules in the base model, preserving the integrity of its original architecture. A visualization example of such masking strategy is contained in Fig. 3.
+Region-Based LoRA Injection. We adopt a similar regionbased strategy for injecting LoRA priors into diffusion models. For each LoRA, we first identify the corresponding regions of latent tokens based on the associated text description and layout information. LoRA injection is then applied exclusively to these regions, ensuring precise alignment between the priors and their designated areas. This approach enables handling multiple LoRAs simultaneously while avoiding conflicts between them, preserving the integrity of each injected prior. Appendix A.3 provides details of this strategy with equation derivations, explanations, etc.
+4. Experiments
+In this section, we first introduce the evaluation datasets and evaluation metrics details in Sec. 4.1, then compare our DREAMRUNNER with prior methods on story-to-video generation in Sec. 4.2. Next, we present detailed ablation studies on the necessity of RAG and effectiveness of SR3AI in Sec. 4.3, and demonstrate the generalizability of our DREAMRUNNER to improve compositional text-to-video
+5
+
+
+Method Character Fine-Grained Text Full Text Transition Visual Quality
+CLIP DINO CLIP ViCLIP CLIP ViCLIP DINO Aesthetics Imaging Smoothness VideoDirectorGPT [37] 54.3 9.5 23.7 21.7 22.4 22.5 63.5 42.3 60.3 94.3 VLogger [81] 62.5 41.3 23.5 23.1 22.5 22.2 73.6 43.4 61.2 96.2
+DREAMRUNNER (Ours) 70.7
+(+13.1%)
+55.1 (+33.4%)
+24.7 (+5.11%)
+23.7 (+2.60%)
+24.2 (+7.56%)
+24.1 (+8.56%)
+93.6 (+27.2%)
+55.4 (+27.6%)
+62.1 (+1.47%)
+98.1 (+1.98%)
+Table 1. Evaluation of story-to-video generation on DreamStorySet. We compare our model with VideoDirectorGPT [37] and VLogger [81] on character consistency (via CLIP and DINO scores), text instructions following and full prompt adherence (via CLIP and ViCLIP scores), and event transitions smoothness (via DINO score). Our relative improvement over VLogger is highlighted in blue.
+Witch pours Witch stirs Cat walks portion room
+Witch
+pours
+Witch
+stirs
+Cat
+walks
+portion
+room
+... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
+... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+...
+......
+......
+Figure 3. Visualization of spatial-temporal region-based 3D attention mask. Different text colors represent different conditions, while the white region indicates masked areas. For simplicity, we reduce each condition to two words, each frame to three segments, and display only three conditions and two frames in the figure. In practice, conditions can be longer and more numerous, frames can have more segments, and there are 12 latent frames in total.
+generation on T2V-CompBench [54] in Sec. 4.5. Moreover, we show the effectiveness of RAG for learning the motion prior on a more comprehensive motion dataset we collect in Sec. 4.6. Lastly, we present qualitative comparison between our DREAMRUNNER and previous approaches in Sec. 4.4.
+4.1. Experimental Setups
+Evaluation Datasets. We evaluate DREAMRUNNER on two tasks: (1) story-to-video generation, and (2) compositional text-to-video generation. The first task focuses on the model’s ability to follow the text closely while maintaining character and scene consistency throughout the story. The second task assesses various aspects of compositionality in video generation. For (1) story-to-video generation,
+we collect and introduce a new benchmark dataset, DreamStorySet. Specifically, we collect 10 characters, including 6 from existing customization datasets (CustomConcept101 [30] and Dreambooth [50]), and 4 with generation models (FLUX [4]). (featuring two motions per scene) and three multi-character stories (featuring two or three motions per scene). Each story comprises 5 to 8 scenes, incorporating a total of 64 diverse motions throughout. We focus on single-character stories for quantitative evaluation of SVG models and reserve multi-character stories for qualitative evaluation. For (2) compositional text-to-video generation, we use the T2V-CompBench [54] to benchmark the performance of DREAMRUNNER, where we select six dimensions except numeracy. Evaluation Metrics. We evaluate our generated storytelling videos across multiple dimensions, including Character Consistency (Frame-Reference-Image CLIP/DINO scores), Full-Narration-Text Alignment per Scene (Image/Video-Text CLIP/ViCLIP scores), Fine-Grained-Text Alignment per Scene (Image/VideoText CLIP/ViCLIP scores), Transition (Frame-Frame DINO score), Visual Quality (LAION aesthetic quality score [51]/MUSIQ Imaging quality score [27]/and AMT video smoothness score [34]). Detailed descriptions of the metrics and computation methods can be found in the appendix. We follow similar metrics to T2V-ComBench [54] for evaluating compositional text-to-video generation. Implimentations. We use CogVideoX-2B as our base model for SVG. Test-time-finetuning each prior requires 5min on a single A6000 GPU. For compositional T2V we evaluate with both CogVideoX-2B and CogVideoX-5B.
+4.2. Story-To-Video Generation Evaluation
+We compare DREAMRUNNER with previous SoTAs (VideoDirectorGPT [37] and VLogger [81]) on our DreamStorySet dataset for story-to-video generation. For fair comparison, we decouple each scene narration into two single-motion descriptions, generating separate videos that are then combined into a single-scene video. As shown in Table 1, DREAMRUNNER improves CLIP/DINO scores by 13.1%/33.4% over VLogger, demonstrating the effectiveness of our learned subject prior and
+6
+
+
+RAG SR3AI Fine-Grained Text Full Text Trans. Quality
+CLIP ViCLIP CLIP ViCLIP DINO Asth. Img. Smth. ˆ ˆ 23.8 22.5 22.2 22.1 87.1 54.3 61.3 94.3 ˆ ✓ 23.9 23.1 23.5 22.4 92.5 55.4 61.9 98.0 ✓ ˆ 24.7 23.5 23.9 24.0 84.6 55.6 61.9 98.1 ✓ ✓ 24.7 23.7 24.2 24.1 93.6 55.4 62.1 98.1
+Table 2. Ablation studies for the effectiveness of RAG and SR3AI in DREAMRUNNER. Default DREAMRUNNER achieves the best text-following ability and event transition smoothness.
+region-based LoRA injection for character consistency. To evaluate text-following capability, we assess both full-prompt adherence and fine-grained event alignment. DREAMRUNNER improves CLIP/iCLIP scores consistently on both settings, showing superior alignment with both fullscene and fine-grained event descriptions. For transition quality, we compute the DINO-based transition score to measure scene and event consistency. DREAMRUNNER significantly improves transitions by 27.2% over VLogger, highlighting the effectiveness of SR3AI in generating sequential events in a single scene. Lastly, we evaluate visual quality across aesthetic quality, imaging quality, and motion smoothness. DREAMRUNNER significantly enhances aesthetics while slightly improving the other two, demonstrating its capability to generate high-quality videos that adhere to complex scene descriptions while ensuring smooth event transitions.
+4.3. Ablation Studies
+In this section, we demonstrate the effectiveness of RAG for automatic video retrieval in motion prior learning and SR3AI to achieve fine-grained control over objects and their motion for coherent composition. As shown in Table 2, leveraging SR3AI for enhanced multi-object multi-event binding (2nd row) significantly improves the smooth transition between events within a single scene, while also enhancing visual quality and text following—potentially because decomposing attention into region-based components helps the model “divide and conquer” each part more effectively. Besides, incorporating retrieval-augmented motion prior learning (3rd row) boosts the video-text similarity both for fine-grained and full-prompt text following, showing its importance for motion enhancement. Lastly, we show that RAG and SR3AI can be combined effectively (last row), with the combined model achieving best results in smooth event transition, text alignment, and visual quality.
+4.4. Qualitative Ablations and Comparisons
+We provide qualitative ablations of our methods and comparison to previous SoTA in Fig. 4. In Fig. 4 (a), we compare our method with SoTA and analyze the impact of our region-based attention and LoRA
+injection design for multi-character generation. Our approach significantly outperforms Vlogger [81] (rows 1 vs. 5), producing coherently composed characters and motions. Row 2 presents results from CogVideoX-2B using scene descriptions as conditions while injecting both character LoRAs globally. The outcome shows that global LoRA injection causes interference, resulting in a robot-like teddy bear rather than distinct characters, showing the importance of region-based LoRA injection for multi-character customization. To examine the effect of region-based attention design, we ablate it by using either hard-regional attention or full attention between visual latents (in Fig. 3 bottomright part) in rows 4 and 5. Hard-regional attention (row 4) enforces strict adherence to the LLM layout plan (row 3) but prevents smooth transitions due to the lack of inter-region latent interaction. In contrast, full attention (row 5) enables smooth spatial and temporal transitions while ensuring that each region remains conditioned on its corresponding textual embeddings, resulting in high-quality multi-character, multi-motion composition and customization.
+We conduct detailed ablations of SR3AI and prior injections under the single-character setting in Fig. 4 (b). Directly using the base CogVideoX-2B model conditioned solely on the scene description without additional constraints (row 1) results in a vague character and background, along with abrupt scene transitions where the mermaid is absent in the second scene. This demonstrates that relying only on complex textual conditions in the base model leads to limited visual quality and fidelity. Row 2 presents results where only the character LoRA is injected globally into the model from row 1. This improves character consistency, allowing the mermaid to better follow the reference images. However, sudden scene transitions persist due to the complexity of the textual prompt, and the mermaid and the “inspecting” motion remains absent in the second scene. Moreover, global LoRA injection affects the background, making the kelp forest appear more cartoon-like—rounder and simplified—whereas in row 1, it retains a more natural, interwoven, and angular structure. Row 4 shows the results of integrating SR3AI with layout plan from row 3, supporting smooth transitions and well-followed character trajectories. The kelp forest appears more photorealistic thanks to locally injected character prior preventing interference with the background. However, the mermaid’s motion remains limited, particularly for the challenging “inspecting” action, due to the base model’s limitations in complex motion generation. This issue is largely solved when injecting RAGlearned motion priors in row 5. The mermaid exhibits significantly clearer motions: wanders from right to left, then stoops and moves her hand to scrabble on the kelp strand with shells, fully capturing the complex “inspecting” motion, thanks to the learned strong motion priors. Our full model generates high-fidelity videos adhere to the complex
+7
+
+
+Row 5: DreamRunner (with full attention between visual latents)
+Row 4: CogVideoX-2B + SR3AI (with LLM plan in Row 3 + Character LoRA)
+Row 5: CogVideoX-2B + SR3AI (with LLM plan in Row 3 + Character LoRA + RAG Motion LoRAs)
+Row 3: LLM-generated fine-grained layout plan
+Row 2: CogVideoX-2B with single-scene description + Character LoRA (globally injected)
+Row 1: CogVideoX-2B with single-scene description
+Row 4: DreamRunner (with hard region-based attention between visual latents)
+Row 3: LLM-generated fine-grained layout plan
+Row 2: CogVideoX-2B with single-scene description + Character LoRAs (globally injected)
+Row 1: Vlogger
+References
+In the ware afternoon, teddy bear stands in the garden, surrounded by colorful flowers, basking in the gentle sunlight. Then, he bends over to carefully examine a delicate flower, observing its intricate petals and soft texture. Meanwhile, the robot toy is playing a guitar nearby, filling the air with a soothing melody.
+.. ..
+Single-Scene Description References
+The Mermaid enters a dense kelp forest, wandering through the tall, flowing plants. She pauses to inspect some unique shells caught on a kelp strand.
+..
+Single-Scene Description
+(a) Multi-Character Qualitative Ablation + SoTA Comparison (a) Single-Character Qualitative Ablation
+Figure 4. Qualitative comparison and ablations of DREAMRUNNER on SVG. In (a) multi-character example, DREAMRUNNER generates videos with significantly better character consistency compared to other strong baselines, while others fail to maintain object consistency (e.g., VLogger), or fail to generate multiple objects ((a) Row 2,4). In (b) single-character setting, integrating SR3AI and locallyinjected motion/subject priors consistently improve overall quality, complex motion synthesis and multi-event coherent composition.
+Model Consist-attr Dynamic-attr Spatial Motion Action Interaction
+Gen-3 [5] 0.7045 0.2078 0.5533 0.3111 0.6280 0.7900 Dreamina [2] 0.8220 0.2114 0.6083 0.2391 0.6660 0.8175 PixVerse [3] 0.7370 0.1738 0.5874 0.2178 0.6960 0.8275 Kling [6] 0.8045 0.2256 0.6150 0.2448 0.6460 0.8475
+VideoCrafter2 [10] 0.6750 0.1850 0.4891 0.2233 0.5800 0.7600 Open-Sora 1.2 [21] 0.6600 0.1714 0.5406 0.2388 0.5717 0.7400 Open-Sora-Plan v1.1.0 [31] 0.7413 0.1770 0.5587 0.2187 0.6780 0.7275 VideoTetris [55] 0.7125 0.2066 0.5148 0.2204 0.5280 0.7600 LVD [35] 0.5595 0.1499 0.5469 0.2699 0.4960 0.6100 CogVideoX-2B [68] 0.6775 0.2118 0.4848 0.2379 0.5700 0.7250 CogVideoX-2B+SR3A (Ours) 0.7350 (+8.5%) 0.2672 (+26.2%) 0.6040 (+24.6%) 0.2608 (+9.6%) 0.5840 (+2.5%) 0.7625 (+5.2%) CogVideoX-5B [68] 0.7232 0.2250 0.5845 0.2551 0.6040 0.7995 CogVideoX-5B+SR3A (Ours) 0.7650 (+5.8%) 0.2832 (+25.9%) 0.6775 (+15.9%) 0.3041 (+19.2%) 0.6340 (+5.0%) 0.8725 (+9.1%)
+Table 3. T2V-CompBench evaluation results. Best/2nd best scores for open-sourced models are bolded/underlined. gray indicates
+close-sourced models, and yellow indicates the best score for close-sourced models.
+scene description, highlighting the importance of SR3AI for coherent composition of multiple objects/events, and our retrieval-augmented motion prior learning stage and injection strategy for complex motion synthesis.
+4.5. Compositional T2V Generalization
+In this section, we demonstrate how our spatial-temporal region-based attention module (SR3A) enhances compo
+sitional text-to-video generation, as evaluated on T2VCompBench [54]. Here, we use only the attention module without LoRA injection, as no customization is required. Given a prompt, we employ an LLM (GPT-4o) to generate fine-grained layout plans, while SR3A ensures coherent composition of objects and events. As shown in Table 3, SR3A significantly improves CogVideoX-2B and CogVideoX-5B [68] across all categories. Notably, it boosts
+8
+
+
+Method CLIP ViCLIP CogVideoX-2B 23.39 20.84 CogVideoX-2B + RAG (w/ single prompt for all videos) 24.01 22.02 CogVideoX-2B + RAG (w/ per-video prompt) 24.67 23.04
+Table 4. Effect of RAG and per-caption prompt for motion prior learning. Both design improves motion synthesis quality.
+dynamic attribute binding (where an object’s attributes change over time) by 25+%, enhances spatial binding (ensuring multiple objects maintain predefined spatial relationships) by 15+%, and improves motion binding (objects moving in specified directions) by at least 10%. These results highlight SR3A’s ability to maintain coherent compositions involving multiple objects, trajectories, and sequential events. Additionally, SR3A significantly enhances finegrained details such as attribute consistency, action binding, and object interactions, demonstrating its strong control capabilities. Beyond baseline comparisons, DREAMRUNNER built on CogVideoX-5B achieves state-of-the-art performance in five dimensions compared to other open-source models and even outperforms all closed-source models in dynamic attribute binding, spatial binding, and object interactions. These results underscore our method’s effectiveness in advancing open-source models to match or exceed closed-source benchmarks, highlighting its adaptability to even more robust models. We provide 4 qualitative examples per dimension against baselines in Appendix D.
+4.6. Effect of RAG and Per-Caption Prompt
+We investigate the effectiveness of retrieval-augmented testtime fine-tuning and our per-caption prompt design for learning an enhanced motion prior. Specifically, for each motion, we use an LLM [41] to provide 6 prompts in the whole 64-motion set, then evaluate the average CLIP/ViCLIP scores using these prompts. As shown in Table 4, applying our approach to CogVideoX-2B results in both CLIP and ViCLIP score improvements. The substantial ViCLIP gain indicates stronger alignment between the story and the generated video, highlighting significant enhancements in motion accuracy. The row2-3 results also indicate that per-video prompts outperform single prompts, suggesting that video-specific prompts help the model implicitly disregard unrelated visual elements and focus on learning more motion-specific patterns. These results validate that RAG effectively retrieves videos with relevant motions, aiding in learning a more accurate motion prior for the model.
+5. Conclusion
+In this work, we present DREAMRUNNER, a novel framework for story-to-video generation. Specifically, DREAMRUNNER utilizes a LLM to structure a hierarchical video plan, then introduces retrieval-augmented test-time adap
+tation to capture target motion priors, and finally generates videos using a novel region-based 3D attention and prior injection module for coherent composition. Experiments on both story-to-video and compositional T2V generation benchmarks show that DREAMRUNNER outperforms strong baselines and SoTAs in tackling fine-grained complex motions, maintaining multi-scene consistency of multiple objects, and ensuring seamless scene transitions.
+Acknowledgments
+This work was supported by DARPA ECOLE Program No. HR00112390060, NSF-AI Engage Institute DRL2112635, DARPA Machine Commonsense (MCS) Grant N6600119-2-4031, ARO Award W911NF2110220, ONR Grant N00014-23-1-2356, Accelerate Foundation Models Research program, and a Bloomberg Data Science PhD Fellowship. The views contained in this article are those of the authors and not of the funding agency.
+References
+[1] Zeroscope. https : / / huggingface . co / cerspense/zeroscope_v2_576w, 2023. 5
+[2] Dreamina. https://dreamina.capcut.com/aitool/platform, 2024. 8
+[3] Pixverse. https://app.pixverse.ai, 2024. 8
+[4] Flux. https : / / github . com / black - forest labs/flux, 2024. 6, 15 [5] Gen-3. https : / / runwayml . com / blog / introducing-gen-3-alpha/, 2024. 8
+[6] Kling. https://kling.kuaishou.com/, 2024. 8
+[7] Hritik Bansal, Yonatan Bitton, Michal Yarom, Idan Szpektor, Aditya Grover, and Kai-Wei Chang. Talc: Time-aligned captions for multi-scene text-to-video generation. arXiv preprint arXiv:2405.04682, 2024. 2, 3
+[8] Omer Bar-Tal, Hila Chefer, Omer Tov, Charles Herrmann, Roni Paiss, Shiran Zada, Ariel Ephrat, Junhwa Hur, Guanghui Liu, Amit Raj, et al. Lumiere: A spacetime diffusion model for video generation. arXiv preprint arXiv:2401.12945, 2024. 2
+[9] Wenhao Chai, Xun Guo, Gaoang Wang, and Yan Lu. Stablevideo: Text-driven consistency-aware diffusion video editing. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 23040–23050, 2023. 3 [10] Haoxin Chen, Yong Zhang, Xiaodong Cun, Menghan Xia, Xintao Wang, Chao Weng, and Ying Shan. Videocrafter2: Overcoming data limitations for high-quality video diffusion models. arXiv preprint arXiv:2401.09047, 2024. 8
+[11] Weifeng Chen, Yatai Ji, Jie Wu, Hefeng Wu, Pan Xie, Jiashi Li, Xin Xia, Xuefeng Xiao, and Liang Lin. Control-a-video: Controllable text-to-video generation with diffusion models. arXiv preprint arXiv:2305.13840, 2023. 2
+[12] Yuming Fang, Hanwei Zhu, Yan Zeng, Kede Ma, and Zhou Wang. Perceptual quality assessment of smartphone photography. In IEEE Conference on Computer Vision and Pattern Recognition, pages 3677–3686, 2020. 15
+9
+
+
+[13] Hao Fei, Shengqiong Wu, Wei Ji, Hanwang Zhang, and TatSeng Chua. Dysen-vdm: Empowering dynamics-aware textto-video diffusion with llms. In Proceedings of the IEEE International Conference on Computer Vision and Pattern Recognition (CVPR), 2024. 2, 3
+[14] Rinon Gal, Yuval Alaluf, Yuval Atzmon, Or Patashnik, Amit Haim Bermano, Gal Chechik, and Daniel Cohen-Or. An image is worth one word: Personalizing text-to-image generation using textual inversion. In Proceedings of the International Conference on Learning Representations (ICLR), 2023. 3 [15] Rohit Girdhar, Mannat Singh, Andrew Brown, Quentin Duval, Samaneh Azadi, Sai Saketh Rambhatla, Akbar Shah, Xi Yin, Devi Parikh, and Ishan Misra. Emu video: Factorizing text-to-video generation by explicit image conditioning. arXiv preprint arXiv:2311.10709, 2023. 2
+[16] Yuchao Gu, Xintao Wang, Jay Zhangjie Wu, Yujun Shi, Yunpeng Chen, Zihan Fan, Wuyou Xiao, Rui Zhao, Shuning Chang, Weijia Wu, et al. Mix-of-show: Decentralized lowrank adaptation for multi-concept customization of diffusion models. Advances in Neural Information Processing Systems, 36, 2024. 3 [17] Huiguo He, Huan Yang, Zixi Tuo, Yuan Zhou, Qiuyue Wang, Yuhang Zhang, Zeyu Liu, Wenhao Huang, Hongyang Chao, and Jian Yin. Dreamstory: Open-domain story visualization by llm-guided multi-subject consistent diffusion. arXiv preprint arXiv:2407.12899, 2024. 2, 3
+[18] Yingqing He, Menghan Xia, Haoxin Chen, Xiaodong Cun, Yuan Gong, Jinbo Xing, Yong Zhang, Xintao Wang, Chao Weng, Ying Shan, et al. Animate-a-story: Storytelling with retrieval-augmented video generation. arXiv preprint arXiv:2307.06940, 2023. 2, 3
+[19] Jack Hessel, Ari Holtzman, Maxwell Forbes, Ronan Le Bras, and Yejin Choi. Clipscore: A reference-free evaluation metric for image captioning. arXiv preprint arXiv:2104.08718, 2021. 14, 15 [20] Wenyi Hong, Ming Ding, Wendi Zheng, Xinghan Liu, and Jie Tang. Cogvideo: Large-scale pretraining for text-to-video generation via transformers. arXiv preprint arXiv:2205.15868, 2022. 2
+[21] hpcaitech. Open-sora: Democratizing efficient video production for all, 2024. 8 [22] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan AllenZhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. Lora: Low-rank adaptation of large language models. arXiv preprint arXiv:2106.09685, 2021. 2, 13
+[23] Ziqi Huang, Yinan He, Jiashuo Yu, Fan Zhang, Chenyang Si, Yuming Jiang, Yuanhan Zhang, Tianxing Wu, Qingyang Jin, Nattapol Chanpaisit, et al. Vbench: Comprehensive benchmark suite for video generative models. arXiv preprint arXiv:2311.17982, 2023. 15
+[24] Yash Jain, Anshul Nasery, Vibhav Vineet, and Harkirat Behl. Peekaboo: Interactive video generation via maskeddiffusion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 80798088, 2024. 2, 3 [25] Hyeonho Jeong, Geon Yeong Park, and Jong Chul Ye. Vmc: Video motion customization using temporal attention
+adaption for text-to-video diffusion models. arXiv preprint arXiv:2312.00845, 2023. 3
+[26] Glenn Jocher. YOLOv5 by Ultralytics, 2020. 5, 13 [27] Junjie Ke, Qifei Wang, Yilin Wang, Peyman Milanfar, and Feng Yang. Musiq: Multi-scale image quality transformer. In Proceedings of the IEEE/CVF international conference on computer vision, pages 5148–5157, 2021. 6, 15 [28] Levon Khachatryan, Andranik Movsisyan, Vahram Tadevosyan, Roberto Henschel, Zhangyang Wang, Shant Navasardyan, and Humphrey Shi. Text2video-zero: Textto-image diffusion models are zero-shot video generators. In Proceedings of the International Conference on Computer Vision (ICCV), 2023. 2
+[29] Nupur Kumari, Bingliang Zhang, Richard Zhang, Eli Shechtman, and Jun-Yan Zhu. Multi-concept customization of text-to-image diffusion. In Proceedings of the IEEE International Conference on Computer Vision and Pattern Recognition (CVPR), 2023. 3
+[30] Nupur Kumari, Bingliang Zhang, Richard Zhang, Eli Shechtman, and Jun-Yan Zhu. Multi-concept customization of text-to-image diffusion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 1931–1941, 2023. 6, 15 [31] PKU-Yuan Lab and Tuzhan AI etc. Open-sora-plan, 2024. 8 [32] Dongxu Li, Junnan Li, and Steven C. H. Hoi. Blip-diffusion: Pre-trained subject representation for controllable text-toimage generation and editing. In Advances in Neural Information Processing Systems (NeurIPS), 2023. 3
+[33] Jialu Li, Jaemin Cho, Yi-Lin Sung, Jaehong Yoon, and Mohit Bansal. Selma: Learning and merging skill-specific textto-image experts with auto-generated data. arXiv preprint arXiv:2403.06952, 2024. 3
+[34] Zhen Li, Zuo-Liang Zhu, Ling-Hao Han, Qibin Hou, ChunLe Guo, and Ming-Ming Cheng. Amt: All-pairs multi-field transforms for efficient frame interpolation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9801–9810, 2023. 6, 15 [35] Long Lian, Baifeng Shi, Adam Yala, Trevor Darrell, and Boyi Li. Llm-grounded video diffusion models. arXiv preprint arXiv:2309.17444, 2023. 8
+[36] Long Lian, Baifeng Shi, Adam Yala, Trevor Darrell, and Boyi Li. Llm-grounded video diffusion models. In The Twelfth International Conference on Learning Representations, 2024. 2, 3 [37] Han Lin, Abhay Zala, Jaemin Cho, and Mohit Bansal. Videodirectorgpt: Consistent multi-scene video generation via llm-guided planning. arXiv preprint arXiv:2309.15091, 2023. 2, 3, 6 [38] Han Lin, Jaemin Cho, Abhay Zala, and Mohit Bansal. Ctrladapter: An efficient and versatile framework for adapting diverse controls to any diffusion model. arXiv preprint arXiv:2404.09967, 2024. 3
+[39] Fuchen Long, Zhaofan Qiu, Ting Yao, and Tao Mei. Videostudio: Generating consistent-content and multi-scene videos, 2024. 3 [40] Gyeongrok Oh, Jaehwan Jeong, Sieun Kim, Wonmin Byeon, Jinkyu Kim, Sungwoong Kim, and Sangpil Kim. Mevg:
+10
+
+
+Multi-event video generation with text-to-video models. In European Conference on Computer Vision, pages 401–418. Springer, 2025. 2, 3 [41] OpenAI. Hello, gpt-4 turbo, 2024. 4, 9, 15 [42] Maxime Oquab, Timothée Darcet, Théo Moutakanni, Huy Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fernandez, Daniel Haziza, Francisco Massa, Alaaeldin El-Nouby, et al. Dinov2: Learning robust visual features without supervision. arXiv preprint arXiv:2304.07193, 2023. 14
+[43] Jae Wan Park, Sang Hyun Park, Jun Young Koh, Junha Lee, and Min Song. CAT: contrastive adapter training for personalized image generation. CoRR, abs/2404.07554, 2024. 3 [44] William Peebles and Saining Xie. Scalable diffusion models with transformers. In Proceedings of the International Conference on Computer Vision (ICCV), 2023. 2
+[45] Zhiwu Qing, Shiwei Zhang, Jiayu Wang, Xiang Wang, Yujie Wei, Yingya Zhang, Changxin Gao, and Nong Sang. Hierarchical spatio-temporal decoupling for text-to-video generation. In Proceedings of the IEEE International Conference on Computer Vision and Pattern Recognition (CVPR), 2024. 2
+[46] Leigang Qu, Shengqiong Wu, Hao Fei, Liqiang Nie, and TatSeng Chua. Layoutllm-t2i: Eliciting layout guidance from llm for text-to-image generation. In Proceedings of the 31st ACM International Conference on Multimedia, pages 643654, 2023. 3 [47] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In Proceedings of the International Conference on Machine Learning (ICML), 2021. 5, 13
+[48] Yixuan Ren, Yang Zhou, Jimei Yang, Jing Shi, Difan Liu, Feng Liu, Mingi Kwon, and Abhinav Shrivastava. Customize-a-video: One-shot motion customization of textto-video diffusion models. arXiv preprint arXiv:2402.14780, 2024. 3 [49] Stephen Robertson, Hugo Zaragoza, et al. The probabilistic relevance framework: Bm25 and beyond. Foundations and Trends® in Information Retrieval, 3(4):333–389, 2009. 5, 13, 14 [50] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman. Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 2250022510, 2023. 2, 3, 6, 13, 15 [51] Christoph Schuhmann and Romain Beaumont. Laionaesthetics predictor v1. https : / / github . com / LAION-AI/aesthetic-predictor, 2022. Accessed: 2025-03-07. 6, 15 [52] Uriel Singer, Adam Polyak, Thomas Hayes, Xi Yin, Jie An, Songyang Zhang, Qiyuan Hu, Harry Yang, Oron Ashual, Oran Gafni, et al. Make-a-video: Text-to-video generation without text-video data. arXiv preprint arXiv:2209.14792, 2022. 2 [53] Kihyuk Sohn, Lu Jiang, Jarred Barber, Kimin Lee, Nataniel Ruiz, Dilip Krishnan, Huiwen Chang, Yuanzhen Li, Irfan
+Essa, Michael Rubinstein, Yuan Hao, Glenn Entis, Irina Blok, and Daniel Castro Chin. Styledrop: Text-to-image synthesis of any style. In Advances in Neural Information Processing Systems (NeurIPS), 2023. 3
+[54] Kaiyue Sun, Kaiyi Huang, Xian Liu, Yue Wu, Zihan Xu, Zhenguo Li, and Xihui Liu. T2v-compbench: A comprehensive benchmark for compositional text-to-video generation. arXiv preprint arXiv:2407.14505, 2024. 3, 6, 8
+[55] Ye Tian, Ling Yang, Haotian Yang, Yuan Gao, Yufan Deng, Jingmin Chen, Xintao Wang, Zhaochen Yu, Xin Tao, Pengfei Wan, Di Zhang, and Bin Cui. Videotetris: Towards compositional text-to-video generation, 2024. 3, 8 [56] Jiuniu Wang, Hangjie Yuan, Dayou Chen, Yingya Zhang, Xiang Wang, and Shiwei Zhang. Modelscope text-to-video technical report. arXiv preprint arXiv:2308.06571, 2023. 2, 5
+[57] Yi Wang, Kunchang Li, Yizhuo Li, Yinan He, Bingkun Huang, Zhiyu Zhao, Hongjie Zhang, Jilan Xu, Yi Liu, Zun Wang, Sen Xing, Guo Chen, Junting Pan, Jiashuo Yu, Yali Wang, Limin Wang, and Yu Qiao. Internvideo: General video foundation models via generative and discriminative learning. arXiv preprint arXiv:2212.03191, 2022. 13
+[58] Yi Wang, Yinan He, Yizhuo Li, Kunchang Li, Jiashuo Yu, Xin Ma, Xinhao Li, Guo Chen, Xinyuan Chen, Yaohui Wang, et al. Internvid: A large-scale video-text dataset for multimodal understanding and generation. arXiv preprint arXiv:2307.06942, 2023. 2, 5, 14, 15
+[59] Yujie Wei, Shiwei Zhang, Zhiwu Qing, Hangjie Yuan, Zhiheng Liu, Yu Liu, Yingya Zhang, Jingren Zhou, and Hongming Shan. Dreamvideo: Composing your dream videos with customized subject and motion. arXiv preprint arXiv:2312.04433, 2023. 3
+[60] Yuxiang Wei, Yabo Zhang, Zhilong Ji, Jinfeng Bai, Lei Zhang, and Wangmeng Zuo. ELITE: encoding visual concepts into textual embeddings for customized text-to-image generation. In Proceedings of the International Conference on Computer Vision (ICCV), 2023. 3
+[61] Yujie Wei, Shiwei Zhang, Hangjie Yuan, Xiang Wang, Haonan Qiu, Rui Zhao, Yutong Feng, Feng Liu, Zhizhong Huang, Jiaxin Ye, et al. Dreamvideo-2: Zero-shot subjectdriven video customization with precise motion control. arXiv preprint arXiv:2410.13830, 2024. 3
+[62] Wenming Weng, Ruoyu Feng, Yanhui Wang, Qi Dai, Chunyu Wang, Dacheng Yin, Zhiyuan Zhao, Kai Qiu, Jianmin Bao, Yuhui Yuan, et al. Art-v: Auto-regressive text-tovideo generation with diffusion models. In Proceedings of the IEEE International Conference on Computer Vision and Pattern Recognition (CVPR), 2024. 2
+[63] Jay Zhangjie Wu, Yixiao Ge, Xintao Wang, Stan Weixian Lei, Yuchao Gu, Yufei Shi, Wynne Hsu, Ying Shan, Xiaohu Qie, and Mike Zheng Shou. Tune-a-video: One-shot tuning of image diffusion models for text-to-video generation. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 7623–7633, 2023. 3 [64] Ruiqi Wu, Liangyu Chen, Tong Yang, Chunle Guo, Chongyi Li, and Xiangyu Zhang. Lamp: Learn a motion pattern for few-shot-based video generation. arXiv preprint arXiv:2310.10769, 2023. 3
+11
+
+
+[65] Zhen Xing, Qi Dai, Zejia Weng, Zuxuan Wu, and YuGang Jiang. Aid: Adapting image2video diffusion models for instruction-guided video prediction. arXiv preprint arXiv:2406.06465, 2024. 3
+[66] Shiyuan Yang, Liang Hou, Haibin Huang, Chongyang Ma, Pengfei Wan, Di Zhang, Xiaodong Chen, and Jing Liao. Direct-a-video: Customized video generation with userdirected camera movement and object motion. In Special Interest Group on Computer Graphics and Interactive Techniques Conference Conference Papers ’24 (SIGGRAPH Conference Papers ’24), page 12, New York, NY, USA, 2024. ACM. 2, 3 [67] Yang Yang, Wen Wang, Liang Peng, Chaotian Song, Yao Chen, Hengjia Li, Xiaolong Yang, Qinglin Lu, Deng Cai, Boxi Wu, and Wei Liu. Lora-composer: Leveraging lowrank adaptation for multi-concept customization in trainingfree diffusion models. arXiv preprint arXiv: 2403.11627, 2024. 3 [68] Zhuoyi Yang, Jiayan Teng, Wendi Zheng, Ming Ding, Shiyu Huang, Jiazheng Xu, Yuanming Yang, Wenyi Hong, Xiaohan Zhang, Guanyu Feng, et al. Cogvideox: Text-to-video diffusion models with an expert transformer. arXiv preprint arXiv:2408.06072, 2024. 3, 5, 8
+[69] Hu Ye, Jun Zhang, Sibo Liu, Xiao Han, and Wei Yang. Ipadapter: Text compatible image prompt adapter for text-toimage diffusion models. CoRR, abs/2308.06721, 2023. 3 [70] Shoubin Yu, Jacob Zhiyuan Fang, Skyler Zheng, Gunnar Sigurdsson, Vicente Ordonez, Robinson Piramuthu, and Mohit Bansal. Zero-shot controllable image-to-video animation via motion decomposition. ACM, Multimedia, 2024. 3 [71] David Junhao Zhang, Jay Zhangjie Wu, Jia-Wei Liu, Rui Zhao, Lingmin Ran, Yuchao Gu, Difei Gao, and Mike Zheng Shou. Show-1: Marrying pixel and latent diffusion models for text-to-video generation. International Journal of Computer Vision, pages 1–15, 2024. 2 [72] Yuxin Zhang, Fan Tang, Nisha Huang, Haibin Huang, Chongyang Ma, Weiming Dong, and Changsheng Xu. Motioncrafter: One-shot motion customization of diffusion models. arXiv preprint arXiv:2312.05288, 2023. 3
+[73] Yabo Zhang, Yuxiang Wei, Dongsheng Jiang, Xiaopeng Zhang, Wangmeng Zuo, and Qi Tian. Controlvideo: Training-free controllable text-to-video generation. arXiv preprint arXiv:2305.13077, 2023. 2
+[74] Canyu Zhao, Mingyu Liu, Wen Wang, Jianlong Yuan, Hao Chen, Bo Zhang, and Chunhua Shen. Moviedreamer: Hierarchical generation for coherent long visual sequence. arXiv preprint arXiv:2407.16655, 2024. 2, 3
+[75] Rui Zhao, Yuchao Gu, Jay Zhangjie Wu, David Junhao Zhang, Jiawei Liu, Weijia Wu, Jussi Keppo, and Mike Zheng Shou. Motiondirector: Motion customization of text-tovideo diffusion models. arXiv preprint arXiv:2310.08465, 2023. 2, 3, 5, 13 [76] Guangcong Zheng, Xianpan Zhou, Xuewei Li, Zhongang Qi, Ying Shan, and Xi Li. Layoutdiffusion: Controllable diffusion model for layout-to-image generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 22490–22499, 2023. 3
+[77] Matthew Zheng, Enis Simsar, Hidir Yesiltepe, Federico Tombari, Joel Simon, and Pinar Yanardag. Stylebreeder: Exploring and democratizing artistic styles through text-toimage models. CoRR, abs/2406.14599, 2024. 3 [78] Sixiao Zheng and Yanwei Fu. Temporalstory: Enhancing consistency in story visualization using spatial-temporal attention. arXiv preprint arXiv:2407.09774, 2024. 2, 3
+[79] Ming Zhong, Yelong Shen, Shuohang Wang, Yadong Lu, Yizhu Jiao, Siru Ouyang, Donghan Yu, Jiawei Han, and Weizhu Chen. Multi-lora composition for image generation. arXiv preprint arXiv:2402.16843, 2024. 3
+[80] Junchen Zhu, Lianli Gao, Jingkuan Song, et al. Echoreel: Enhancing action generation of existing video diffusion models. arXiv preprint arXiv:2403.11535, 2024. 3
+[81] Shaobin Zhuang, Kunchang Li, Xinyuan Chen, Yaohui Wang, Ziwei Liu, Yu Qiao, and Yali Wang. Vlogger: Make your dream a vlog. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8806–8817, 2024. 2, 3, 6, 7
+12
+
+
+A. Additional Method Details
+A.1. Retrieval Processes
+Our retrieval process consists of the following steps (using the example “sitting” as the query motion):
+1) Initial Retrieval with BM25: We use the text-only BM25 score [49] based on video captions in the dataset to retrieve 400 candidate videos for the query. To ensure the retrieved videos are human motion-centric, we add "person is" at the beginning of the query ("person is sitting"). 2) Attribute-Based Filtering: We refine the candidate pool by filtering videos based on key attributes such as duration (at least 2 second), frame count (at least 40 frames), and aspect ratio (width/height at least 0.9). This ensures that the selected videos align with the requirements of the video generator, excluding videos that are too short or have extreme aspect ratios. 3) Clip Segmentation via Object Tracking: We track individuals within videos using YOLOv5 [26] and segment clips into human-centered segments based on the tracking results, keeping meaningful human-focused content. 4) Scoring with CLIP and ViCLIP [47, 57]: To ensure the fidelity between the segmented video clips and the query, we compute semantic similarity scores to the query text (e.g., “the person is sitting”) using CLIP and ViCLIP for each segmented clip. The CLIP score is computed by sampling eight frames and averaging frame-query scores, while the ViCLIP score is directly computed on the full video and query. We select the top 20 videos that satisfy the average scores of CLIP and ViCLIP > 0.2. We retain the top four videos based on their ranking if fewer than four videos meet this threshold.
+A.2. Motion Prior Training
+We train the LoRAs on our filtered top-ranked videos with all other backbone parameters frozen, using two diffusion losses: a standard diffusion loss Lorg, which is a reconstruction loss of all the video frames, and an appearancedebiased temporal loss Lad, which decouples the motion space from appearance space in the latent space, focusing on only reconstructing the motions in the videos. Formally,
+Lorg “ Ez0,y,ε„Np0,1q,t„Up0,T qr||ε  ́ εθpzt, t, yq||2s (1)
+where z0 is the latent encoding of the training videos, y is the text prompt condition, ε is the Gaussian noise added to the latent space, εθ is the predicted noise, and t is the denoising time step. The appearance-debiased temporal loss optimizes the normalized latent space:
+φpεq “
+aβ2 ` 1ε  ́ βεanchor (2)
+where εanchor is the anchor among the frames from the same training data, and β is the strength factor that controls
+the strength of the debiasing. Lad is defined as:
+Lad “ Ez0,y,ε„Np0,1q,t„Up0,T qr||φpεq  ́ φpεθpzt, t, yqq||2s
+(3) In the end, we update the model using a combined motion loss function defined as Lmotion “ Lorg ` Lad. Notably, we do not apply scaling to each loss term throughout experiments in the paper, highlighting the robustness and simplicity of hyperparameter selection in DREAMRUNNER.
+A.3. Region-Based LoRA Injection
+Low-Rank Adaptation (LoRA) [22] was introduced to efficiently adapt large pre-trained language models to various downstream tasks. More recently, LoRA has been extended to text-to-image and text-to-video generation, enabling lightweight subject and motion customization [50, 75]. Instead of updating the full weight matrix W , LoRA applies a low-rank decomposition, modifying it as:
+W “ W0 ` ∆W “ W0 ` BA, (4)
+where W0 P Rdˆk denotes the original model weights, and B P Rdˆr, A P Rrˆk are the learnable low-rank matrices with r ! d, k. During inference, the LoRA layer’s output is the summation of the original layer’s output W0x and low-rank matrices’ output BAx:
+W x “ W0x ` BAx (5)
+where x P Rkˆc (c is the number of latent tokens, while k is the dimension of each token) is the latents. By restricting updates to these low-rank factors, LoRA significantly reduces computational overhead compared to full fine-tuning approaches. Additionally, its plug-and-play nature makes it highly efficient for deployment and sharing across different pre-trained models. To inject LoRA locally into specific regions, we compute masks for the latents corresponding to each LoRA and mask the input of other regions. For example, considering the character LoRAs in main paper’s Fig. 1, we compute the output when forwarding the latents x to this layer as:
+W x “ W0x ` AwitchBwitchpM askwitch  ̈ xq
+` AcatBcatpM askcat  ̈ xq
+“ pW0 ` AwitchBwitchqpM askwitch  ̈ xq
+` pW0 ` AcatBcatqpM askcat  ̈ xq
+` W0pp1c  ́ M askwitch  ́ M askcatq  ̈ xq
+(6)
+where 1c is a c dimension all-ones vector and  ̈ denotes the dot product, so M ask  ̈ x denotes the dot product between the c dimension boolen mask and the k ˆ c latent. In this case, the cat’s LoRA only acts on the cat-related region (M askcat  ̈ x), ensuring that the cat-region output is similar
+13
+
+
+to the output obtained when applying a classical cat LoRA globally:
+W xM askwitch“1
+“pW0 ` AwitchBwitchqpM askwitch  ̈ xMaskwitch“1q
+`pW0 ` AcatBcatqpM askcat  ̈ xMaskwitch“1q
+`W0pp1c  ́ M askwitch  ́ M askcatq  ̈ xMaskwitch“1q
+“pW0 ` AwitchBwitchqp1  ̈ xMaskwitch“1q
+`pW0 ` AcatBcatqp0  ̈ xMaskwitch“1q
+`W0p0  ̈ xMaskwitch“1q
+“pW0 ` AwitchBwitchqxM askwitch“1
+(7)
+Similarly, the witch’s LoRA only modifies the witch-related region (M askwitch  ̈ x), preserving consistency with traditional LoRA-based adaptation for the witch. For other regions unrelated to both the witch and the cat, the output remains unchanged, as the mask ensures that no LoRA modifications are applied, making it equivalent to the output without any LoRA injection. For the Motion LoRAs in main paper’s Fig. 1, we follow the similar style to inject them locally:
+W x “ W0x ` AwalkingBwalkingpM askwalking  ̈ xq
+`AwhisperingBwhisperingpM askwhispering  ̈ xq (8)
+Such a region-based LoRA injection design allows multiple LoRAs to act on different regions, ensuring seamless multi-LoRA integration while preventing interference between unrelated entities or motions, thereby enabling precise multi-character, multi-motion customization.
+B. Additional Ablations
+B.1. Ablations of RAG pipeline
+We provide additional experiments in Section 3.2 to demonstrate the effectiveness of our data processing approach within the retrieval pipeline. Table 5 primarily evaluates the impact of the maximal number of retrieved videos and the use of CLIP and ViCLIP for filtering. For efficiency, we evaluate a subset of eight motions selected from the full pool of 64 motions. The results indicate that, compared to the CogVideoX zero-shot baseline (Row 1), retrieving videos without any filtering (Row 2) improves performance, even though BM-25 [49] retrieval introduces some noise. This highlights the importance of retrieval itself. Furthermore, adding CLIP and ViCLIP as filters (Row 4) further enhances performance, showcasing the benefit of using semantically aligned videos for improved motion learning. Additionally, retrieving a sufficient number of videos is critical, as evidenced by Row 3, where limiting retrieval to a maximum of three videos results in poorer performance compared to retrieving 20 videos (Row 4).
+Max. #Retrieval CLIP+ViCLIP filter CLIP ViCLIP 0 ˆ 23.42 20.56 20 ˆ 24.01 22.51 3 ✓ 24.45 22.80 20 ✓ 25.47 23.66
+Table 5. Pipeline component ablation on retrieval-augmented testtime adaptation for learning a better motion prior.
+B.2. Ablations of Odd-Even Layer Separation for Motion Prior Learning
+During motion prior learning, since our backbone does not explicitly separate spatial and temporal modeling, we manually designate even layers as spatial and odd layers as temporal to decouple the learning of spatial and temporal LoRAs. We hypothesize that this design helps learn appearance-debiased, motion-focused priors, while the interleaved structure allows adaptation across low-level structures and high-level semantics, as both spatial and temporal LoRAs are injected throughout the model. We validate this hypothesis in Table 6. Specifically, removing spatial LoRAs (row 1) degrades performance compared to row 3, indicating that separating spatial and temporal LoRAs enhances motion-focused learning. Additionally, the Half-Half approach (injecting spatial LoRAs into the first half of layers and temporal LoRAs into the second half, row 2) underperforms compared to interleaved injection, highlighting the importance of multi-level learning across the entire model.
+Method CLIP ViCLIP No Appearance-Debiased 24.4 22.5 Half-Half Injection 24.9 23.1 Interleaved Injection (Ours) 25.5 23.7
+Table 6. LoRA injection ablations.
+C. Evaluation Metrics
+We provide detailed evaluation metrics for assessing generated storytelling videos across multiple dimensions in Section 4.1.
+• Similarity to Reference Images: We assess the alignment between the generated videos and reference images using Image-Image CLIP [19] and DINO [42] scores. The evaluation is conducted by averaging the CLIP/DINO similarity scores between each frame of the generated video and the reference images, with CLIPL14 (336px) [19] and DINOv2-B16 [42] as image encoders.
+• Similarity to Full Narration per Scene: We measure the alignment between the full narration and the generated videos for each scene using Image-Text CLIP [19] and Video-Text ViCLIP [58] scores. For the CLIP score, we uniformly sample eight frames from the single-scene video and compute the average score between each frame
+14
+
+
+and the full narration. For the ViCLIP score, we directly use the alignment score between the video and the narration. Per-scene scores are averaged to obtain the overall score for the multi-scene storytelling video.
+• Fine-Grained Text Alignment per Scene: We also assess fine-grained alignment to textual descriptions using Image-Text CLIP [19] and Video-Text ViCLIP [58] scores. In our story, each narration contains two motions, which we decouple into two consecutive singlemotion descriptions using an LLM [41]. For each generated single-scene video, we divide it into two segments at the temporal midpoint. We then compute the CLIP/ViCLIP scores between the first segment and the first description and between the second segment and the second description. The average of these two scores provides the per-scene score, and the per-scene scores are further averaged to compute the overall score for the storytelling video. • Transition Quality: We assess whether the single-scene video achieves smooth transitions between two motions. To evaluate this, we uniformly sample four frames from the video per scene and calculate the average DINO similarity between adjacent frames. A higher transition score indicates smoother transitions, as it reflects minimal changes in the background across frames. • Motion Smoothness: Following [23], we utilize motion priors from a video frame interpolation model [34] to quantify the smoothness of motion in generated videos (see Supplementary for details), specifically, given one video, we drop the odd-number frames and then use the interpolation model to infer the dropped frames. Then we compute the Mean Absolute Error between the estimated frames and the dropped frames. • Aesthetic Quality: We evaluate the artistic and visual appeal of each generated video frame using the LAION aesthetic predictor [51] frame-by-frame. This metric reflects aesthetic aspects such as composition, color richness and harmony, photorealism, naturalness, and overall artistic quality. • Imaging Quality: Imaging quality measures distortions such as over-exposure, noise, and blur in generated frames. We evaluate this using the MUSIQ [27] image quality predictor frame-by-frame, which is trained on the SPAQ dataset [12].
+D. Compositional T2V Examples
+In this section, we present qualitative examples demonstrating the capabilities of DREAMRUNNER in compositional text-to-video generation. DREAMRUNNER effectively generates videos with accurate action binding to different characters, consistent attributes across objects, dynamic attribute changes, motion control, object interactions, and appropriate spatial relationships between objects.
+For action binding, as shown in Figure 5, DREAMRUNNER generates distinct motions for two objects (e.g., A monkey in a pilot jacket and a parrot with aviator goggles ready for flight), ensuring the actions are correctly bound to their respective objects without interference. For consistent attribute binding, as illustrated in Figure 6, our approach maintains separate attributes for different objects (e.g., Rectangular briefcase swinging near a hexagonal fountain) without any overlap or inconsistency. For dynamic attribute changes, as shown in Figure 7, DREAMRUNNER naturally transitions object attributes over time (e.g., A timelapse of a piece of bread initially fresh, then growing moldy). For motion control, as depicted in Figure 8, DREAMRUNNER successfully directs object movements in different trajectories (e.g., A squirrel climbs upward on a tree and A drone is gradually descending to the ground in a park). For object interactions, as illustrated in Figure 9, interactions are accurately modeled, adhering to the real world rules (e.g., Cat’s paw presses on a soft pillow). Finally, for spatial relationships, as shown in Figure 10, DREAMRUNNER generates rare or imaginative configurations (e.g., a duck positioned under a spacecraft) while maintaining spatial coherence. These examples highlight the strong performance of DREAMRUNNER in generating high-quality compositional text-to-video outputs.
+E. Characters.
+We provide character examples in Figure 11, where the first four are generated using FLUX [4], and the others are collected from existing customization datasets (CustomConcept101 [30] and Dreambooth [50]).
+F. Single-Character Examples
+In this section, we present qualitative examples of video generation featuring a single main character. As shown in Figure 13 and Figure 12, DREAMRUNNER generates consistent characters throughout the entire story. Additionally, in each scene, DREAMRUNNER effectively captures multiple events, such as the mermaid first wandering through the plants and then examining unique shells.
+G. Multi-Character Examples
+In this section, we present qualitative examples of video generation featuring multiple characters. As illustrated in Figure 14 and Figure 15, DREAMRUNNER generates multiscene, multi-character videos where each character retains its own motion and interacts seamlessly with others, without any interference. For instance, in Figure 14, the witch is shown pouring ingredients while the cat wanders around the room. Even as the cat approaches the witch, their motions
+15
+
+
+remain independent, and the appearance of both characters is consistently preserved throughout the scene.
+H. LLM Prompts
+We provide detailed LLM prompts for both high-level plans and fine-grained plans in Listing 1 and Listing 3. respectively. For high-level plans, we use a simple in-context example with instructions, while fine-grained plans require reasoning before generating the output. Example outputs are shown in Listings 2 and 4. For multi-character scenarios, we modify character-related words and examples and limit required motions to a maximum of four.
+16
+
+
+A monkey in a pilot jacket and a parrot with aviator goggles ready for flight
+A dolphin jumps next to a speeding boat
+A squirrel gathers nuts and a bat hangs from a tree branch
+A kid and a penguin watch a movie in the cinema
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+Figure 5. Qualitative results of DREAMRUNNER generated with prompts characterizing action binding. SR3A denotes our spatialtemporal region-based attention module. 17
+
+
+Rectangular briefcase swinging near a hexagonal fountain
+Wooden car speeding past a porcelain tree
+White tractor plowing near a green farmhouse
+Big hearts and small stars floating upwards
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+Figure 6. Qualitative results of DREAMRUNNER generated with prompts characterizing consistent attribute binding. SR3A denotes our spatial-temporal region-based attention module.
+18
+
+
+A cat's green eyes turn a red
+A timelapse of a piece of bread initially fresh, then growing moldy
+A timelapse of a flower bud blooming into a full flower
+Clear blue sky turns stormy gray
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+Figure 7. Qualitative results of DREAMRUNNER generated with prompts characterizing dynamic attribute binding. SR3A denotes our spatial-temporal region-based attention module. 19
+
+
+A drone is gradually descending to the ground in a park
+A squirrel climbs upward on a tree
+A paper airplane gliding to the right across a classroom
+A bird flies upwards in a garden
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+Figure 8. Qualitative results of DREAMRUNNER generated with prompts characterizing motion binding. SR3A denotes our spatialtemporal region-based attention module. 20
+
+
+Cat's paw presses on a soft pillow
+Sorcerer summons water from thin air, flooding room
+Coach motivates athlete during a tough workout
+Tiger coach whistles at soccer practice
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+Figure 9. Qualitative results of DREAMRUNNER generated with prompts characterizing object interactions. SR3A denotes our spatialtemporal region-based attention module. 21
+
+
+A llama walking on the right side of a motorcycle in a city street
+A chandelier hanging above a grand piano in a busy hotel lobby
+A duck waddling below a spacecraft
+A lion sitting behind a chicken
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+CogVideoX 5B
+CogVideoX 5B + SR3A
+LLM Layout Plan
+Figure 10. Qualitative results of DREAMRUNNER generated with prompts characterizing spatial relationships. SR3A denotes our spatialtemporal region-based attention module.
+22
+
+
+witch
+mermaid astronaut
+warrior
+Characters Generated by FLUX
+Characters Collected from Web
+cat 1 cat 2
+dog 1 dog 2
+teddy bear robot toy
+Figure 11. Qualitative results of DREAMRUNNER generated with a single character (mermaid).
+23
+
+
+After a smooth landing, the astronaut steps out onto the dusty, alien soil. He plants a flag beside his ship, marking his arrival on this strange new world with a sense of pride.
+As the day ends, the astronaut finds a quiet cliff and sits on a rock, watching a stunning alien sunset. He reflects on his journey, feeling a deep connection to this unfamiliar world.
+Stumbling upon ancient ruins, the astronaut brushes sand off a strange relic carved with unknown symbols. He takes a photo for further study, intrigued by the mysteries this planet holds.
+The astronaut enters a mysterious forest filled with strange, luminescent plants. He kneels down to inspect a glowing flower and collects a small soil sample, documenting his discoveries.
+Moving cautiously, the astronaut climbs over jagged rocks, making his way through the rough terrain. He pauses atop a high ledge, using the surveying machine on the alien landscape stretching endlessly before him.
+The astronaut prepares for landing on the unknown planet. He carefully examines the spaceship’s control panel, ensuring all systems are ready, and stretches his arms, feeling the thrill of discovery ahead.
+Figure 12. Qualitative results of DREAMRUNNER generated with a single character (astronaut).
+24
+
+
+The Mermaid diving toward the old, mysterious sunken ship, exploring its hidden corners. Her movements are careful as she examines every detail, wondering what secrets the ship might reveal.
+The Mermaid finishes her journey by a secluded lagoon, lying near the shore. With a playful motion, she splashes water around, basking in the warm sunlight to end her day.
+The Mermaid ventures into a shadowy sea cave, swimming cautiously. She finds a glowing stone on the cave floor and picks it up, mesmerized by its mysterious light.
+The Mermaid enters a dense kelp forest, wandering through the tall, flowing plants. She pauses to inspect some unique shells caught on a kelp strand.
+In the open ocean, the Mermaid glides effortlessly through the water. She encounters a friendly dolphin and waves as it playfully circles around her before swimming off.
+The Mermaid begins her day through the vibrant coral reef. She swims smoothly between colorful corals and touches the corals with her curiosity.
+Figure 13. Qualitative results of DREAMRUNNER generated with a single character (mermaid).
+25
+
+
+At a mystical lake deep in the forest, the witch kneels by the water's edge. Her cat swimming through the shallows, splashing playfully and sending ripples across the surface. The witch watches as shimmering visions emerge beneath the water, offering guidance for her next magical journey.
+To end her day, the witch walks among the moonlit flowers in her garden, whispering a farewell to each plant. Her cat walks softly beside her, its tail swaying gently with each step. With one last glance at the shimmering stars above, she heads inside, her heart content from a day filled with magic.
+Under the glow of the moon and surrounded by luminous flowers, the witch walks through her mysterious forest, while her cat quietly arranges flowers nearby. As they move through the magical scenery, the witch pauses to wave her hands toward the cat, sharing a moment of connection amidst the enchanting glow.
+As night falls, the witch returns home to her cozy study. Her cat sits gracefully on the windowsill, watching the witch. The witch writes about her magical adventures in her journal, sipping a calming tea as she reflects on the day's enchantments and mysteries.
+At the edge of a quiet village, the witch takes out her spellbook and gestures with her wand, casting a protective charm over the nearby homes, ensuring the villagers' safety from lurking shadows. Nearby, her cat lies stretched out on a warm patch of grass, watching her intently with half-closed eyes.
+The witch begins her day in her potion room. As she pours ingredients into a bubbling cauldron, her cat wanders curiously around the room. The witch stirs carefully as the mixture begins to glow, casting a mystical light across the space.
+Figure 14. Qualitative results of DREAMRUNNER generated with multiple characters (witch and cat 1).
+26
+
+
+In the courtyard, the warrior stands poised to begin his kung fu practice. His dog lies to rest a short distance away, watching quietly. The warrior practice kung fu with precision and strength, grounding himself with every step and feeling the energy flow through him.
+As night falls, the warrior sets up camp and lights a small fire, with His dog sitting faithfully by his side. The warrior sharpens his sword with a whetstone, ensuring it is ready for another day of training and adventure.
+Amid the tranquil bamboo grove, the warrior draws his bow, each arrow flying true. Nearby, his dog walks leisurely among the bamboo, its steps soft and unhurried. After a series of shots, the warrior sits down on the ground to rest, taking in the quiet and steadying his breath.
+After hours of training, the warrior heads to the riverbank. His dog eagerly swims in the river with joy. The warrior fills his flask with fresh water from the river and drinks deeply, refreshing himself before continuing with his routine.
+The warrior arrives at the training grounds early in the morning with his dog, who wanders nearby. He stretches his arms to warm up, then picks up his sword and swings it in practice, honing his technique.
+Figure 15. Qualitative results of DREAMRUNNER generated with multiple characters (warrior and dog 2).
+27
+
+
+Listing 1. The LLM prompt for high-level planning (Section 3.1, Story-Level Croase-Grained Planning). User may input the high-level planning to generate at the [Input] highlighted in blue. We highlight scene, motions, narrations using same colors as Section 3.1.
+Consider you are an expert in writing stories. I will provide you with a topic, and you need to create a multi-scene story with 5 to 8 scenes. Each scene should describe the events taking place, emphasizing highlighting human actions or motions. Limit each scene to a maximum of 2 distinct human motions. Your output should include both the scene and motions as well as the narration, where the motion should be in present progressive.
+[Input] Teddy’s one day
+[Output] Scene 1: bedroom Motions: waking up, stretching arms Narration: Teddy starts his day in his bedroom. He wakes up from the bed and stretches his arms beside it, getting ready for a new day.
+Scene 2: kitchen Motions: pouring cereal, drinking Narration: Teddy is in the kitchen for breakfast. He pours cereal into a bowl in the kitchen, and drinks the soup, preparing his morning meal.
+Scene 3: backyard Motions: watering plants, examining flower Narration: Teddy spends some time outside in the backyard. He waters the garden plants and kneels down to examine a flower, enjoying the fresh air and tending to the plants.
+Scene 4: park Motions: jogging, breathing Narration: Teddy visits the park for some exercise. He jogs in the park, then he becomes very tired so he breaths heavily, regaining his energy.
+Scene 5: forest Motions: hiking, sitting Narration: Teddy goes hiking on a forest trail. He hikes up the trail and then sits on a rock to rest, appreciating the tranquility of nature.
+Scene 6: living room Motions: sitting, reclining Narration: Teddy winds down at the end of the day in the living room. He sits on the couch and then reclines to relax, ending his day in comfort and peace.
+[Input] Mermaid’s Adventure
+28
+
+
+Listing 2. The example of the output from the high-level planning prompt, Listing 1. We highlight scene, motions, narrations using same colors as Section 3.1.
+[Output] Scene 1: Coral Reef Motions: swimming, touching Narration: The Mermaid begins her day through the vibrant coral reef. She swims smoothly between colorful corals and touches the corals with her curiosity.
+Scene 2: Sunken Ship Motions: diving, exploring Narration: The Mermaid diving toward the old, mysterious sunken ship, exploring its hidden corners. Her movements are careful as she examines every detail, wondering what secrets the ship might reveal.
+Scene 3: Open Ocean Motions: gliding, waving Narration: In the open ocean, the Mermaid glides effortlessly through the water. She encounters a friendly dolphin and waves as it playfully circles around her before swimming off.
+Scene 4: Kelp Forest Motions: wandering, inspecting Narration: The Mermaid enters a dense kelp forest, wandering through the tall, flowing plants. She pauses to inspect some unique shells caught on a kelp strand.
+Scene 5: Sea Cave Motions: swimming, picking up Narration: The Mermaid ventures into a shadowy sea cave, swimming cautiously. She finds a glowing stone on the cave floor and picks it up, mesmerized by its mysterious light.
+Scene 6: Lagoon Motions: lying, splashing Narration: The Mermaid finishes her journey by a secluded lagoon, lying near the shore. With a playful motion, she splashes water around, basking in the warm sunlight to end her day.
+29
+
+
+Listing 3. LLM prompt for fine-grained frame-level plan (Section 3.1, Scene-Level Fine-Grained Planning) per narration. We highlight Background, [entity, motion, caption] and layout [left, top, right, bottom] using same colors as Section 3.1.
+Assuming the frame size is normalized to the range 0-1, you need to give a possible 6-frame layout plan at 1fps with the relevant regions, containing entity with corresponding motion, caption and bounding box involved in the input example motion and narration. You should follow these instructions:
+1. [Background and Regions] You need to give a background of the videos, then list all regions with related entity, motion, caption, and bounding box, for each frame. 2. [Bounding Box Size] Each bounding box of the region is one rectangle or square box in the layout, and the size of boxes should be AS LARGE AS POSSIBLE. The width and height of each bounding box should be at least 0.2. 3. [Bounding Box Format] Every region should contain one related motion and caption, with the bounding boxes in the format of [[entity1, motion1, caption1], [left, top, right, bottom]]. If the entity doesn’ t involve any motion, use "none" as the motion (e.g. ["table", "none", "a table in the forest"]). 4. [Captions and Motions)] "IMPORTANT" For each entity, you should give a caption containing the entity and motion, with the provided background. 5. [Allowing Overlaps for Interaction Contexts] Regions can overlap if necessary, particularly when entities are interacting. For example, in "Teddy is pouring water into a bowl," you can have a region for "a bowl" overlapping or near Teddy’s region. Similarly, in "Teddy is sitting by the river," you can have a region for "river bank" overlapping or positioned beneath Teddy’s region. 5. [Allowing Overlaps for Interaction Contexts] Regions can overlap if necessary, particularly when entities are interacting. For example, in "Teddy is pouring water into a bowl," you can have a region for "a bowl" overlapping or near Teddy’s region. Similarly, in "Teddy is sitting by the river," you can have a region for "river bank" overlapping or positioned beneath Teddy’s region. 6. [Interaction with Objects] For an object listed in previous frames, when the entity is interacting with it in the current frames, you can still list the interacted object, then also use a whole region describing the character interacting with the object (e.g. [["rock", "none", "a rock in the forest"], [0.0, 0.8, 0.2, 1.0]] before entity Teddy is interacting with it, [["rock", "none", "a rock in the forest"], [0.0, 0.8, 0.2, 1.0]], [["Teddy", "sitting", "Teddy is sitting on the rock in the forest"], [0.0, 0.0, 0.4, 1.0]] when interacting). 7. [Static Interaction Objects] In most cases, the interacted objects should be static. For example, " Teddy is greeting to people" then "people" should have no bounding box changes. For some non-static objects like "the bottle" of "Teddy is drinking water", ignore such objects to be listed seperatedly. 8. [Motion Limitation] You should not use other motions outside the provided narration. The motion and caption should all be in PRESENT PROGRESSIVE. 9. [Motion Duration] One motion should last at least two frames. 10. [Reasoning] Add reasoning before you generate the region plan, explaining how you will allocate different events/motions to different frames and how the entity will be moving (e.g., left to right or staying static). 11. [Smart Motion Allocation] Allocate motions smartly by reasoning the frames they need (e.g., static motions like standing will require fewer frames but walking may need more). The background should not contain information about the characters (e.g., Teddy’s xxx is not allowed). 12. [Common Sense in Layout] Make sure the locations of the generated bounding boxes are consistent with common sense. You need to generate layouts from the close-up camera view of the event. The layout difference between two adjacent frames should not be too large, considering the small interval. 13. [Motions for Large Position Changes] If you want to move the entity largely by changing its bounding boxes (e.g., from most right to most left), make sure the motion naturally involves position changes (e.g., walking, running, flying, riding a bike). Otherwise, avoid big changes in related bounding boxes (e.g., cooking, jumping, playing guitar, etc., where bounding boxes should not change significantly). 14. [Big Regions Preference] We prioritize using large regions for main entities. For example, [0.2, 0.0, 0.8, 1.0] for a main teddy bear, as long as it fits the scene. Do not use small regions (like with only 0.2~0.3 width and height) as possible as you can. 15. [Motion Caption Consistency] Ensure that each caption accurately reflects the stated motion. For example, if the motion is "walking" the caption should match this exactly, such as "Teddy is walking in the park." Avoid any inconsistencies where the motion described in the caption does not match the stated motion, such as "Teddy is running in the park" when the motion is "walking." This consistency maintains clarity and alignment with the narration.
+Use format: *Reasoning* reason
+*Plan* Background: background Frame_1: [[entity1, motion1, caption1], [left, top, right, bottom]], [[entity2, motion2,
+30
+
+
+caption2], [left, top, right, bottom]], ..., [[entity3, motion3, caption3], [left, top, right, bottom]] Frame_2: [[entity1, motion1, caption1], [left, top, right, bottom]], [[entity2, motion2, caption2], [left, top, right, bottom]], ..., [[entity3, motion3, caption3], [left, top, right, bottom]] ... Frame_6: [[entity1, motion1, caption1], [left, top, right, bottom]], [[entity2, motion2, caption2], [left, top, right, bottom]], ..., [[entity3, motion3, caption3], [left, top, right, bottom]]
+Reasoning: ...
+Example 1: [Input] Motion: walking, sitting Narration: Teddy goes to a forest. He walks on the trail and then sits on a rock to rest, appreciating the tranquility of nature.
+[Output] *Reasoning* Listed motions are: walking, sitting. Related entities and motions: Teddy (from walking to sitting), rock (will be sit by Teddy in the end, but no related motions). Motion frames allocation: The main entity involve motion changes is Teddy. Teddy’s motion changes from walking to sitting. As sitting takes less time, we should allocate more frames to walking. so the plan is 4 frames for walking and 2 frames for sitting. (Following bullet point 11 [Smart Motion Allocation]) Bounding box changes: For Teddy, the first motion is walking, which involves position changes a little bit. And the second motion is sitting, which should be a bounding-box-static motion. So the Teddy bear can have bounding boxes changes at first and finally interacts with the For the rock, it doesn’t involve any motion, so it should be static from far from to close to, and finally interacting with Teddy. (Following bullet point 13 [Motions for Large Position Changes]) Interaction: This input narration involve interaction between the rock and Teddy and happens in late frames, so the rock and Teddy will have one merged-region where the entity is Teddy and the caption is about Teddy sitting on the rock. ALso the rock will also be listed from frame 1 to 3, while maintained from 4 to 6, as a static object. (Following bullet point 5 [Allowing Overlaps for Interaction Contexts ], 6 [Interaction with Objects], 7 [Static Interaction Objects])
+In conclusion, the plan can be: Teddy is at the right side at the beginning of the video, and there’s also a rock on the left right corner. From Frame 1 to Frame 4, the Teddy bear is hiking on the trail moving from right to left to approaching the rock. In Frame 5 and Frame 6, it reaches the rock and sits on the rock (which is on the left corner) to rest, in the left side of the video.
+*Plan* Background: the forest Frame_1: [["Teddy", "hiking", "Teddy is hiking on a trail in the forest"], [0.6, 0.0, 1.0, 1.0]], [["rock", "none", "a rock in the forest"], [0.0, 0.8, 0.2, 1.0]] Frame_2: [["Teddy", "hiking", "Teddy is hiking on a trail in the forest"], [0.47, 0.0, 0.87, 1.0]], [["rock", "none", "a rock in the forest"], [0.0, 0.8, 0.2, 1.0]] Frame_3: [["Teddy", "hiking", "Teddy is hiking on a trail in the forest"], [0.33, 0.0, 0.73, 1.0]], [["rock", "none", "a rock in the forest"], [0.0, 0.8, 0.2, 1.0]] Frame_4: [["Teddy", "hiking", "Teddy is hiking on a trail in the forest"], [0.2, 0.0, 0.6, 1.0]], [["rock", "none", "a rock in the forest"], [0.0, 0.8, 0.2, 1.0]] Frame_5: [["Teddy", "sitting", "Teddy is sitting on the rock in the forest"], [0.0, 0.0, 0.4, 1.0]], [["rock", "none", "a rock in the forest"], [0.0, 0.8, 0.2, 1.0]] Frame_6: [["Teddy", "sitting", "Teddy is sitting on the rock in the forest"], [0.0, 0.0, 0.4, 1.0]], [["rock", "none", "a rock in the forest"], [0.0, 0.8, 0.2, 1.0]]
+[Input] Motions: swimming, touching Narration: The Mermaid begins her day through the vibrant coral reef. She swims smoothly between colorful corals and touches the corals with her curiosity.
+31
+
+
+Listing 4. The example output of fine-grained planning prompt 3. We highlight Background, [entity, motion, caption] and layout [left, top, right, bottom] using same colors as Section 3.1.
+[Output] *Reasoning* Listed motions are: swimming, touching. Related entities and motions: Mermaid (from swimming to touching), corals (being touched by the mermaid ). Motion frames allocation: The main entity involving motion changes is the Mermaid. The first motion, swimming, can last relatively longer with more frame coverage as it involves position changes. Touching corals happens afterward and should occupy fewer frames with minimal position changes. Bounding box changes: The swimming motion involves position changes, so the bounding box for the Mermaid can have slight shifts, swimming through the corals from left to right. The touching motion of the Mermaid should be static, focusing on the interaction at the coral, which is near the center of the frame. Interaction: The interaction between the Mermaid and the corals happens later in the narration, so a combined region featuring the Mermaid touching the corals will be involved in the last two frames. Non-interacting corals will appear in all frames, having stable bounding boxes across the video to show the environment and the Mermaid’s interaction context.
+The plan is as follows: The Mermaid swims through the vibrant coral reef, starting from near the left, moving towards the center, where the corals are located. On reaching the center, she begins touching the corals with fascination.
+*Plan* Background: the vibrant coral reef full of colors and life Frame_1: [["Mermaid", "swimming", "The Mermaid is swimming through the vibrant coral reef"], [0.0, 0.0, 0.4, 1.0]], [["corals", "none", "Colorful corals in the reef"], [0.5, 0.3, 0.8, 0.6]] Frame_2: [["Mermaid", "swimming", "The Mermaid is swimming through the vibrant coral reef"], [0.15, 0.0, 0.55, 1.0]], [["corals", "none", "Colorful corals in the reef"], [0.5, 0.3, 0.8, 0.6]] Frame_3: [["Mermaid", "swimming", "The Mermaid is swimming through the vibrant coral reef"], [0.3, 0.0, 0.7, 1.0]], [["corals", "none", "Colorful corals in the reef"], [0.5, 0.3, 0.8, 0.6]] Frame_4: [["Mermaid", "swimming", "The Mermaid is swimming through the vibrant coral reef"], [0.45, 0.0, 0.85, 1.0]], [["corals", "none", "Colorful corals in the reef"], [0.5, 0.3, 0.8, 0.6]] Frame_5: [["Mermaid", "touching", "The Mermaid is touching the corals with her curiosity"], [0.4, 0.1, 0.7, 0.9]], [["corals", "none", "Colorful corals in the reef"], [0.5, 0.3, 0.8, 0.6]] Frame_6: [["Mermaid", "touching", "The Mermaid is touching the corals with her curiosity"], [0.4, 0.1, 0.7, 0.9]], [["corals", "none", "Colorful corals in the reef"], [0.5, 0.3, 0.8, 0.6]]
+32

@@ -1,0 +1,474 @@
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Yuval Atzmon 1 Rinon Gal 1 Yoad Tewel 1 Yoni Kasten 1 Gal Chechik 1
+Abstract
+Text-to-video diffusion models have shown remarkable progress in generating coherent video clips from textual descriptions. However, the interplay between motion, structure, and identity representations in these models remains underexplored. Here, we investigate how self-attention query features (a.k.a. Q features) simultaneously govern motion, structure, and identity and examine the challenges arising when these representations interact. Our analysis reveals that Q affects not only layout, but that during denoising Q also has a strong effect on subject identity, making it hard to transfer motion without the side-effect of transferring identity. Understanding this dual role enabled us to control query feature injection (Q injection) and demonstrate two applications: (1) a zero-shot motion transfer method that is 20× more efficient than existing approaches, and (2) a training-free technique for consistent multi-shot video generation, where characters maintain identity across multiple video shots while Q injection enhances motion fidelity. Project page: https://research.nvidia.com/lab/par /MotionByQueries/
+1. Introduction
+Video generation from text is at the forefront of generative AI. Despite great progress in controlling entities in video, several major challenges remain, including generating natural and engaging motion and preserving consistent identity of entities throughout the video. These two goals tend to form a trade-off: It is easy to preserve consistency if motion is strongly limited, and making entities move makes it harder to enforce consistency, because the appearance of an entity changes. A major challenge lies in understanding how motion and identity are represented in various components of video generation models and how to effectively control them.
+1NVIDIA. Correspondence to: Yuval Atzmon <yatzmon@nvidia.com>.
+Preprint.
+Transferring Queries
+Target video (same class)
+👍 Motion and structure 👍 Different identity
+👍 Motion and structure 👎 Identity leakage
+Source video
+Target video (different class)
+Figure 1. (click-to-view-online) Our analysis reveals differences in Q-injection between text-to-video and text-to-image models. One key observation is that in text-to-video models, zero-shot Q injection can transfer structure and motion between different video shots. However, when a target video is prompted for the same subject, Q injection suffers from identity leakage.
+This limited understanding hinders downstream applications in video generation. For instance, current motion transfer approaches (Yatim et al., 2024; Zhao et al., 2024; Wang et al., 2024a) still rely on tuning or test-time optimization, while their text-to-image layout transfer counterparts already operate through inference-time feature manipulation (Cao et al., 2023; Alaluf et al., 2023). Better model understanding could potentially lead to similar strides here. As another example, consider consistent characters in multi-shot video generation, where the goal is to preserve consistency of character identity and appearance across various shots. Image-based models tackle this task through feature-sharing, but applying the same ideas to video leads to loss of motion because the shared features encode both identity and motion.
+To understand representation of motion and identity in a video model, let us first draw analogies from text-to-image (T2I) models which are better understood. Motion can be viewed as a ”3D-shape” in the 3D tensor defined by a sequence of frames, so it is natural to look at representation of shape and structure in image generation models.
+1
+arXiv:2412.07750v2 [cs.CV] 7 Mar 2025
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Previous works showed that diffusion-based T2I models establish the layout of the generated image in early generation steps (Patashnik et al., 2023). Several studies (Cao et al., 2023; Alaluf et al., 2023; Tewel et al., 2024) have analyzed how different model components determine this structure. They showed that self-attention queries (Q) encode structural layout information. They found that injecting queries between images during generation “copies” shape while preserving appearance. As motion is the video equivalent of structure, we investigate the relationship between query vectors, motion and identity in video generation.
+We conduct an empirical analysis, and observe that in contrast to image models, Q in video-generation models affects both motion and identity. Moreover, videos require more denoising steps than images to capture motion patterns. We use this insight to control motion in two different applications: motion transfer and consistent multi-shot video generation.
+For motion transfer, we find that injecting Q features from a source video during denoising of a generated video, allows to transfer the motion to a new video in a zero-shot manner (without any additional fine-tuning or optimization). Our simple pipeline achieves generation quality close to leading methods, while being 20× more efficient than existing approaches.
+For consistent multi-shot video generation, we build on insights from multi-shot image generation (Tewel et al., 2024) relying on shot-to-shot extended attention. We find that Q injection from unconstrained video generation can preserve layout and motion diversity. However, unlike images, video generation requires more Q injection steps, causing identity leakage from the unconstrained source video and compromising shot-to-shot consistency. We address this with a two-phase approach: Q-Preservation maintains motion structure using Q values from unconstrained generation, while Q-Flow instead preserves feature flow maps, avoiding leaked identity in later steps.
+Our main contributions: 1) We provide the first systematic analysis of Q-features in text-to-video diffusion models, revealing their dual role in encoding both motion and identity information, with effects persisting longer into the denoising process. 2) We introduce “Motion by Queries”, a zero-shot motion transfer approach that achieves comparable quality to current methods while being 20× more efficient. 3) We present the first training-free method for consistent multishot video generation that balances character consistency and motion quality.
+2. Related work
+Text-to-video synthesis. Following large, diffusionbased (Ho et al., 2020) text-to-image models (Rombach
+et al., 2021; Ramesh et al., 2022), works sought to replicate their success in video generation. Early text-based video approaches (Ho et al., 2022) leveraged cascaded approaches for time and space super-resolution. Methods commonly leveraged pre-trained text-to-image models’ knowledge, expanding them into video models (Wang et al., 2023a; He et al., 2022; Blattmann et al., 2023; Zhou et al., 2022; Wang et al., 2023c; Singer et al., 2023; Luo et al., 2023; Ge et al., 2023; Zhang et al., 2023a; Bar-Tal et al., 2024). Concurrent to such approaches, image-to-video models emerged as powerful alternatives (Gu et al., 2023; Wang et al., 2023b; Zhang et al., 2023b). While not strictly text-conditioned, these can be paired with a text-to-image model to generate an initial frame, which is then animated. Our work builds on existing T2V models (Chen et al., 2024), enabling them to maintain consistent characters across individually generated scenes.
+Motion Transfer in Video Generation. Motion transfer aims to guide video generation using motion patterns extracted from a source video, spanning camera movements and object deformations while maintaining structural integrity. Recent approaches commonly require model adaptation, either through fine-tuning temporal attention layers (Jeong et al., 2024; Ren et al., 2024), employing dualpath LoRA architectures to separate appearance and motion learning (Zhao et al., 2024), or learning specialized motion embeddings (Wang et al., 2024a). Alternative methods utilize test-time optimization to guide the generation process (Yatim et al., 2024). In contrast to these approaches that require optimization or fine-tuning steps, our method enables zero-shot motion transfer through query injection, requiring no additional training or optimization.
+Video Editing. While motion transfer focuses on replicating specific motion patterns from source to target videos, video editing methods focus on modifying specific attributes of an input video while preserving its other characteristics. Recent approaches employ various mechanisms for content modification: Bai et al. (2024) is also based on feature injection. However, it focuses on very specific attribute changes while preserving appearance and lacks the broader context of our Q injection analysis. Zhao et al. (2023) combine ControlNet with CLIP-based guidance. Earlier works adapted text-to-image models for video editing through different attention manipulation strategies, such as injecting complete self-attention maps (Qi et al., 2023). While this direction spawned numerous works (Liu et al., 2024; Shin et al., 2024; Cong et al., 2023; Wu et al., 2023), these imagebased approaches cannot faithfully capture motion patterns without replicating the source appearance, as the underlying models lack the capacity to process temporal dynamics independently.
+Consistent generation aims to maintain consistent subjects
+2
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Source
+Figure 2. Same-class motion transfer suffers from identity leakage (purple), which worsens with increased Q injection. Cross-class transfer (green) achieves reasonable separation at 40% injection, where motion quality is also preserved. The leftmost purple data point corresponds to results for random images of the same-class, as no injection occurs. Quantitative results were obtained using the motion-transfer data of (Wang et al., 2024a). For illustration we show frames of the videos in Fig. 1.
+across outputs produced by a generative model. This task has typically been considered under through the lens of text-to-image generation. A common approach is to leverage personalization (Gal et al., 2022; Ruiz et al., 2022) to promote consistency, either through inptaining with a personalized model (Jeong et al., 2023), by iteratively generating multi-character images using personalized LoRA models (Ryu, 2023), or by clustering randomly generated images and training LoRAs for large, semi-consistent clusters (Avrahami et al., 2023). Rather than fine-tuning a model, an encoder (Ye et al., 2023; Wei et al., 2023; Gal et al., 2023) can be used to inject an identity at inference time, but encoders require pre-training on large datasets, and struggle to accurately generalize to arbitrary domains. Similar issues arise when working with models that tune the model on storyboard datasets in order to augment it with additional conditioning on sets of image frames (Feng et al., 2023; Liu et al., 2023). Most recently, works (Tewel et al., 2024; Fan et al., 2024) explored character consistency without personalization, employing feature sharing approaches to generate consistent characters across image batches, without tuning or pre-training.
+Structure and Appearance in Text-to-Image Models Early work in text-to-image generation revealed distinct roles for different components of attention mechanisms in diffusion-based models. Tewel et al. (2023) demonstrated
+that attention maps, derived from Keys and Queries, act as a “Where” pathway controlling the compositional structure, while Values serve as a “What” pathway determining visual appearance. Further studies established that the layout of generated images is primarily determined in the initial denoising steps (Patashnik et al., 2023). Through detailed analysis of model components, (Alaluf et al., 2023; Tewel et al., 2024) identified self-attention queries as crucial encoders of structural layout information. Our work extends these insights to video generation, revealing that queries play a more complex role than previously understood - affecting both motion and identity. Additionally, we find that capturing motion patterns in videos requires more denoising steps compared to image generation, highlighting fundamental differences between these domains.
+Extended Attention Sharing. When using text-to-image models to generate (Wu et al., 2023; Ceylan et al., 2023; Khachatryan et al., 2023) or modify a video (Geyer et al., 2023), an extended self-attention block (Wu et al., 2023) is often employed to share keys and values across different frames, enabling them to draw visual appearances from each other and enhance consistency. Beyond cross-frame consistency, it has been used to inject consistent identities from a source image to video (Xu et al., 2023; Hu et al., 2023; Chang et al., 2023; Tu et al., 2023), maintain appearance in layout editing (Cao et al., 2023; Avrahami et al.,
+3
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+2024), combine appearances (Alaluf et al., 2023), for personalization (Gal et al., 2024; Zeng et al., 2024) and style transfer (Hertz et al., 2023).
+3. Analysis: The role of Query features in text-to-video generation
+To study the role of Q-features in text-to-video (T2V) models, we design an injection experiment. The idea is simple: we take a source video VS with a known text description τS, and also generate a target video VT , using a text prompt τT . We then record Q features from VS, inject them into the generation of VT , and analyze the effect of that injection.
+More specifically, Given the video VS we add noise to it with a level that correspond to some noisy step t, yielding a noisy latent zt. We then perform a single DDPM denoising step (with a 50 step schedule), and record the spatial Q features of all the self attention layers of the diffusion model. We repeat this 20 times for various noise levels. At the end of this procedure, we have a sequence of 20 Q tensors (QS(50), QS(49), ..., QS(30) DDPM steps corresponding to t=1000, 980, 960, ..., 600). Finally, we generate a new video VT with its prompt τT , while injecting QS(t) tensors at the first k DDPM denoising steps. We vary the amount of denoising steps that receive Q-injection: From no injection at all (0%) to injecting Q through 40% of DDPM steps.
+To understand the effect of Q-injection, we now measure similarity between source and target videos in two aspects: Identity Leakage and Motion Fidelity. Identity Leakage measures the mean DINO similarity between the frames of the source VS and target VT videos. Motion Fidelity (Yatim et al., 2024) measures cross-correlation between point tracks in source and target videos:
+1 m
+X
+p ̃∈P ̃
+max
+p∈P corr(p, p ̃) + 1
+n
+X
+p∈P
+max
+p ̃∈P ̃
+corr(p, p ̃) (1)
+where P = {p1, . . . , pn}, P ̃ = {p ̃1, . . . , p ̃m} are point tracks in source and target videos.
+We present our analysis results in Fig. 2. We analyze two Qinjection setups: one where the source video prompt τS and target prompt τT share the same subject (purple) and another where they have different subjects (green). We discuss three key findings, highlighting the differences in how Q vectors behave in T2V models compared to T2I models.
+First, Fig. 2 (bottom-left), illustrates that Motion Fidelity grows monotonically with Q injection duration and reaches high similarity at 40% injection. We find that, unlike imageswhere structure is established early in the denoising processvideos require significantly more steps to set the motion structure. Second, more surprising is the top-left panel. It reveals that identity similarity also grows monotonically with
+duration of injecting Q. This suggests that video generation models also encode identity information into the Q vectorsan intriguing shift from its traditionally assumed role in T2I models. Third, we observe an interesting phenomenon: when τS and τT use the same subject, the target video often features a subject with an appearance identical to that of the source video while maintaining the background specified in τT . This identity “leakage” is significantly less pronounced when τT and τS feature different subjects. Qualitatively, in Fig. 2 (right), we present a source video of “A horse galloping in the savanna” with a distinct white spot on its back. Notice that as the number of injection steps increases, the target horse (purple) becomes more similar to the source horse while preserving the cloud background specified in the prompt. On the other hand, when τT describes a giraffe, its shape and motion become more similar to those of the source horse, but its appearance remains that of a giraffe. This suggests a clear distinction in Q-injection behavior: it transfers appearance and motion when the subjects match, while for different subjects, the transfer primarily affects motion characteristics.
+Source
+Figure 3. Motion is compromised with extended attention across video-shots. To recover the motion, longer q-injection periods are required, which consequently increases identity leakage.
+Finally, we examine the effect of Q-injection when the target consists of multiple videos sharing generation features. Feature sharing within a batch is a widely used approach in T2I generation, aiding tasks such as consistent character generation (Tewel et al., 2024) and editing (Cao et al., 2023). A common technique is the extended attention mechanism, which modifies the model’s self-attention layers to attend across elements of the multiple elements in the same batch. Here, we explore the impact of Q-injection when generating a batch of 3 videos at a time and utilizing the shared Extended Attention between the video shots. In Fig. 3, we include the Extended Attention curve to visualize motion fidelity in this scenario. Our results show that extended attention induces a ”motion freeze” effect, requiring Q to be injected for more steps to achieve the same motion as the source video. Moreover, since Q-injection in the Extended Attention setting requires more steps, it also introduces identity information, making it difficult to disentangle motion injection from identity injection.
+4
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Figure 4. (click-to-view-online) Qualitative Results, Motion Transfer. Each pair of rows are frames from source (pair-top) real video and target (pair-bottom) generated video. Transferring Motion by Queries allows to use source videos to inject camera motion (top), non-rigid movement (middle), and combinations of movements (bottom). See the supplemental for videos and more examples.
+4. Application 1: Motion transfer
+Our first application is motion transfer. Motion transfer allows creators to control the motion in a fine way, which cannot be achieved using text. In this problem we are given a video VS that contain some pattern of movement, and we wish to generate a new video VT that follows the same movement patterns. The movement can be of entities in the video, or the camera or both.
+4.1. Method for Motion transfer
+Our approach, called “Motion by Queries” follows the experiment described in section 2. First, we extract a series of Q-features from VS, by denoising the model to various timesteps (t = 1000, 980, . . . , 600), obtaining [QS(50), . . . , QS(30)]. Then, we inject those Q features during the generation of the target video VT , this time with the new prompt τT .
+Implementation details: We only record and inject the Q features of the conditional forward pass. To ensure consistency with the video model’s latent space, we follow (Meiri et al., 2023) and add minor noise to the source video latent (two steps) and denoise it back to a new clean latent before
+extracting Q-features. For recording Q features, we use the same noise seed across different noise levels. During generation, we start from a random initialization. For our experiments, we use VideoCrafter2 (Chen et al., 2024).
+4.2. Experiments
+We evaluate Motion by Queries qualitatively and quantitatively using a Motion-Transfer benchmark (Wang et al., 2024a), comprising 66 video-edit text pairs, guided by 22 source videos. Videos were sourced from DAVIS (Perazzi et al., 2016), WebVID (Bain et al., 2021), and online resources, representing diverse scenes, objects, and motion. For the base text-to-video model, we employ VideoCrafter2 (Chen et al., 2024).
+Baselines: We compare our approach with recent methods: (1) Diffusion Motion Transfer (DMT), a test-time optimization approach (Yatim et al., 2024), and (2) MotionInversion (MI) (Wang et al., 2024a), a fine-tuning-based concurrent method that learns motion-specific embeddings that modulate temporal attention activations from the source video’s motion. MI∗ indicates results we reproduced from their online code. Except for one case in the supplemental, all qualitative comparisons use videos from MI and DMT
+5
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+A train riding on rails in autumn view
+A boy walking in a field
+Two monkeys playing with coconuts
+Source Ours Motion Inversion DMT
+Figure 5. (click-to-view-online) Qualitative Comparisons, Motion Transfer.
+project pages. We also adopt from (Wang et al., 2024a) the quantitative results of Video Motion Customization (VMC) (Jeong et al., 2024) and Motion-Director (MD) (Zhao et al., 2024), both are fine-tuning-based approaches.
+Evaluation Metrics: We measure Identity Leak (ID. Leak) from source to target video, as described in Section 3. Following (Wang et al., 2024a), we also measure Motion Fidelity (MF), Text Similarity (Text), and Temporal Consistency (Temp. C.). MF measures point track correlation between generated and source videos, as described in Section 3. Text Similarity is the average CLIP-Text score between generated frames and the textual prompt (Radford et al., 2021). Temporal Consistency (Huang et al., 2024) measures video coherence by averaging CLIP-Image similarity between consecutive frames in the generated video.
+Additionally, we compare the runtimes of different methods and their relative overhead compared to the base video model each method uses. We break down the runtime into its components: “Source Invers.” is the time for DDIM inversion in baselines or recording Q features in our approach. “Optim./Tuning” is the optimization or fine-tuning time, and “Infer” is the time to generate a target video. Note that in DMT, Infer and Optim are done jointly. “Sum” is the total time for each method, and “Overhead” is the ratio between total time and inference time in the base model. Finally, runtimes were evaluated using an NVIDIA H100 GPU, when generating a video of 24 frames at a resolution of 576×320.
+Quantitative Results: In terms of performance, our ap
+proach demonstrates competitive results across various metrics while maintaining simplicity and optimization-free advantages (Tables 1, 2). Specifically, our method achieves lower (better) identity leakage (38.6) compared to MI∗ (43.7), while text alignment (28.8) and temporal consistency (97.0) perform on par with baselines. Regarding motion fidelity (MF), our method achieves 91.5. Although lower than MI∗ (97.0), fidelity remains adequate for many practical applications, as supported by the qualitative results. Notably, our method excels in computational efficiency. Compared to MI and DMT requiring 208 and 410 seconds with ×23-45 overhead, our method runs in 70 seconds with minimal ×1.2 overhead to the base model (VC2).
+ID. LEAK ↓ TEXT ↑ MF ↑ TEMP. C. ↑
+DMT - 28.8 78.8 93.6 VMC - 27.1 93.7 94.6 MD - 30.4 93.9 93.3 MI - 31.1 95.5 93.5
+MI∗ 43.7 ± 1.5 29.2 ± 0.6 97.0 ± 0.4 96.8 ± 0.2 OURS 38.6 ± 1.8 28.8 ± 0.6 91.5 ± 0.9 97.0 ± 0.2
+Table 1. Quantitative Evaluation Metrics, Motion Transfer. Values are reported as mean ± standard error of the mean (S.E.M).
+TIME SOURCE OPTIM./ INFER SUM OVER[SEC.]: INVERS. TUNING HEAD ↓
+Z.SCOPE - - 9 9 DMT 260 OPT&INFER 150 410 ×45 MI 9 190 9 208 ×23
+VC2 - - 58 58 OURS 12 0 58 70 ×1.2
+Table 2. Runtime Comparison. Existing methods are ×23-45 slower than their base model. Ours adds merely ×1.2 overhead.
+Qualitative Results: In Figure 4, we show that Motion by Queries helps guide generated videos to match the motion in source videos, including camera motion (top row), non-rigid object movement (middle row), and combinations of both types of motion (bottom row). While for quantitative results, we used Q injection ending at t = 600. For qualitative results, we selected videos with Q injection ending between t = 800 and t = 600: closer to t = 800 for camera motion and closer to t = 600 for non-rigid movement. In Figure 5, we compare our results to MI and DMT. In the monkeys example, our method generates motion that resembles the source video, though it is with slightly lower motion magnitude compared to the baselines. For the boy and train examples, our results are comparable to those of MI and DMT. Additional comparisons reveal cases where the MI baseline suffers from identity leakage, aligning with the quantitative results. The supplemental also includes further comparisons and more examples of custom camera motion, and hybrid combinations of object and camera motion.
+6
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+5. Application 2: Consistent multi-shot video generation
+Generating videos from text prompts has progressed significantly, but current methods still struggle with maintaining long, coherent video sequences. A promising approach is to generate multiple short videos featuring the same characters, as cinematic videos often consist of shorter shots. The challenge lies in ensuring character consistency across scenes, as current T2V models excel at generating individual clips but struggle with consistency across multiple shots. Our goal is to generate multiple video shots with consistent characters, preserving their identity and motion dynamics across all scenes. This would open up new possibilities in content creation, storytelling, and entertainment.
+Previous work (Tewel et al., 2024; Fan et al., 2024) has focused on consistent character generation in the text-toimage domain by extending the self-attention mechanism, allowing images to share visual features. However, as shown in our analysis, video features often encode both identity and motion, leading to challenges when applying these methods to video. Naive extended attention mechanisms can cause synchronized or diminished motion, which makes imagebased consistency methods unsuitable for video.
+Building on this analysis, we propose a solution tailored for consistent video generation 1. Our method preserves character identity and motion dynamics by combining extended attention for consistency with a vanilla, non-consistent textto-video step to maintain dynamic motion. In the following, we describe the key modifications we introduced to (Tewel et al., 2024) for consistent video generation.
+ConsiStory (Tewel et al., 2024) (See extended overview in the appendix, Sec. B.2) applies extended attention by using a subject mask, allowing images to share K, V selfattention features to maintain subject consistency. This reduces layout variability in the generated images. Then, to restore layout diversity, ConsiStory injects Q features from a vanilla, non-consistent sampling step. However, while this method improves diversity in images, it does not work well for videos, where the injected Q features fail to maintain the desired consistency and diversity across frames.
+The naive extension of the extended attention approach to videos involves an extended self-attention mechanism that allows frames from different videos to attend to each other. However, this leads to reduced motion within each video. We hypothesize that self attention primarily ensures coherence within a video-shot, so extending it to multiple video-shots causes the different video-shots to become overall aligned, reducing the motion. Since the video Q-features
+1The methods and results in this section are based on the arXiv version 1 (v1) (Atzmon et al., 2024) of this work. Here, in version 2 (v2), we extend and further analyze those findings.
+are strongly tied to layout and motion, one approach to preserve each video’s original motion (i.e., pre-extended attention) is to inject Q-features from its vanilla version. While this helps preserve motion diversity, it also results in identity leakage from the original video, breaking our goal of maintaining character consistency across videos, as shown in Fig. 3.
+To address this, we propose a two-stage solution for motion injection. Q preservation followed by Q Flow. In the early diffusion steps, which primarily control motion and layout, we inject the Q-features from vanilla videos generated without extended attention.
+Then in the subsequent Q-Flow phase we apply a relaxed version of our Q-injection that preserves the flow of Qfeatures rather than injecting the features directly. This technique is inspired by TokenFlow Geyer et al. (2023), originally designed for T2I models.
+Specifically, for each vanilla video, we first compute the nearest-neighbor correspondence field on its Q-features, defining a Q-feature flow that we aim to maintain in the generated consistent video. We then inject this correspondence into our generated video. For the exact definition of our Q Flow injection, see Appendix B.12.
+5.1. Experiments
+To demonstrate the importance of the steps suggested above, we conducted a study to investigate the effects of selfattention query (Q) tokens on motion and identity for consistent video generation. In the Appendix (Sec. B), we further show extensive evaluation including comparisons to baselines, a user study, and an ablation study. Fig. 6 illustrates typical generations for different interventions on Q tokens when combined with the extended self-attention mechanism of Fig. B.3. When we do not intervene in the Q tokens (Fig. 6, 4th row - “No Q Intervention”), subject identity is well-maintained across video shots, but motion quality significantly degrades. This manifests in: 1) Motion synchronization: movements become synchronized across video shots, e.g., the dog’s head turning simultaneously in all shots. 2) Reduced variability in motion style and pose: similar actions are repeated across shots, e.g., the dog’s leap, the Muppet’s centered swaying, the camera movement becomes static in the skating Muppet shot. 3) Motion artifacts: to reconcile the reduced motion variability with each scene’s text prompt, videos tend towards motion-artifacts. For example, the skating Muppet’s body appears frozen while its legs are displaced to visually accommodate the “skating” action. In contrast, combining extended attention with injected Q tokens cached from vanilla diffusion-sampled video shots (Fig. 6, 3rd row - “Full Q Preservation”) restores motion but largely loses subject identity. For instance, the Muppet’s colors revert to those of the vanilla model.
+7
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Figure 6. (click-to-view-online) Comparing Q token intervention strategies for consistent video generation. “Ours” (top row) balances character consistency and natural motion. VideoCrafter2 (second row) offers diverse motion but doesn’t allow for character consistency. “Full Q Preservation” (third row) without flow-based processing, preserving original motion but losing character consistency since identity leaks from VideoCrafter2. “No Q Intervention” (bottom row) maintains character consistency but suffers from motion degradation and synchronization across shots. The right side of each example shows y-t slices (temporal cross-sections) along the yellow vertical line visible in each frame, revealing motion patterns over time.
+These observations reiterate our main finding about the dual nature of Q tokens. Injecting vanilla Q tokens restores motion, showing their influence on movement. Simultaneously, it leads to a leakage of the vanilla identity into the multi-shot consistency mechanism. This causes a loss of the shared subject identity (e.g., the Muppet’s color change).
+Our approach (Fig. 6, 1st row - “Ours”) achieves a balance between both worlds. By intervening in the Q tokens throughout generation, we restore most of the original motion, including nuanced details like body and face orientations, postures, and natural movement of specific body parts (dog’s ears, Muppet’s hands and legs). Even the parallax style of video shots is preserved (right Muppet video shot). Our method’s effectiveness stems from our two-step process. First, Q preservation in early denoising steps establishes motion structure before identity is fully set. Then, flow-based Q injection allows Q values to evolve to better match the novel (more consistent) generation while enforcing some structural alignment through the flow process.
+6. Limitations
+In motion transfer, our method achieves slightly average motion fidelity compared to existing approaches, particularly with rapid movements (Figure 7 Appendix, top row). When transferring motion between different object classes, the source object’s shape can occasionally influence the target, such as when a pirate ship takes on characteristics
+of the source swan, or when a Colosseum inherits spatial properties from a mug (Figure 7).
+In multi-shot consistent generation, balancing identity preservation and motion quality is still challenging. We find that Q injection may be too strong and still hurt identity. To manage this, motion preservation can be compromised by partially dropping out Q injection (See Section B.14).
+7. Conclusion
+Our analysis reveals key differences in how Q-injection behaves in text-to-video versus text-to-image models. Videos require more denoising steps to establish motion patterns, and Q vectors encode both motion and identity information, extending beyond their traditionally understood role in image models. When using extended attention for multi-shot video generation, motion tends to synchronize across videos, requiring longer Q-injection periods that affect both motion and identity. These insights enabled two practical applications: an efficient zero-shot motion transfer method and a training-free approach for consistent multi-shot videos. In a broader perspective, these findings challenge the separation of ”where” and ”what” pathways established in textto-image models (Tewel et al., 2023; Patashnik et al., 2023; Alaluf et al., 2023), providing novel evidence that queries in video models influence both motion (structure over time) and identity, suggesting a more complex interplay between these pathways than previously appreciated.
+8
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+7.1. Broader Impact
+This work advances text-to-video generation, offering applications in creative and entertainment industries. However, it introduces ethical challenges, including the potential misuse for creating misleading or harmful content. Future societal impacts could involve both enhanced accessibility to video creation and increased risks of misinformation.
+References
+Alaluf, Y., Garibi, D., Patashnik, O., Averbuch-Elor, H., and Cohen-Or, D. Cross-image attention for zero-shot appearance transfer, 2023.
+Atzmon, Y., Gal, R., Tewel, Y., Kasten, Y., and Chechik, G. Multi-shot character consistency for text-to-video generation. arXiv preprint arXiv:2412.07750v1, 2024.
+Avrahami, O., Hertz, A., Vinker, Y., Arar, M., Fruchter, S., Fried, O., Cohen-Or, D., and Lischinski, D. The chosen one: Consistent characters in text-to-image diffusion models. arXiv preprint arXiv:2311.10093, 2023.
+Avrahami, O., Gal, R., Chechik, G., Fried, O., Lischinski, D., Vahdat, A., and Nie, W. Diffuhaul: A training-free method for object dragging in images. arXiv preprint arXiv:2406.01594, 2024.
+Bai, J., He, T., Wang, Y., Guo, J., Hu, H., Liu, Z., and Bian, J. Uniedit: A unified tuning-free framework for video motion and appearance editing. arXiv preprint arXiv:2402.13185, 2024.
+Bain, M., Nagrani, A., Varol, G., and Zisserman, A. Frozen in time: A joint video and image encoder for end-to-end retrieval. In Proceedings of the IEEE/CVF international conference on computer vision, pp. 1728–1738, 2021.
+Bar-Tal, O., Chefer, H., Tov, O., Herrmann, C., Paiss, R., Zada, S., Ephrat, A., Hur, J., Li, Y., Michaeli, T., et al. Lumiere: A space-time diffusion model for video generation. arXiv preprint arXiv:2401.12945, 2024.
+Blattmann, A., Rombach, R., Ling, H., Dockhorn, T., Kim, S. W., Fidler, S., and Kreis, K. Align your latents: Highresolution video synthesis with latent diffusion models. In CVPR, 2023.
+Cao, M., Wang, X., Qi, Z., Shan, Y., Qie, X., and Zheng, Y. Masactrl: Tuning-free mutual self-attention control for consistent image synthesis and editing. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), pp. 22560–22570, October 2023.
+Caron, M., Touvron, H., Misra, I., J ́egou, H., Mairal, J., Bojanowski, P., and Joulin, A. Emerging properties in self-supervised vision transformers. In Proceedings of
+the International Conference on Computer Vision (ICCV), 2021.
+Ceylan, D., Huang, C.-H. P., and Mitra, N. J. Pix2video: Video editing using image diffusion. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pp. 23206–23217, 2023.
+Chang, D., Shi, Y., Gao, Q., Fu, J., Xu, H., Song, G., Yan, Q., Yang, X., and Soleymani, M. Magicdance: Realistic human dance video generation with motions & facial expressions transfer. arXiv preprint arXiv:2311.12052, 2023.
+Chen, H., Zhang, Y., Cun, X., Xia, M., Wang, X., Weng, C., and Shan, Y. Videocrafter2: Overcoming data limitations for high-quality video diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 7310–7320, 2024.
+Cohen, N., Kulikov, V., Kleiner, M., Huberman-Spiegelglas, I., and Michaeli, T. Slicedit: Zero-shot video editing with text-to-image diffusion models using spatio-temporal slices. In Salakhutdinov, R., Kolter, Z., Heller, K., Weller, A., Oliver, N., Scarlett, J., and Berkenkamp, F. (eds.), Proceedings of the 41st International Conference on Machine Learning, volume 235 of Proceedings of Machine Learning Research, pp. 9109–9137. PMLR, 21–27 Jul 2024. URL https://proceedings.mlr.press/ v235/cohen24a.html.
+Cong, Y., Xu, M., Simon, C., Chen, S., Ren, J., Xie, Y., Perez-Rua, J.-M., Rosenhahn, B., Xiang, T., and He, S. Flatten: optical flow-guided attention for consistent textto-video editing. arXiv preprint arXiv:2310.05922, 2023.
+Fan, J., Xue, H., Zhang, Q., and Chen, Y. Refdrop: Controllable consistency in image or video generation via reference feature guidance. arXiv preprint arXiv:2405.17661, 2024.
+Feng, Z., Ren, Y., Yu, X., Feng, X., Tang, D., Shi, S., and Qin, B. Improved visual story generation with adaptive context modeling. arXiv preprint arXiv:2305.16811, 2023.
+Fu, S., Tamir, N. Y., Sundaram, S., Chai, L., Zhang, R., Dekel, T., and Isola, P. Dreamsim: Learning new dimensions of human visual similarity using synthetic data. In Thirty-seventh Conference on Neural Information Processing Systems, 2023. URL https://openreview. net/forum?id=DEiNSfh1k7.
+Gal, R., Alaluf, Y., Atzmon, Y., Patashnik, O., Bermano, A. H., Chechik, G., and Cohen-Or, D. An image is worth one word: Personalizing text-to-image generation using textual inversion, 2022. URL https://arxiv.org/ abs/2208.01618.
+9
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Gal, R., Arar, M., Atzmon, Y., Bermano, A. H., Chechik, G., and Cohen-Or, D. Encoder-based domain tuning for fast personalization of text-to-image models. ACM Transactions on Graphics (TOG), 42(4):1–13, 2023.
+Gal, R., Lichter, O., Richardson, E., Patashnik, O., Bermano, A. H., Chechik, G., and Cohen-Or, D. Lcm-lookahead for encoder-based text-to-image personalization, 2024.
+Ge, S., Nah, S., Liu, G., Poon, T., Tao, A., Catanzaro, B., Jacobs, D., Huang, J.-B., Liu, M.-Y., and Balaji, Y. Preserve your own correlation: A noise prior for video diffusion models. In ICCV, 2023.
+Geyer, M., Bar-Tal, O., Bagon, S., and Dekel, T. Tokenflow: Consistent diffusion features for consistent video editing. arXiv preprint arxiv:2307.10373, 2023.
+Gu, X., Wen, C., Song, J., and Gao, Y. Seer: Language instructed video prediction with latent diffusion models. arXiv preprint arXiv:2303.14897, 2023.
+He, Y., Yang, T., Zhang, Y., Shan, Y., and Chen, Q. Latent video diffusion models for high-fidelity video generation with arbitrary lengths. arXiv preprint arXiv:2211.13221, 2022.
+Hertz, A., Voynov, A., Fruchter, S., and Cohen-Or, D. Style aligned image generation via shared attention. 2023.
+Ho, J., Jain, A., and Abbeel, P. Denoising diffusion probabilistic models. Advances in Neural Information Processing Systems, 33:6840–6851, 2020.
+Ho, J., Chan, W., Saharia, C., Whang, J., Gao, R., Gritsenko, A., Kingma, D. P., Poole, B., Norouzi, M., Fleet, D. J., et al. Imagen video: High definition video generation with diffusion models. arXiv preprint arXiv:2210.02303, 2022.
+Hu, L., Gao, X., Zhang, P., Sun, K., Zhang, B., and Bo, L. Animate anyone: Consistent and controllable image-tovideo synthesis for character animation. arXiv preprint arXiv:2311.17117, 2023.
+Huang, Z., He, Y., Yu, J., Zhang, F., Si, C., Jiang, Y., Zhang, Y., Wu, T., Jin, Q., Chanpaisit, N., Wang, Y., Chen, X., Wang, L., Lin, D., Qiao, Y., and Liu, Z. VBench: Comprehensive benchmark suite for video generative models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024.
+Jeong, H., Kwon, G., and Ye, J. C. Zero-shot generation of coherent storybook from plain text story using diffusion models. arXiv preprint arXiv:2302.03900, 2023.
+Jeong, H., Park, G. Y., and Ye, J. C. Vmc: Video motion customization using temporal attention adaption for
+text-to-video diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 9212–9221, 2024.
+Khachatryan, L., Movsisyan, A., Tadevosyan, V., Henschel, R., Wang, Z., Navasardyan, S., and Shi, H. Text2videozero: Text-to-image diffusion models are zero-shot video generators. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), pp. 1595415964, October 2023.
+Li, J., Qian, L., Zheng, J., Gao, X., Piramuthu, R., Chen, W., and Wang, W. Y. T2v-turbo-v2: Enhancing video generation model post-training through data, reward, and conditional guidance design, 2024a.
+Li, Y., Beluch, W., Keuper, M., Zhang, D., and Khoreva, A. Vstar: Generative temporal nursing for longer dynamic video synthesis. arXiv preprint arXiv:2403.13501, 2024b.
+Liu, C., Wu, H., Zhong, Y., Zhang, X., and Xie, W. Intelligent grimm–open-ended visual storytelling via latent diffusion models. arXiv preprint arXiv:2306.00973, 2023.
+Liu, S., Zhang, Y., Li, W., Lin, Z., and Jia, J. Video-p2p: Video editing with cross-attention control. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 8599–8608, 2024.
+L ̈uddecke, T. and Ecker, A. S. Prompt-based multi-modal image segmentation. arXiv preprint arXiv:2112.10003, 2021.
+Luo, Z., Chen, D., Zhang, Y., Huang, Y., Wang, L., Shen, Y., Zhao, D., Zhou, J., and Tan, T. Videofusion: Decomposed diffusion models for high-quality video generation. In CVPR, 2023.
+Meiri, B., Samuel, D., Darshan, N., Chechik, G., Avidan, S., and Ben-Ari, R. Fixed-point inversion for text-to-image diffusion models. arXiv preprint arXiv:2312.12540, 2023.
+Otsu, N. A threshold selection method from gray-level histograms. IEEE Transactions on Systems, Man, and Cybernetics, 9(1):62–66, 1979. doi: 10.1109/TSMC. 1979.4310076.
+Patashnik, O., Garibi, D., Azuri, I., Averbuch-Elor, H., and Cohen-Or, D. Localizing object-level shape variations with text-to-image diffusion models. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pp. 23051–23061, 2023.
+Perazzi, F., Pont-Tuset, J., McWilliams, B., Van Gool, L., Gross, M., and Sorkine-Hornung, A. A benchmark dataset and evaluation methodology for video object segmentation. In Proceedings of the IEEE conference on
+10
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+computer vision and pattern recognition, pp. 724–732, 2016.
+Qi, C., Cun, X., Zhang, Y., Lei, C., Wang, X., Shan, Y., and Chen, Q. Fatezero: Fusing attentions for zero-shot textbased video editing. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pp. 1593215942, 2023.
+Radford, A., Kim, J. W., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry, G., Askell, A., Mishkin, P., Clark, J., et al. Learning transferable visual models from natural language supervision. In International Conference on Machine Learning, pp. 8748–8763. PMLR, 2021.
+Ramesh, A., Dhariwal, P., Nichol, A., Chu, C., and Chen, M. Hierarchical text-conditional image generation with clip latents. arXiv preprint arXiv:2204.06125, 2022.
+Ren, Y., Zhou, Y., Yang, J., Shi, J., Liu, D., Liu, F., Kwon, M., and Shrivastava, A. Customize-a-video: One-shot motion customization of text-to-video diffusion models. In European Conference on Computer Vision, pp. 332349. Springer, 2024.
+Rombach, R., Blattmann, A., Lorenz, D., Esser, P., and Ommer, B. High-resolution image synthesis with latent diffusion models, 2021.
+Ruiz, N., Li, Y., Jampani, V., Pritch, Y., Rubinstein, M., and Aberman, K. Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation. 2022.
+Ryu, S. Low-rank adaptation for fast text-to-image diffusion fine-tuning. https://github.com/ cloneofsimo/lora, 2023.
+Shin, C., Kim, H., Lee, C. H., Lee, S.-g., and Yoon, S. Edit-a-video: Single video editing with object-aware consistency. In Asian Conference on Machine Learning, pp. 1215–1230. PMLR, 2024.
+Singer, U., Polyak, A., Hayes, T., Yin, X., An, J., Zhang, S., Hu, Q., Yang, H., Ashual, O., Gafni, O., et al. Make-avideo: Text-to-video generation without text-video data. In ICLR, 2023.
+Song, J., Meng, C., and Ermon, S. Denoising diffusion implicit models. In International Conference on Learning Representations, 2020.
+Tewel, Y., Gal, R., Chechik, G., and Atzmon, Y. Key-locked rank one editing for text-to-image personalization. In ACM SIGGRAPH 2023 Conference Proceedings, pp. 111, 2023.
+Tewel, Y., Kaduri, O., Gal, R., Kasten, Y., Wolf, L., Chechik, G., and Atzmon, Y. Training-free consistent text-to-image
+generation. ACM Transactions on Graphics (TOG), 43 (4):1–18, 2024.
+Tu, S., Dai, Q., Cheng, Z.-Q., Hu, H., Han, X., Wu, Z., and Jiang, Y.-G. Motioneditor: Editing video motion via content-aware diffusion. arXiv preprint arXiv:2311.18830, 2023.
+Wang, J., Yuan, H., Chen, D., Zhang, Y., Wang, X., and Zhang, S. Modelscope text-to-video technical report. arXiv preprint arXiv:2308.06571, 2023a.
+Wang, L., Mai, Z., Shen, G., Liang, Y., Tao, X., Wan, P., Zhang, D., Li, Y., and Chen, Y. Motion inversion for video customization. arXiv preprint arXiv:2403.20193, 2024a.
+Wang, X., Yuan, H., Zhang, S., Chen, D., Wang, J., Zhang, Y., Shen, Y., Zhao, D., and Zhou, J. Videocomposer: Compositional video synthesis with motion controllability. arXiv preprint arXiv:2306.02018, 2023b.
+Wang, Y., Chen, X., Ma, X., Zhou, S., Huang, Z., Wang, Y., Yang, C., He, Y., Yu, J., Yang, P., et al. Lavie: Highquality video generation with cascaded latent diffusion models. arXiv preprint arXiv:2309.15103, 2023c.
+Wang, Y., He, Y., Li, Y., Li, K., Yu, J., Ma, X., Li, X., Chen, G., Chen, X., Wang, Y., Luo, P., Liu, Z., Wang, Y., Wang, L., and Qiao, Y. Internvid: A largescale video-text dataset for multimodal understanding and generation. In The Twelfth International Conference on Learning Representations, 2024b. URL https: //openreview.net/forum?id=MLBdiWu4Fw.
+Wei, Y., Zhang, Y., Ji, Z., Bai, J., Zhang, L., and Zuo, W. Elite: Encoding visual concepts into textual embeddings for customized text-to-image generation. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), pp. 15943–15953, October 2023.
+Wu, J. Z., Ge, Y., Wang, X., Lei, S. W., Gu, Y., Shi, Y., Hsu, W., Shan, Y., Qie, X., and Shou, M. Z. Tune-avideo: One-shot tuning of image diffusion models for text-to-video generation. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pp. 76237633, 2023.
+Xu, Z., Zhang, J., Liew, J. H., Yan, H., Liu, J.-W., Zhang, C., Feng, J., and Shou, M. Z. Magicanimate: Temporally consistent human image animation using diffusion model. 2023.
+Yatim, D., Fridman, R., Bar-Tal, O., Kasten, Y., and Dekel, T. Space-time diffusion features for zero-shot text-driven motion transfer. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 8466–8476, 2024.
+11
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Ye, H., Zhang, J., Liu, S., Han, X., and Yang, W. Ip-adapter: Text compatible image prompt adapter for text-to-image diffusion models. arXiv preprint arXiv:2308.06721, 2023.
+Zeng, Y., Patel, V. M., Wang, H., Huang, X., Wang, T.-C., Liu, M.-Y., and Balaji, Y. Jedi: Joint-image diffusion models for finetuning-free personalized text-to-image generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 6786–6795, 2024.
+Zhang, D. J., Wu, J. Z., Liu, J.-W., Zhao, R., Ran, L., Gu, Y., Gao, D., and Shou, M. Z. Show-1: Marrying pixel and latent diffusion models for text-to-video generation. arXiv preprint arXiv:2309.15818, 2023a.
+Zhang, S., Wang, J., Zhang, Y., Zhao, K., Yuan, H., Qing, Z., Wang, X., Zhao, D., and Zhou, J. I2vgen-xl: High-quality image-to-video synthesis via cascaded diffusion models. 2023b.
+Zhao, R., Gu, Y., Wu, J. Z., Zhang, D. J., Liu, J.-W., Wu, W., Keppo, J., and Shou, M. Z. Motiondirector: Motion customization of text-to-video diffusion models. In European Conference on Computer Vision, pp. 273–290. Springer, 2024.
+Zhao, Y., Xie, E., Hong, L., Li, Z., and Lee, G. H. Make-aprotagonist: Generic video editing with an ensemble of experts. arXiv preprint arXiv:2305.08850, 2023.
+Zhou, D., Wang, W., Yan, H., Lv, W., Zhu, Y., and Feng, J. Magicvideo: Efficient video generation with latent diffusion models. arXiv preprint arXiv:2211.11018, 2022.
+12
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+A. Appendix
+Figure 7. Limitations. Cases where the source subject shape affects the target object.
+A.1. Background: Self-Attention in T2V models
+Our method manipulates the activations of the spatial self-attention in T2V diffusion models. We start by outlining its mechanism and introducing key notations.
+Recent T2V diffusion models are based on a latent video diffusion model (LVDM) architecture where a U-Net denoiser is trained to estimate the noise in the noisy latent codes input. The denoising U-Net is a 3D U-Net architecture consisting of a stack spatio-temporal blocks comprised of convolutional layers, spatial transformers (ST), and temporal transformers (TT). The ST operate independently on each video frame, without awareness of the temporal structure, while the TT operate independently on each temporal patch, without awareness of the spatial structure. In this work, we focus on manipulating the self-attention mechanism of the spatial transformer layers.
+B. Consistent Video Generation - Supplementary Detalis
+B.1. Notations
+Our method manipulates spatial self-attention activations in T2V diffusion models. We denote by {Q, K, V, O} the respective Query, Key, Value and Output features of a single self-attention layer (see Appendix A.1 for background). In our method, these features interact across frames, enabling cross-frame attention and consistency. We denote by Qv the Q features of a layer during a “vanilla”, non-consistent, forward pass in a pretrained network, Qc the query features from our subject-consistent model, and Qf as the flow-based query features. For brevity, we omitted the frame index i
+B.2. ConsiStory details
+ConsiStory (Tewel et al., 2024) operates in three steps. (1) Subject-Driven localization with extended Self-Attention (SDSA) – localizes the subject across a set of noisy generated images by aggregating cross-attention maps across layers and timesteps. To ensure subject consistency, SDSA enables each image to attend to patches of the main subject present in other image frames. This is done by extending the self-attention mechanism, allowing it to share K, V features of the subject between multiple images. Unfortunately, SDSA alone diminishes layout diversity in the generated images. Therefore, (2) Layout Diversity – reinforces diversity through two techniques: First, it incorporates Q features from a vanilla, non-consistent sampling step. Second, it applies an inference-time dropout to the shared K, V features. Finally, (3) Refinement Injection – improves consistency in finer details by injecting the O features between corresponding subject patches.
+The pipeline is illustrated in Fig. 8.
+B.3. Framewise Subject-Driven Self-Attention
+Our first step builds on the Subject-Driven Self-Attention (SDSA) mechanism (Tewel et al., 2024) to incorporate subject features across multiple video shots by extending the self-attention mechanism. We identified two critical challenges when adapting SDSA to video generation: (1) reliably localizing the subject during video denoising, and (2) ensuring motion fluidity is not compromised.
+13
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Anchors Q Preservation
+Vanilla Q Injection
+Vanilla Q Injection
+Vanilla Q Injection
+Vanilla Q Injection
+Framewise SDSA
+"... reading tarot cards"
+"... touching his lips "
+"... making a potion in a cauldron"
+"... arranging a collection of gemstones"
+Q Flow
+Flow Q Injection
+Flow Q Injection
+Flow Q Injection
+Flow Q Injection
+Framewise SDSA
+Vanilla Q Injection
+VideoCrafter2
+Ours
+Query Injection
+Flow Q Injection Key Frames
+Ours
+"A gothic teenager ..."
+VC2 Flow Map
+Query Injection
+Figure 8. Video Storyboarding Architecture: Our consistent denoising process has two phases: Q Preservation and Q Flow. We first generate and cache video shots using “vanilla” VideoCrafter2. In Q Preservation (T → tpres), we use Vanilla Q Injection to maintain motion structure by replacing our Q values with vanilla ones. In Q Flow (tpres → t0), we use a flow map from vanilla key frames to guide Q feature injection. This phase maintains character identity by allowing the use of Q features from our consistent denoising process, while the flow map ensures that these identity-preserving features are applied in a way that’s consistent with the original motion. Throughout, we employ two complementary techniques: framewise subject-driven self-attention for visual coherence, and refinement feature injection (Section B.4) to reinforce character consistency across diverse prompts.
+For subject localization, we propose using the estimated clean image xˆ0 for mask generation instead of relying on internal network activations, ensuring reliable masks even in early denoising steps. For motion fluidity, we introduce a framewise attention scheme, where frames with matching temporal indices across shots selectively attend each other. This prevents artifacts and frozen motion.
+We term this component Framewise-SDSA. Further technical details, including the mask estimation process and the formal definition of Framewise-SDSA, are provided in Appendix B.11..
+When generating multiple video shots with consistent subjects, we face a fundamental trade-off between subject consistency and motion quality. Our experiments show that while Framewise-SDSA improves subject consistency, it often results in side-effects, leading to excessive synchronization of motion layout across video shots and introduces motion artifacts (Fig. 6(4th row)). These artifacts arise from the model’s attempt to simultaneously satisfy both the text prompt and the undesired synchronization across shots.
+Prior work in ConsiStory (Sec. B.2) demonstrated success in maintaining layout diversity for image generation through SDSA dropout and query injection. However, our experiments show that directly extending this approach to video generation produces poor results, with significant visual artifacts and compromised consistency between shots (Fig. 10). This likely occurs because (1) Consistory’s query injection is applied for shorter periods compared to the amount required in video models, and (2) since ConsiStory’s vanilla-network queries are derived from latents that are influenced by consistencypreserving mechanisms in earlier steps, rather than following an independent denoising trajectory.
+Our analysis (Fig. 6) reveals that query features encode both motion patterns and subject identity. Injecting only vanilla query features (Qv) preserves dynamic motion but results in inconsistent subjects across shots (row 3). Conversely, using only consistency-aware query features (Qc) ensures subject consistency but produces rigid, unnatural, and synchronized movements (row 4). This observation motivates our two-phase approach that leverages both feature types.
+Phase 1: Motion Structure Establishment. In early denoising steps (t ∈ [T, tpres]), we focus on establishing a robust initial motion structure using a process we call Q Preservation. During this phase, we directly inject vanilla query features (Qv) from pre-generated video shots. This allows us to retain the motion patterns present in the vanilla videos. Without this initial phase, later denoising steps may deviate from the original motion patterns, leading to degraded motion quality.
+Phase 2: Flow-based Consistency Integration. As denoising progresses (beyond tpres), subject consistency becomes increasingly important. To address this, we introduce Q Flow, a technique inspired by TokenFlow (Geyer et al., 2023), where flow-based query features (Qf ) are injected to incorporate subject-consistent information while preserving the original
+14
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Figure 9. Qualitative Comparisons. (click-to-view-online) The first frame of each video shot is displayed along with a spatiotemporal y–t slice to visualize motion. Ours (top row) shows improved character consistency across shots while maintaining natural motion. VideoCrafter2 (row 2) is the vanilla model, showing diverse motion but inconsistent characters. Tokenflow-Encoder (row 3) preserves original motion but struggles with character consistency and introduces coloring artifacts. ConsiS Im2Vid (bottom row) fails to maintain consistency and exhibits limited motion adherence to prompts. See more examples in Fig. 14.
+motion. Similar to (Geyer et al., 2023), in this phase, we derive a flow map from vanilla-generated keyframes (Qv), which provides the motion structure. We then blend subject-consistent query features (Qc) from nearby frames, as dictated by the flow. This blending process produces Qf , that adhere to the original motion patterns while maintaining subject consistency across frames.
+By following this approach, we maintain the natural flow of motion established in Phase 1 and progressively integrate subject-consistent features without sacrificing motion quality. The formal definition of our flow-based query injection process is provided in Appendix B.12.
+B.4. Refinement Feature Injection for Enhanced Consistency
+Despite improved motion preservation and subject consistency, fine details in subject appearance can still vary across frames. We address this by adapting the refinement feature injection technique.
+However, naively applying refinement feature injection solely to the conditional denoising step, as in ConsiStory, introduces unnatural motion artifacts. This is likely due to the conditional step uses a correspondence map to inject features from different frames, while the unconditional step does not, resulting in inconsistent feature injection. To mitigate this, we extend refinement feature injection to the unconditional denoising step, using the same DIFT correspondence map. We also utilize the entire frame set of each anchor video for refinement injection. This synchronized approach improves overall consistency and reduces motion artifacts. For qualitative results, see Fig. 10.
+B.5. Implementation details
+Anchor Videos: Similar to ConsiStory, we use two anchor videos that share all features between themselves. Further implementation details are provided in Appendix B.15
+B.6. Consistent Video Generation - Comparisons to Baselines
+We compare Video Storyboarding with strong baselines, starting with a qualitative comparison that shows improved subjectconsistency and better motion-alignment. We then conduct an ablation study to examine how self-attention query (Q) tokens affect motion and identity, highlighting the contributions of the components in our method. Finally, quantitative evaluation
+15
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+follows, including a large-scale user study, which demonstrates that users typically favor our results.
+B.7. Evaluation baselines
+We compare our method to several baselines: (1) VideoCrafter2: A baseline “vanilla” text-to-video model (Chen et al., 2024), without adaptations. VideoCrafter2 is a public SoTA video model (Huang et al., 2024). (2) Tokenflow-Encoder: A combination of TokenFlow (Geyer et al., 2023) with IP-Adapter, a Personalization-Based Encoder (Ye et al., 2023). We personalize TokenFlow by conditioning the IP-Adapter on the first frame of one video generated by the vanilla model. For IP-Adapter we use a high-scale hyper-parameter to push the model toward stronger consistency. (3) ConsiS Im2Vid: A combination of SoTA image-consistency approach (Tewel et al., 2024), with a subsequent Image-to-Video variant of VideoCrafter (Chen et al., 2024). First, we generate a set of consistent reference images. Then, we use them as inputs to an Image-to-Video model. We chose VideoCrafter, as it is a public image-to-video model that has an overall quality equivalent to that of the text-to-video VideoCrafter2 model according to the VBench benchmark (Huang et al., 2024). (4) VSTAR: A method for generating a long video with dynamic evolution (Li et al., 2024b). We directly provide the multiple prompts and sample 16 frames per prompt, then splitting the result into individual shots. (5) Turbo-V2: A recent state-of-the-art text-to-video model (Li et al., 2024a) that we use to demonstrate our method’s adaptability to other architectures.
+B.8. Qualitative Results
+To visually assess both multi-shot consistency and motion quality in videos, we present two elements per video shot: the initial frame for comparing consistency between shots, and a spatiotemporal slice of the space-time volume, termed ”y–t slice” (Cohen et al., 2024), to visualize motion quality. The selected column for the y–t slice is marked by a yellow line. Typically, we choose the column with the maximum variance in the vanilla-generated video shot. Occasionally, we manually select the y–t column to highlight specific motion characteristics. For ConsiS Im2Vid, the max-variance column is chosen independently, as it does not directly correspond to the vanilla model.
+In Fig. 9 and Fig. 14, we showcase qualitative comparisons between our approach, the vanilla model, and the baselines. Our method demonstrates the ability to alter subject identities consistently across shots, while guiding them towards a unified appearance. This consistency is evident when comparing image frames from different shots. Additionally, an examination of the y–t motion slices reveals that our approach successfully adheres to the motion guided by the vanilla model.
+The Tokenflow-Encoder baseline preserves the original motion from vanilla models while primarily affecting the color palette and color style of objects and scenes in videos. However, its impact on the identity of the subject is less pronounced than our approach. Additionally, the combination with a high-scaled IP-Adapter often degrades video quality, causing blurring and color artifacts. See the bird example in Fig. 9 (3rd row) and the boy in Fig. 14 (3rd row).
+The ConsiS Im2Vid baseline maintains consistency in its reference images. However, the subsequent image-to-video model introduces certain limitations. It lacks awareness of the consistency requirement and the capability to maintain it, causing the subject identity to vary between video shots. Although consistency is maintained within each shot, overall consistency with the reference image is compromised, as seen in the bird example in Figure 1 (4th row). Additionally, the image-to-video model fails to account for the action specified in the text prompt. This results in either minimal motion or movement that does not align with the prompt, as the model relies solely on the conditioning image and cannot effectively utilize the textual information. See the limited motion in the y–t slices in Fig. 9 (4th row) and the corresponding videos in the supplemental material.
+VSTAR (Fig. 14, Appendix) produces large motion dynamics, but struggles with prompt control, often resulting in entire videos misaligning with text descriptions. As it maintains consistency through continuous video generation, it better suits scene transitions than independent shots.
+When applied to Turbo-V2 (Fig. 13), our method enables subject consistency while leveraging Turbo-V2’s enhanced motion capabilities.
+Adapting ConsiStory for Video Generation. Next, we demonstrate the challenges of adapting the image-based ConsiStory algorithm (Tewel et al., 2024) to video generation. Fig. 10 (3rd row “ConsiS”) shows a naive implementation of ConsiStory with subject-driven extended attention coupled across all frames in each video shot, using subject mask dropout and omitting feature injections to the unconditioned diffusion pass. At each step, it also employs queries influenced by the consistency-preserving mechanism of previous steps, rather than queries from an independent vanilla denoising process. This results in impaired identity consistency, strong motion artifacts, and unnatural motion flow of different body parts for
+16
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Figure 10. Ablation Study on ConsiStory Components for Video Generation. (click-to-view-online) “Ours” (top row) demonstrates improved motion richness and identity preservation. VideoCrafter2 (second row) shows diverse motion but inconsistent characters. “ConsiS” (third row), a naive ConsiStory implementation, shows impaired identity and motion artifacts. “ConsiS +Uncond” (fourth row) adds feature injection to unconditional denoising, resolving motion artifacts but reducing motion magnitude and compromising identity. “Q ConsiS” (fifth row) couples each frame with a single frame in an anchor video, allowing some natural motion, although partially synchronized, with improved identity. Our method achieves the best balance of motion quality and identity.
+both the rabbit and monster examples. Adding feature injection to the unconditional feature denoising (4th row “ConsiS +Uncond”) resolves motion artifacts but largely reduces motion magnitude (e.g. body postures are mostly frozen), and compromises identity. Next, coupling each frame in a shot with a single frame in an anchor video and avoiding SDSA dropout (5th row “Q ConsiS”) allows for subtle natural motion, although it remains partially synchronized. It also improves identity preservation to some degree. Unlike ConsiStory, SDSA dropout in videos hurts identity without significantly improving motion. Finally, our method (1st row - “Ours”) employs a novel Q intervention mechanism. It achieves richer motion with better identity and adherence to the original motion of the vanilla model.
+B.9. Quantitative evaluation
+We conducted a quantitative analysis using automated metrics and a user study, based on a benchmark dataset that we created to assess set-consistency in video generation.
+Benchmark Dataset: We constructed a benchmark dataset of 30 video sets, each containing 5 video-shots with shared subjects but varying prompts. See further details in Appendix B.13.
+Evaluation Protocol: To avoid overfitting, we conducted all development and parameter tuning on a separate collection of 16 distinct subject-prompt sets. The test set was used exclusively for final evaluations, without any component development or hyperparameter tuning.
+Evaluation Metrics: Our evaluation approach builds on previous work in image consistency and personalization (Tewel et al., 2024; Gal et al., 2022; Ruiz et al., 2022), focusing on multi-shot set-consistency and motion dynamics. For setconsistency, we measure average pairwise DINO feature similarity (Caron et al., 2021; Huang et al., 2024) across all frames in a set, excluding pairs within the same video shot. We isolate the subject by masking out the background (Fu et al., 2023) before extracting each frame’s features, using ClipSEG (L ̈uddecke & Ecker, 2021) with a dynamic threshold determined by “Otsu’s method” (Otsu, 1979). For motion dynamics, we evaluate all 150 generated videos using VBench’s
+17
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+”Dynamic Degree” metric (Huang et al., 2024), which classifies the significance of video motion by measuring RAFT-based optical flow intensity. We focused on motion dynamics over text prompt alignment due to two challenges: actions are often visible even in videos with minimal motion, making it difficult for temporal CLIP-like models (Wang et al., 2024b) to distinguish between our method and baselines; also, sharing seeds across baselines lead to similar visual structures, with main differences in motion quality. We include text-similarity metrics in Table 3 (Appendix), measuring temporal CLIP similarity between each video shot and its prompt.
+Results: Fig. 11 show our approach enhances multi-shot set consistency, while sacrificing motion magnitude compared to vanilla VideoCrafter2. Tokenflow-Encoder baseline shows consistency improvement and slight motion decrease. ConsiSIm2Vid baseline’s performance aligns with qualitative analysis, showing low motion scores. A comparison of all baselines, including VSTAR and Turbo-V2, is presented in Table 3 (Appendix). VSTAR struggles with prompt control (19.8 vs 27.7 for ours), while achieving the highest consistency and motion dynamics. When combined with Turbo-V2, our method improves multi-shot consistency while maintaining high motion quality: The dynamic degree improves threefold, from 20 to 62, while keeping the same level of text alignment.
+0.1 0.2 0.3 Dynamic Degree
+0.65
+0.7
+Multi-Shot Consistency
+Ours Tokenflow ConsiS Im2Vid
+VideoCrafter2 Figure 11. Quantitative Evaluation of Set Consistency and Motion Dynamics: Our approach achieves highest set consistency score while maintaining competitive motion dynamics. Error bars indicate standard error of the mean.
+These quantitative results offer insights into trade-offs between our approach and baselines, but cannot fully capture user-perceived quality or alignment of generated motions with text prompts. Therefore, we conducted a comprehensive user preference study using two and three-alternative forced-choice format, focusing on two key aspects: set-consistency and text-motion alignment. For set-consistency, users selected the better set from two sets of 5 videos each depicting the subject. For text-motion alignment, users chose the video best matching the action described in the prompt from a pair of videos. To distinguish between degraded motions and those largely unchanged, users could also indicate if motion quality was equivalent in both videos. We used the same test benchmark as the automated metric study, collecting 5 repetitions per question for set-consistency and 3 repetitions for text-motion alignment, totaling 1800 responses.
+The user-study results in Fig. 12, reveal that Video Storyboarding outperforms the baselines in set consistency. For motion quality, 55% of users rated the generated motions as similar or superior to those of the vanilla model. The ConsiS-Img2Vid baseline’s motion quality was consistent with our earlier findings, showing lower motion quality. However, it achieved the highest set consistency among the baselines, winning in 34% of the generated sets compared to our approach.
+B.10. Additional Results
+Fig. 13 illustrates the adaptability of our method when applied to the state-of-the-art T2V-Turbo-V2 model (Li et al., 2024a). The results show enhanced motion quality while maintaining subject consistency, demonstrating that our approach can effectively improve even the most recent video generation models.
+Fig. 14, provides additional qualitative comparisions to Fig. 9, and also includes qualitative comparison with VSTAR baseline (Li et al., 2024b).
+In Table 3 we present a comprehensive quantitative comparison across different models using three key metrics. Our method, when combined with both VideoCrafter2 and Turbo-V2, shows improved Multi-Shot Consistency scores (68.8 and 67.3 respectively) compared to their baseline versions (63.2 and 63.3), while maintaining comparable Text Similarity and Dynamic Degree measurements. This indicates that our approach successfully enhances subject consistency without significantly compromising other important aspects of video generation. In the reported metrics, we also include a “SubjectConsistency” metric, introduced by VBench (Huang et al., 2024). This metric measures the similarity between frames within the same video shot using DINO (see Table 1 in the Appendix).
+18
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+50% Win Rate
+Ours
+Ours
+Ours
+69% 31%
+66% 34%
+79% 21%
+Ours Tokenflow
+ConsiS
+Im2Vid
+Video
+Crafter2
+Video
+Crafter2
+ConsiS
+Im2Vid
+Tokenflow
+50% Win Rate
+Ours
+Ours
+Ours
+18% 44% 36%
+76% 8% 14%
+15% 39% 45%
+Ours Equal Tokenflow
+ConsiS
+Im2Vid
+Video
+Crafter2
+Video
+Crafter2
+ConsiS
+Im2Vid
+Tokenflow
+Figure 12. User Study: (left) We measure user preferences for set consistency and (right) how well the generated motion matches the text prompt . Our approach achieves the superior set consistency score while maintaining competitive text-motion alignment. Notably, 55% of our generated motions were judged to be of similar or better quality compared to the vanilla model. Error bars are S.E.M.
+Figure 13. T2V-Turbo-V2: (click-to-view-online) Video Storyboarding can be applied to T2V-Turbo-V2 (Li et al., 2024a), a recent state-of-the-art video model, that exhibits significantly better motion.
+B.11. Framewise Subject-Driven Self-Attention - Implementation Details
+This section provides a detailed explanation of our proposed Framewise-SDSA mechanism.
+Improved Subject Localization. In video generation, subject localization becomes particularly challenging during early denoising steps, where the noise is most prominent. aggregation method proposed in ConsiStory (Sec. B.2) proved insufficient in this context, particularly during the earliest denoising steps, leading to unreliable masks both in terms of accuracy and false positive localization.
+To address this, we propose using the estimated clean image xˆ0 for subject localization instead of relying on internal network
+activations. At each denoising step t, we estimate xˆ0 from the noisy latent x using: xˆ0 = x − √1 − αt · et /√αt, where et is the estimated noise, and αt is the schedule parameter (Song et al., 2020). We then apply a zero-shot segmentation approach (Lu ̈ddecke & Ecker, 2021) to localize the subject in the estimated image, followed by Otsu’s method (Otsu, 1979)
+MULTI-SHOT
+CONSISTENCY
+TEXT
+SIMILARITY
+DYNAMIC
+DEGREE
+SUBJECT
+CONSISTENCY
+CONSIS IM2VID 63.7 ± 1.4 27.3 ± 0.5 3.3 ± 1.5 99.1 ± 0.1 VSTAR 83.9 ± 1.6 19.8 ± 0.4 90.7 ± 2.4 92.6 ± 0.3 TOKENFLOW 65.3 ± 1.5 27.9 ± 0.4 26.0 ± 3.6 97.7 ± 0.2 VIDEOCRAFTER2 63.2 ± 1.7 28.7 ± 0.4 29.3 ± 3.7 97.3 ± 0.2 OURS + VIDEOCRAFTER2 68.8 ± 1.8 27.7 ± 0.4 20.0 ± 3.3 97.7 ± 0.2
+TURBO-V2 63.3 ± 1.7 28.6 ± 0.4 63.3 ± 3.9 96.2 ± 0.2 OURS + TURBO-V2 67.3 ± 2.1 27.4 ± 0.4 62.0 ± 4.0 96.8 ± 0.2
+Table 3. Quantitative Evaluation Metrics. Comparison of different models across three metrics: Multi-Shot Consistency, Text Similarity, and Dynamic Degree. Values are reported as mean ± standard error of the mean (S.E.M).
+19
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Figure 14. Additional Qualitative Comparisons , including VSTAR: (click-to-view-online) Our method generates consistent subjects
+while preserving diverse and natural motions across scenarios. 20
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+to dynamically threshold the mask. This approach produces reliable subject masks from the earliest denoising steps and throughout the generation process.
+Maintaining Motion Fluidity. Our experiments revealed that a direct application of SDSA – attending to all frames across all videos simultaneously – can lead to visual artifacts and frozen motion. We discovered that limiting attention to a single corresponding frame in other shots is most effective, as attending to two or more frames negatively impacts motion fluidity and introduces visual artifacts. Specifically, we propose a framewise attention scheme. Instead of attending to all frames across all video shots, frames with matching temporal indices across shots attend only to each other. This prevents visual artifacts and frozen motion, which occur when attending to multiple frames simultaneously and strikes a balance between subject consistency and natural motion.
+Formal Definition of Framewise-SDSA. Let Kif , Qif , Vif , Mif be the keys, queries, values and subject-mask for frame f in video shot i. The framewise extended self-attention A+
+if is defined by:
+K+
+f = [K1,f ⊕ K2,f ⊕ · · · ⊕ KN,f ]
+V+
+f = [V1,f ⊕ V2,f ⊕ · · · ⊕ VN.f ]
+M+
+i,f = [M1,f ⊕ · · · ⊕ Mi−1,f ⊕ 1 ⊕ Mi+1,f · · · ⊕ MN,f ]
+A+
+i,f = softmax QiK+
+f /pdk + log M +
+i,f
+hi,f = A+
+i,f · V +
+f (2)
+where ⊕ indicates matrix concatenation. We use standard attention masking, which null-out softmax’s logits by assigning their scores to −∞ according to the mask. Note that in this step, the Query tokens remain unaltered, and that the concatenated mask M +
+i,f is set to be an array of 1’s for patch indices that belong to the ith image itself.
+B.12. Flow-based Q components injection - Formal Definition
+Let qfxy ∈ RF represent a Q feature from an originally generated video at location (x, y) in frame f . We denote by fA and fB the indices of the two nearest keyframes, where fA ≤ f ≤ fB. The locations of the most similar Q features in frames fA and fB, denoted by (xA, yA) and (xB, yB) respectively, are defined as:
+(xA, yA) = argmax
+x0 ,y0
+Scos(qfxy, qfAx0y0 ) (3)
+(xB, yB) = argmax
+x0 ,y0
+Scos(qfxy, qfBx0y0 ) (4)
+where Scos(a, b) represents the cosine similarity between a and b.
+We then modify the generated Q feature, denoted by qˆfxy, as follows:
+qˆfxy = wqˆfAxAyA + (1 − w)qˆfBxByB (5)
+where w = sigmoid fB−f
+fB−fA . This ensures that qˆ maintains the feature flow of the originally generated video, without
+injecting the actual features from it.
+B.13. Benchmark Dataset Construction:
+We created a benchmark dataset comprising 30 video sets, each containing 5 video-shots depicting a shared subject under different prompts. The evaluation prompts were crafted using the Claude Sonnet 3.5 AI-Agent, following this protocol: each prompt consisted of three parts: (1) a subject description, e.g., “A girl” (2) a setting description, e.g., “paddling out on her surfboard”, and (3) a style descriptor encompassing both image and motion styles, e.g., “Anime cartoon animation” or “Shaky camcoder footage”. We instructed the AI-agent to choose actions that are visually striking and could be captured in a split second. Within each set, prompts shared the same subject and style but varied in settings. To ensure a challenging and representative test set, we selected a subset of 5 prompts per subject, prioritizing those that produced videos with significant motion and subject variability when processed by the vanilla model. Importantly, to ensure fairness, this selection process relied solely on the vanilla model’s generations.
+21
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+B.14. Q dropout
+When Q injection is too strong, it can compromise identity preservation. To address this, we introduce Q dropout, which reduces the strength of Q injection. Unlike SDSA dropout, which hurts identity when trying to improve the image structure, Q dropout sacrifices some visual structural (motion) to enhance identity preservation. This Identity-Motion Trade-off is illustrated in Fig. 15, where increasing Q dropout improves identity consistency but reduces motion richness.
+Figure 15. Q dropout: Q injection may hurt identity. Q dropout may trade-off identity for motion. At 0% the unicorn gallops at both directions. At 40%, only to the right.
+B.15. Implementation Details
+Anchor Videos: Similar to ConsiStory, we utilize two anchor videos that share all features between themselves. Other videos in the batch only observe features derived from these anchors.
+Scalable Video Batch Processing with Sub-batch Attention: To fit large batches of video generation within available GPU memory, we process the self and cross-attention computations in smaller sub-batches. This approach uses an internal loop, and subsequently concatenates results into a single tensor. The operation remains transparent to the network, enabling the generation of larger batches of video shots.
+Reproducible denoising. Our pipeline involves three denoising iterations: caching vanilla queries, applying Q injection and Framewise SDSA, and adding refinement feature injection. To ensure consistency across these stages, we maintain identical random generators for both initial noisy latents and the denoising process. This approach guarantees that each part builds upon the previous one, preserving the reliability of our reproducible denoising pipeline.
+Temporal Parameters: For Q preservation, we set tpres to 750. Framewise-SDSA is applied for t ∈ [550, 950]. Our refinement feature injection step is employed during t ∈ [590, 950].
+Feature Injection: We apply our refinement feature injection step to the 32 × 20 self-attention layers. Other layers either produced visual artifacts or did not significantly affect identity.
+Denoising Process: Videos were sampled the default VideoCrafter2 configuration, using 50 DDPM steps with a guidance scale of 12.
+T2V-Turbo-V2: For T2V-Turbo-V2 we adapt our Framewise-SDSA by allowing each frame to attend to both its temporally matching frames across shots and the middle frame of each shot. Other hyper-parameters were kept the same.
+B.16. User Study Protocol
+The following screenshots illustrate the experimental framework used in our user study:
+22
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Figure 16. One trial of the visual consistency user study.
+Figure 17. Examples provided in the user study for visual set consistency.
+23
+
+
+Motion by Queries: Identity-Motion Trade-offs in Text-to-Video Generation.
+Figure 18. One trial of the text-motion alignment user study.
+Figure 19. Examples provided in the user study for text-motion alignment.
+24

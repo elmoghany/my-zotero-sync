@@ -1,0 +1,59 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2502.13081 (cs)
+[Submitted on 18 Feb 2025]
+Personalized Image Generation with Deep Generative Models: A Decade Survey
+Yuxiang Wei, Yiheng Zheng, Yabo Zhang, Ming Liu, Zhilong Ji, Lei Zhang, Wangmeng Zuo
+View PDF
+HTML (experimental)
+Recent advancements in generative models have significantly facilitated the development of personalized content creation. Given a small set of images with user-specific concept, personalized image generation allows to create images that incorporate the specified concept and adhere to provided text descriptions. Due to its wide applications in content creation, significant effort has been devoted to this field in recent years. Nonetheless, the technologies used for personalization have evolved alongside the development of generative models, with their distinct and interrelated components. In this survey, we present a comprehensive review of generalized personalized image generation across various generative models, including traditional GANs, contemporary text-to-image diffusion models, and emerging multi-model autoregressive models. We first define a unified framework that standardizes the personalization process across different generative models, encompassing three key components, i.e., inversion spaces, inversion methods, and personalization schemes. This unified framework offers a structured approach to dissecting and comparing personalization techniques across different generative architectures. Building upon this unified framework, we further provide an in-depth analysis of personalization techniques within each generative model, highlighting their unique contributions and innovations. Through comparative analysis, this survey elucidates the current landscape of personalized image generation, identifying commonalities and distinguishing features among existing methods. Finally, we discuss the open challenges in the field and propose potential directions for future research. We keep tracing related works at this https URL.
+Comments:	39 pages; under submission; more information: this https URL
+Subjects:	Computer Vision and Pattern Recognition (cs.CV)
+Cite as:	arXiv:2502.13081 [cs.CV]
+ 	(or arXiv:2502.13081v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2502.13081
+Focus to learn more
+Submission history
+From: Yuxiang Wei [view email]
+[v1] Tue, 18 Feb 2025 17:34:04 UTC (16,557 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2025-02
+Change to browse by: cs
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

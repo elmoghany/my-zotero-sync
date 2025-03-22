@@ -1,0 +1,418 @@
+StoryGPT-V: Large Language Models as Consistent Story Visualizers
+Xiaoqian Shen KAUST
+xiaoqian.shen@kaust.edu.sa
+Mohamed Elhoseiny KAUST
+mohamed.elhoseiny@kaust.edu.sa
+Abstract
+Recent generative models have demonstrated impressive capabilities in generating realistic and visually pleasing images grounded on textual prompts. Nevertheless, a significant challenge remains in applying these models for the more intricate task of story visualization. Since it requires resolving pronouns (he, she, they) in the frame descriptions, i.e., anaphora resolution, and ensuring consistent characters and background synthesis across frames. Yet, the emerging Large Language Model (LLM) showcases robust reasoning abilities to navigate through ambiguous references and process extensive sequences. Therefore, we introduce StoryGPT-V, which leverages the merits of the latent diffusion (LDM) and LLM to produce images with consistent and high-quality characters grounded on given story descriptions. First, we train a character-aware LDM, which takes character-augmented semantic embedding as input and includes the supervision of the cross-attention map using character segmentation masks, aiming to enhance character generation accuracy and faithfulness. In the second stage, we enable an alignment between the output of LLM and the character-augmented embedding residing in the input space of the first-stage model. This harnesses the reasoning ability of LLM to address ambiguous references and the comprehension capability to memorize the context. We conduct comprehensive experiments on two visual story visualization benchmarks. Our model reports superior quantitative results and consistently generates accurate characters of remarkable quality with low memory consumption. Our code will be made publicly available1.
+1. Introduction
+Image generation algorithms have made significant strides and are on the verge of matching human-level proficiency. Despite this progress, even a powerful image generator suffers from story visualization task, which involves generating a series of frames that maintain semantic coherence
+1Please refer to the webpage for qualitative results.
+viusal emb1
+Fred is speaking to someone
+text emb1
+Cap0on1 Frame1
+viusal emb2
+He is standing in a room
+text emb2
+Caption2 Frame2
+viusal emb3
+Fred and Wilma are in a room
+text emb3
+Cap0on3 Frame3
+They are talking to each other
+text emb4
+Cap0on4
+Frame1
+Char-LDM Char-LDM
+Frame2 Frame3
+Char-LDM
+Frame4
+Char-LDM
+LLM Mapper LLM Mapper LLM Mapper
+Large Language Model
+LDM Mapper LDM Mapper LDM Mapper LDM Mapper
+Figure 1. We present StoryGPT-V, which empowers a large language model for interleaved image-text comprehension and aligns its output with character-aware Latent Diffusion (Char-LDM) for autoregressive story visualization grounded on co-referential text descriptions.
+based on narrative descriptions [22, 27, 28, 56]. This challenge arises from the fact that captions for a single image are typically self-sufficient, lacking the continuity needed to capture the narrative of object interactions that unfold through multiple sentences over a sequence of frames. This poses a promising avenue for further research and exploration of story visualization. Such a task demands a model capable of producing high-quality characters and detailed environmental objects grounded on given text descriptions. Moreover, it requires the ability to disambiguate referential pronouns in the subsequent frame descriptions, e.g., “she, he, they”.
+Prior studies [4, 22, 26, 28, 47] explore the realm of story visualization but do not take reference resolution [44] (i.e., anaphora resolution in the context of natural language processing [2, 29]) into consideration. Story-LDM [38] first extended story visualization benchmarks with referential text and devises an attention memory module that retains visual context throughout the series of generated frames. However, it still struggles to generate precise characters for referential text since the interaction between current descriptions and contextual information occurs within the CLIP [36] se
+1
+arXiv:2312.02252v2 [cs.CV] 13 Dec 2023
+
+
+mantic space, causing a loss in fine-grained language understanding and hindering referencing capabilities. Furthermore, the attention memory module requires maintaining all previous images in latent pixel space for attention calculations, significantly increasing memory demands with each additional frame in autoregressive generation. The limitation of previous works leads us to rethink how to achieve accurate and efficient reference resolution toward consistent story visualization. Large Language Models (LLMs) [3, 34, 37, 58], trained on extensive text corpora, have exhibited impressive capabilities in deciphering contextual references in natural language descriptions. Prior works [11, 18] have demonstrated the effectiveness of harnessing LLMs for tasks involving image comprehension and generation, where the visual features are adapted within LLM’s token space rather than the pixel space. Hence, such a model could be utilized to efficiently address ambiguous references for story visualization tasks. In this work, we aim at story visualization grounded on given co-referential frame descriptions, focusing on delivering high-quality and coherent portrayals of characters. To achieve this, we leverage a powerful text-to-image model [41] to generate high-quality characters and environmental objects grounded on given frame descriptions, coupled with the reasoning ability of Large Language Models (LLMs) to resolve ambiguous references and improve the cohesiveness of the context. To improve the generation of highly faithful characters, we enhance the pre-trained Latent Diffusion (LDM) towards character-aware training in the first stage. We first augment the token feature by incorporating the visual representation of the corresponding character. Additionally, we regulate the cross-attention map of the character token to highlight the interaction between the conditional token and specific latent pixels. In addressing the challenge of ambiguous reference, which cannot be effectively handled by a robust text-toimage model alone, we leverage an LLM that takes interleaved images and co-referential frame descriptions as input, and aligns its visual output with the characteraugmented embedding encoded by first-stage model. Such semantic guidance, along with LLM’s casual modeling, enables effective reference resolution and consistent generation. Furthermore, our approach efficiently preserves context by processing images as sequences of tokens in the LLM input space with low memory consumption. Contributions. Our contributions are as follows:
+• We first enhance the text representation by integrating the visual features of the corresponding characters, then refine a character-aware LDM for better character generation by directing cross-attention maps with character segmentation mask guidance. • We adapt LLM by interlacing text and image inputs, empowering it to implicitly deduce references from previ
+ous contexts and produce visual responses that align with the input space of the first-stage Char-LDM. This leverages the LLM’s reasoning capacity for reference resolution and the synthesis of coherent characters and scenes. • Our model is capable of visualizing stories featuring precise and coherent characters and backgrounds on story visualization benchmarks. Furthermore, we showcase the model’s proficiency in producing extensive (longer than 40 frames) visual stories with low memory consumption.
+2. Related Work
+Text-to-image synthesis. Numerous works [8–10] have demonstrated unprecedented performance on semantic generation. Recently, diffusion-based text-to-image models [39–41, 43] have shown significant advancements in enhancing image quality and diversity through the utilization of diffusion models. However, these text-to-image approaches primarily concentrate on aligning individualgenerated images grounded on text descriptions and do not take into account the crucial aspects of character and scene consistency across multiple frames in the story visualization task. Additionally, they lack the capability to effectively resolve co-reference issues within a narrative description.
+Multi-modal Large Language Models. Large Language Models (LLMs) wield an extensive repository of human knowledge and exhibit impressive reasoning capabilities. Recent studies [1, 5, 21, 49] utilize pre-trained language models to tackle vision-language tasks, and subsequent studies [6, 16, 20, 52, 59, 60] further enhance multi-modal abilities by aligning vision models with LLM input space. In addition to multi-modal comprehension, several works are dedicated to more challenging multi-modal generation tasks. FROMAGe [19] appends a special retrieval token to LLM and maps the hidden representation of this token into a vector space for retrieving images. Several current works [18, 54, 57] learn a mapping from hidden embeddings of an LLM represents for additional visual outputs into the input space of a frozen pre-trained text-to-image generation model [41]. In this work, we fed multi-modal LLM with interleaved image and referential text descriptions as input and aligned the output with a character-aware fused embedding from our first-stage Char-LDM, guiding the LLM in implicitly deducing the references. Story Visualization. StoryGAN [22] pioneers the story generation task, which proposes a sequential conditional GAN framework with dual frame and story level discriminators to improve image quality and narrative coherence. DuCoStoryGAN [27] introduces a dual-learning framework that utilizes video captioning to enhance semantic alignment between descriptions and generated images. VLCStoryGAN [26] used video captioning for semantic alignment between text and frames. Recently, StoryDALL-E [28] retrofits the cross-attention layers of the pre-trained text
+2
+
+
+to-image model to promote generalizability to unseen visual attributes of the generated story. These methods do not consider ambiguous references in text descriptions. StoryLDM [38] first introduced reference resolution in story visualization tasks and proposed an autoregressive diffusionbased framework with a memory-attention module to resolve ambiguous references. Nevertheless, it struggled with accurately resolving references and was memory-intensive, as it required retaining all previous context in pixel space. In our work, we employ a powerful causal inference LLM for reference resolution, and it efficiently maintains context by mapping visual features into several token embeddings as LLM inputs rather than operating in latent pixel space.
+3. Methods
+The objective of story visualization is to transform a textual narrative, composed of a series of N descriptions S1, ...SN , into a sequence of corresponding visual frames I1, ..., IN that illustrate the story. We’ve developed a twostage method aimed at generating temporally consistent visual stories with accurate and high-quality characters. First, we augment text representation with characters’ visual features and refine a character-aware LDM [41] (Char-LDM) towards high-quality character generation. This is achieved by directing the cross-attention maps of specific tokens associated with the corresponding characters, using character segmentation mask supervision (Section 3.2). Then, we leverage the reasoning ability of LLM to resolve ambiguous references by aligning the output of LLM with Char-LDM input space for temporal consistent story visualization (Section 3.3).
+3.1. Preliminaries
+Cross-attention in text-conditioned Diffusion Models. In diffusion models [15, 46], each diffusion step t involves predicting noise ε from the noise code zt ∈ R(h×w)×dv conditioned on text embedding ψ(S) ∈ RL×dc via U-shaped Network [42], where ψ is the text encoder, h and w are the latent spatial dimensions and L is the sequence length. Within U-Net, the cross-attention layer accepts the spatial latent code z and the text embeddings ψ(S) as inputs, then projects them into Q = W qz, K = W kψ(S) and
+V = W vψ(S), where W q ∈ Rdv×d′ , W k, W v ∈ Rdc×d′ .
+The attention scores is computed as A = Softmax( QKT
+√d′ ) ∈
+R(h×w)×L, where A[i, j, k] represents the attention of k-th text token to the (i, j) latent pixel. In this context, each entry A[i, j, k] within the cross-attention map A quantifies the magnitude of information propagation from the kth text token to the latent pixel at position (i, j). This feature of the interaction between semantic representation and latent pixels is harnessed in various tasks such as image editing [13, 32], video editing [24], and fast adapta
+tion [7, 45, 53, 55].
+3.2. Character-aware LDM with attention control
+Integrate visual features with text conditions. To achieve accurate and high-quality characters in story visualization, we augment text descriptions with visual features of corresponding characters and guide the attention of text conditions to focus more on corresponding character synthesis. Given a text description S, suppose there are K characters that should be generated in image I, images of those characters {Ic1, ..., IcK }, a list of token indices indicating each character name located in the description, denoted as {ic1, ...icK }. Inspired by [25, 53, 55], we first utilize CLIP [36] text encoder ψ and image encoder φ to obtain text embedding and visual features of the characters appear in the image respectively. Then, we augment the text embedding if the token represents a character name. More specifically, we concatenate the token embedding and the visual features of the corresponding character and feed them into an MLP to obtain the augmented text embedding. Each augmented token embedding in the augmented embedding c is formulated as below:
+ck = MLP concat (ψ(S[ik
+c ]), φ(Ik
+c ) (1)
+where ick refers to the index of the text token for charac
+ter k, and Ick the image corresponding to character k. The embeddings for tokens in c that are unrelated to the character remain identical to the vanilla CLIP token embeddings. The enhanced embedding c is then employed as supervision for the second-stage training, which will be further detailed in Section 3.3, where c1, ...cN are the corresponding augmented embeddings for S1, ..., SN .
+Controlling attention of text tokens. Previous work [13] has demonstrated that the visual characteristics of generated images are influenced by the intricate interplay between latent pixels and text embedding through the diffusion process of LDM [41]. However, in vanilla LDM [41], a single latent pixel can unrestrictedly engage with all text tokens. Therefore, we introduce a constraint to refine this behavior and strengthen the impact of the token representing the character’s name on certain pixels in the denoising process, as illustrated in Figure 2 (a). First, we obtain an offline segmentation mask of corresponding characters denoted as {M1, ...MK } as supervision signals via SAM [17]. We then encourage the cross-attention map Ak for each character k at the token index position ick, to align with the binary segmentation mask Mk, whereas diverging from irrelevant re
+gions M ̄k, formulated as follows:
+Lreg = 1
+K
+K
+X
+k=1
+(A−
+k − A+
+k ) (2)
+3
+
+
+Char-LDM
+Large Language Model
+(b) Stage-2: Aligning LLM for reference resolu9on
+Fred and Barney are having
+Image encoder
+Cross-a1en2on maps
+Segmenta2on masks
+Fuse emb
+Fred and
+...
+Wilma ...
+...
+I!"# S!"# S!
+They are ...
+🔥
+W!"#
+(a) Stage-1: Char-LDM with cross-aCenion control
+Char-LDM🔥
+Fred Wilma
+and are
+LLM Mapper
+Fred Wilma
+and are
+S!
+$ [IMG#] [IMG%]...[IMG&]
+LDM Mapper
+🔥
+❄
+Fuse emb Gen emb
+context
+🔥
+I!
+'()
+c!
+Figure 2. (a) In the first stage, a fused embedding is created by integrating character visuals with text embeddings, serving as the CharLDM’s conditional input, and the cross-attention maps of Char-LDM will be guided by corresponding character segmentation mask for accurate and high-quality character generation (Section 3.2). (b) In the second stage, the LLM takes the interleaved image and text context as input and generates R [IMG] tokens. These tokens are then projected by LDM Mapper into an intermediate output, which will be encouraged to align with fused embedding as Char-LDM’s input. The figure intuitively shows how the character-augmented fused embedding and the casual language modeling aid LLM for reference resolution (Section 3.3).
+where
+A−
+k = Ak ⊙ M ̄ k
+P
+i,j (M ̄ k)ij
+, A+
+k = Ak ⊙ Mk
+P
+i,j (Mk)ij
+(3)
+where K is the number of characters to be generated in the image, ick is the index of text token representing character k and ⊙ is the Hadamard product. By reducing the loss, it increases the attention of character tokens to the relevant pixels of their respective characters, while reducing their attention to irrelevant areas. Moreover, as the token embeddings are enriched with the visual features of the corresponding character, this attention control serves to deepen the connection between the augmented semantic space and latent pixel denoising, which can consequently enhance the quality of synthesized characters. Our first stage Char-LDM focuses solely on the quality of image generation grounded on a single caption. Yet, there remain challenges that surpass the abilities of textto-image generators in visualizing a sequence of stories. Firstly, story visualization demands character and background consistency, an aspect not covered by our first-stage enhancements. Moreover, the inherent nature of lengthy descriptions includes referential terms like he, she, or they, which presents a significant challenge for LDM in achiev
+ing accurate inference. In contrast, LLMs can adeptly infer the intended character to which the ambiguous text refers. Therefore, to address this issue, we harness the formidable reasoning capabilities of LLM to disambiguate such references.
+3.3. Aligning LLM for reference resolution
+To enable an LLM to autoregressively generate images conditioned on prior context and resolve ambiguous references, the model must be capable of (i) processing images; (ii) producing images; and (iii) implicitly deducing the subject of reference. The model could understand the image by learning a linear mapping from the visual feature to the LLM input space, and generate images by aligning the hidden states with conditional input required by LDM, which is the fused embedding encoded by first-stage Char-LDM’s text and visual encoder. It integrates the visual features of characters into the text embedding. This character-augmented embedding, along with the causal language modeling (CLM) [33, 34, 50] will direct the LLM to implicitly deduce and generate the correct character for the referential input, as depicted in Figure 2 (b). More specifically, the LLM input consists of interleaved co-referential text descriptions and story
+4
+
+
+frames with flexible frame length n, in the order of (I1, S1, ..., In−1, Sn−1, Sn), where 2 ≤ n ≤ N . We first extract visual embeddings φ(Ii) ∈ Rdi with CLIP [36] visual backbone, where i ∈ [2, n], and learn MapperLLM with trainable matrix Wv2t ∈ Rdi×me which maps φ(Ii) into m k-dimensional embeddings reside within LLM input space [21, 23, 60], where e is the dimension of LLM embedding space. Additionally, like recent works [18, 54, 57] in enabling LLM to generate images, we add additional R tokens, denoted as [IMG1], ..., [IMGR] to represent visual outputs and incorporate trainable matrix Wgen ∈ RR×e into frozen LLM. The training objective is to minimize the negative log-likelihood of producing [IMG] tokens conditioned on previously interleaved image/text tokens
+Tprev :
+Lgen = −
+R
+X
+r=1
+log p([IMGr]|Tprev, [IMG<r]) (4)
+where
+Tprev = {φ(I<i)T Wv2t, ψ(S1:i)} (5)
+where i ∈ [2, n] is the number of text descriptions of the current step. To align [IMG] produced by LLM with LDM input space, we utilize a Transformer-based MapperLDM to project [IMG] tokens to the input space of first-stage finetuned LDM with L learnable query embeddings (q1, ..., qL) ∈ RL×d, where L is the maximum input sequence length of the LDM, similar to BLIP-2 QFormer [21]. The training objective is to minimize the distance between Mapper’s output Gen Emb and the augmented conditional text representations of LDM, i.e., Fuse Emb introduced in Section 3.2, formulated as:
+Lalign = ||MapperLDM (h[IMG1:R], q1, ...qL) − ci||2
+2 (6)
+where h[IMG1:R] denotes the last hidden states of LLM’s [IMG] tokens. Suppose we can get access to the original
+text without reference S′
+i. Then, ci is the augmented text
+embedding of caption S′
+i encoded by the first-stage model’s text and visual encoder. For instance, if Si is ”They are talk
+ing to each other,” then S′
+i would be ”Fred and Wilma are talking to each other.” This non-referential text, augmented with character visual features, assists LLM in efficiently disambiguating references using casual language modeling. Inference. During the inference process, the model sequentially visualizes stories grounded on text descriptions. It begins by processing the text description of the initial frame S1. Focusing exclusively on frame generation, we constrain the LLM to generate only R specific [IMG] tokens and then feed these token embeddings into the first-stage CharLDM, resulting in the generation of the first frame Igen
+1. Subsequently, the LLM takes a contextual history that includes the text description of the first frame S1, the gener
+ated first frame Igen
+1 , and the text description of the second
+frame S2 as input. This process is repeated to visualize the entire story progressively.
+4. Experiments
+4.1. Experimental Setups
+Datasets. Our experiments are conducted using two story visualization datasets: FlintstonesSV [12] and PororoSV [22]. FlintstonesSV [12] contains 20132-training, 2071-validation, and 2309-test stories with 7 main characters and 323 backgrounds, while PororoSV [22] consists of 10,191 training samples, 2,334 for validation, and 2,208 for testing with 9 main characters. We follow [38] to extend the datasets with referential text, by replacing the character names with references, i.e., he, she, or they, wherever applicable. Please refer to the supplementary for details. Evaluation metrics. To measure the accuracy of the characters and background in the generated stories, we consider the following evaluation metrics the same as previous story visualization literature [26, 28, 38]: Following [26], we finetune Inception-v3 to measure the classification accuracy and F1-score of characters (Char-Acc, Char-F1) and background (BG-Acc, BG-F1) respectively. In addition, we consider the Frechet Inception Distance (FID) score, which compares the distribution between feature vectors from real and generated images for quality assessment. When assessing text-image alignment, the CLIP [36] score falls short in reliability since it cannot capture finegrained details. Therefore we choose the powerful captioning model BLIP2 [21] as the evaluation model and fine-tune it on the corresponding datasets. We then employ it as a captioner to predict 5 captions for generated images and 5 captions for ground truth images as a comparison to report the average BLEU4 [31] and CIDEr [51] score to assess text-image alignment.
+Comparison Approaches. We compare our model with state-of-the-art approaches: VLCStoryGAN [26], StoryDALL-E [28], LDM [41] and Story-LDM [38]. Following previous research [22, 38], we use 4 consecutive frames for evaluation. For StoryDALL-E [28], which takes both story descriptions and the initial frame as input, we use the first frame of a 5-frame story and evaluate using the generated 4 frames. We finetune vanilla Stable Diffusion (LDM) on FlintStonesSV [12] and PororoSV [22] as a baseline. Since Story-LDM [38] does not provide pre-trained checkpoint or cleaned training code, we initiate training from pre-trained LDM2. Implementation Details. For the first stage training, we freeze CLIP [36] text encoder and fine-tune the remaining modules for 25k steps with a learning rate of 1e-5 and batch size of 32 on original non-referential text. To enhance
+2https://ommer-lab.com/files/latent-diffusion/nitro/txt2img-f8-large
+5
+
+
+Models Ref text Char-Acc (↑) Char-F1 (↑) BG-Acc (↑) BG-F1 (↑) FID (↓) BLEU4 (↑) CIDEr (↑)
+StoryDALL-E† [28] 69.49 83.35 48.46 55.24 44.24 0.4666 1.4473 LDM [41]
+×
+85.66 93.41 54.85 62.04 32.05 0.5230 1.8048 Story-LDM [38] 82.43 91.86 55.3 61.58 36.29 0.4656 1.4335 Char-LDM (Ours) 90.36 95.76 58.36 63.92 21.13 0.5260 1.8361
+StoryDALL-E† [28] 61.83 78.36 48.10 54.92 44.66 0.4460 1.3373 LDM [41]
+✓
+75.37 87.54 52.57 58.41 32.36 0.4911 1.5103 Story-LDM [38] 77.23 88.26 54.97 60.99 36.34 0.4585 1.4004 StoryGPT-V (Ours) 87.96 94.17 56.01 61.07 21.71 0.5070 1.6607
+Table 1. Main experiments on FlintStonesSV [12]. The top portion is evaluated on the dataset w/o extended referential text. The bottom half displays the results on the extended dataset with co-reference. †StoryDALL-E [28] takes the source frame as additional input.
+inference time robustness and flexibility, we adopt a training strategy that includes 10% unconditional training, i.e., classifier-free guidance [14], 10% text-only training, and 80% character-augmented fuse training (Section 3.2). For the second stage training, we use OPT-6.7B3 model as the LLM backbone. To expedite the second stage alignment training, we first pre-compute non-referential fused embeddings residing in the input space of the first-stage Char-LDM. We map visual features into m = 4 token embeddings as LLM input, set the max sequence length as 160 and the number of additional [IMG] tokens represents for LLM’s visual output as R = 8, batch size as 64 training for 20k steps. Please refer to the supplementary for more details.
+4.2. Visual Story Generation
+Quantitative Results. (i) Generation with original descriptions. The upper half of Table 1 shows the comparison results on original FlintStonesSV [12] without referential text descriptions. Our first-stage Char-LDM exhibits superior performance in generating accurate characters (Char-Acc, Char-F1) and background scenes (BG-Acc, BG-F1), achieving high fidelity (FID), and exhibiting better alignment with given text descriptions (BLEU4 [31], CIDEr [51]). (ii) Generation with co-referenced descriptions. Table 1 (bottom) and Table 2 show the results on extended FlintStonesSV [12] and PororoSV [22] with coreferential text descriptions [38] respectively. By harnessing the merit of reasoning and comprehension abilities of LLM, our model substantially boosts performance in reference resolution compared to baselines, while maintaining a strong text-image alignment grounded in the provided text descriptions. Qualitative Results. Figure 3 demonstrates qualitative comparison on FlintStonesSV [12] and PororoSV [22] with co-reference descriptions. LDM [41] could generate highquality images but struggles to produce correct characters in the presence of reference in the captions. Story-LDM [38],
+3https://huggingface.co/facebook/opt-6.7b
+Models Char-Acc (↑) Char-F1 (↑) FID (↓) BLEU4 (↑) CIDEr (↑)
+StoryDALL-E† [28] 21.03 50.56 40.39 0.2295 0.3666 LDM [41] 27.81 57.02 28.98 0.2560 0.5122 Story-LDM [38] 29.14 57.56 26.64 0.2420 0.4581 StoryGPT-V (Ours) 36.06 62.70 19.56 0.2586 0.5279
+Table 2. Performance comparison on PororoSV [22] with coreferenced descriptions. †StoryDALL-E [28] takes the source frame as additional input.
+despite incorporating an attention-memory module to handle context, fails to produce accurate characters in some frames. In comparison, our model excels at generating frames with pleasing visuals, accurate characters, and maintaining temporal consistency in the background scenes. Human Evaluation. In addition, we use Mechanical Turk to assess the quality of 100 stories produced by our methods or Story-LDM [38] on FlintStonesSV [12]. Given a pair of stories generated by Story-LDM [38] and our model, MTurkers are asked to decide which generated four-frame story is better w.r.t visual quality, text-image alignment, character accuracy, and temporal consistency. Each pair is evaluated by 3 unique workers. In Figure 4, our model demonstrates significantly better story visualization quality with accurate and temporally coherent synthesis.
+4.3. Ablation Studies
+First stage ablation. We conducted an ablation study for the first stage and presented results in Table 3. w/o Lreg indicates that we disabled the Lreg loss (Equation 3.2), i.e., the model underwent training without the influence of segmentation masks to direct the cross-attention maps. w/o augmented text signifies that the model’s conditional input during its training phase was the standard CLIP [36] text embedding, rather than the fused embedding incorporating the character’s visual attributes as discussed in Section 3.2. freeze vis denotes the visual encoder remained frozen during training. Unless specified, the last two layers of the visual encoder are made adjustable. The final two rows employ our default training strategy and the only distinction lies in the inference phase. Default (w/o img)
+6
+
+
+• Fred is standing in the living room while holding the phone and talking. • He is in a room. He picks up the phone and then speaks into the phone. • He stands next to a small table in the room. He holds the receiver for a phone while talking to someone. He then hangs up the phone when he finishes the call. • Fred and Barney are standing in a room. There is a telephone next to Fred. Barney is talking with something in his hand.
+LDM Ground Truth
+Ours Story-LDM
+• Poby is seated beside a canvas. He holds a red pencil in his hand. There are many pictures on the wall. • He is seated beside a canvas. He holds a red pencil in his hand. He lowers down his arm and makes a big smile. There are many pictures on the wall. • Harry is in a house. Harry is seated on a green bed. • He comes out of the house. He looks around the room. In the middle of the room, there is a wooden table. There is an apple on the table.
+Figure 3. Qualitative comparison on FlintStonesSV [12] (left) and PororoSV [22] (right) with co-reference descriptions.
+0%
+25%
+50%
+75%
+100%
+Visual Quality Text-Image Alignment
+Character Accuracy
+Temporal Consistency
+StoryGPT-V (Ours) Story-LDM
+Figure 4. Human evaluation results on FlintStonesSV [12] w.r.t visual quality, text-image alignment, character accuracy and temporal consistency.
+takes vanilla CLIP [36] text embedding as input condition, whereas Default (w/ img) employs the fused embedding. As indicated by Table 3, integrating character visual features during training significantly enhances the generation performance and the additional cross-attention control propels the model to achieve its peak on accurate character generation. Note that the FID score of Default (w/ img) is slightly higher than Default (w/o img). This is because, during in
+ference, the reference images for corresponding characters in Default (w/ img) are obtained online, introducing a slight deviation from the original distribution.
+Models Char-Acc (↑) Char-F1 (↑) BG-Acc (↑) BG-F1 (↑) FID (↓)
+w/o Lreg 88.86 95.21 55.50 60.77 23.51 w/o augmented text 87.45 94.70 57.67 63.04 21.27 freeze vis 88.67 95.14 56.58 62.46 22.01 Default (w/o img) 89.73 95.56 56.18 62.85 20.96 Default (w/ img) 90.36 95.76 58.36 63.92 21.13
+Table 3. Ablation study for the first stage finetuning LDM with cross-attention control.
+Second stage ablation. As shown in Table 4, we conducted an ablation study on (i) whether to align with the text embedding (Embtext) or the fused embedding (Embfuse) of our first stage model; (ii) whether the model’s input consists of a sequence of captions (Caption-) or utilizes interleaved training with both images and captions (Interleave-) (Equation 3.3). Experimental results shown in Table 4 indicate that image-text interleave training can significantly enhance performance. It is intuitive that taking both images and corresponding captions as input provides a more profound comprehension of the characters and their interactions within the image than when provided with sole captions. This, in turn, amplifies its generative capabilities.
+7
+
+
+Models Char-Acc (↑) Char-F1 (↑) BG-Acc (↑) BG-F1 (↑) FID (↓)
+Caption-Embtext 69.70 83.37 52.67 58.78 21.32 Caption-Embfuse 71.77 84.81 52.57 58.04 24.79
+Interleave-Embtext 86.10 93.46 54.92 60.15 21.30 Interleave-Embfuse (default) 87.96 94.17 56.01 61.07 21.71
+Table 4. Second stage training strategy ablation. Input only caption or interleaved text and image. The output of LLM is aligned with our Char-LDM text embedding (Embtext) or characteraugmented fused embedding (Embfuse).
+Fred and Barney are standing in the room. Fred is talking to Barney. They are both wearing hats.
+LDM Char-LDM (Ours)
+Fred Barney Fred Barney
+Figure 5. Visualization of cross attention maps of corresponding character tokens.
+4.4. Analysis
+We further investigate the impact of first-stage finetuning with cross-attention control by visualizing averaged crossattention maps in U-Net latent pixel space and interpolating them to match the size of the generated images. As illustrated in Figure 5, vanilla LDM (top) finetune on FlintStonesSV [12] w/o Lreg (Section 3.2) fails to accurately focus on the corresponding characters for character tokens. Our model (bottom), which incorporates cross-attention guidance, is able to precisely direct attention to generated characters given corresponding character tokens.
+4.5. Properties
+Our model could generate longer stories featuring accurate characters, at a faster speed and with lower computational consumption. Our architecture allows our model to retain an extensive context requiring minimal computational resources by efficiently mapping visual features into tokens instead of operating in pixel space. Figure 6 shows the comparison between our model and Story-LDM [38] w.r.t GPU memory consumption and inference speed for longerframes story generation. Our model is capable of producing sequences exceeding 50 frames with low memory usage, whereas Story-LDM [38] encounters GPU memory limitations (80G A100) when generating 42 frames. This is because Story-LDM [38] requires the retention of the entire context, e.g., n frames in latent pixel space (n × h × w × d), whereas our model processes visual features as four token embedding (n × 4 × d) with the same dimensions as the text tokens in LLM. Table 5 compares the accuracy of gener
+Figure 6. Compare inference speed and GPU memory consumption between our method and Story-LDM [38]. Story-LDM encounters the 80GB GPU limit when generating sequences exceeding 40 frames.
+ated characters and FID score for long story visualizations between our model and Story-LDM [38]. The performance of Story-LDM [38] significantly decreases when generating longer stories and reaches the memory limit before 50 frames. In contrast, by utilizing the capacity of LLM to retain extensive context, our model upholds accurate character consistency in visualizing lengthy narratives with coreferential text descriptions.
+Models Metric 4 10 20 40 50
+Story-LDM [38] Char-Acc (↑) 77.23 74.84 69.01 63.40 N/A
+FID (↓) 36.34 48.92 53.32 60.33 N/A
+StoryGPT-V (Ours) Char-Acc (↑) 85.44 84.63 82.86 81.04 80.92
+FID (↓) 27.08 38.91 42.60 48.37 61.23
+Table 5. Longer-frames story visualization comparison on FlintStonesSV [12] with referential text. Story-LDM reaches maximum GPU capacity when generating 50 frames.
+Our design could be easily adapted to any LLMs. In our work, we experimented with OPT-6.7b4 and Llama27b-chat5 models. Our findings, as illustrated in Table 9, indicate an improvement when changing from OPT [58] to a more powerful model, Llama2 [48].
+Models # Params Char-Acc (↑) Char-F1 (↑) BG-Acc (↑) BG-F1 (↑) FID (↓) BLEU4 (↑) CIDEr (↑)
+OPT [58] 6.7b 87.96 94.17 56.01 61.07 21.71 0.5070 1.6607 Llama2 [48] 7b 89.08 95.07 57.29 62.62 21.56 0.5169 1.7516
+Table 6. Performance on FlintstonesSV [12] dataset with referential text using different LLMs.
+Our model, StoryGPT-V, is capable for multi-model generation. Owing to StoryGPT-V design leveraging the advanced capabilities of Large Language Models (LLMs), it exhibits a unique proficiency in that it can extend visual stories. StoryGPT-V is not merely limited to visualizing stories based on provided textual descriptions. Unlike existing models, it also possesses the innovative capacity to
+4https://huggingface.co/facebook/opt-6.7b 5https://huggingface.co/meta-llama/Llama-2-7b-chat
+8
+
+
+extend these narratives through continuous text generation. Concurrently, it progressively synthesizes images that align with the newly generated text segments. Our model represents a notable advancement in story visualization, being the first of its kind to consistently produce both high-quality images and coherent narrative descriptions. This innovation opens avenues for AI-assisted technologies to accelerate visual storytelling creation experiences by exploring various visualized plot extensions as the story builds.
+5. Conclusion
+In this paper, we aim at high-quality and consistent character synthesis for story visualization grounded on coreferential text descriptions. To accomplish this, we utilize the strengths of the LDM for generating high-quality images, combined with the reasoning capability of LLM to comprehend extended contexts, resolve ambiguities, and ensure semantic consistency in the generation process. We first finetune LDM by guiding the cross-attention map of LDM with character segmentation masks, which improves the accuracy and faithfulness of character generation. Next, we facilitate a mapping from the output of LLM to align with the input space of the first stage LDM, thus allowing Multi-modal LLM to both process and produce images. This process leverages the LLM’s logical reasoning to clarify ambiguous references and its capacity to retain contextual information. Our model reports superior quantitative results and consistently generates characters with remarkable quality.
+References
+[1] Jean-Baptiste Alayrac, Jeff Donahue, Pauline Luc, Antoine Miech, Iain Barr, Yana Hasson, Karel Lenc, Arthur Mensch, Katherine Millican, Malcolm Reynolds, et al. Flamingo: a visual language model for few-shot learning. Advances in Neural Information Processing Systems, 35:23716–23736, 2022. 2 [2] Chinatsu Aone and Scott William. Evaluating automated and manual acquisition of anaphora resolution strategies. In 33rd Annual Meeting of the Association for Computational Linguistics, pages 122–129, 1995. 1 [3] Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, et al. Language models are few-shot learners. Advances in neural information processing systems, 33:1877–1901, 2020. 2
+[4] Hong Chen, Rujun Han, Te-Lin Wu, Hideki Nakayama, and Nanyun Peng. Character-centric story visualization via visual planning and token alignment. arXiv preprint arXiv:2210.08465, 2022. 1
+[5] Jun Chen, Han Guo, Kai Yi, Boyang Li, and Mohamed Elhoseiny. Visualgpt: Data-efficient adaptation of pretrained language models for image captioning. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 18030–18040, 2022. 2 [6] Jun Chen, Deyao Zhu, Xiaoqian Shen, Xiang Li, Zechun Liu, Pengchuan Zhang, Raghuraman Krishnamoorthi, Vikas Chandra, Yunyang Xiong, and Mohamed Elhoseiny. Minigpt-v2: large language model as a unified interface for vision-language multi-task learning, 2023. 2 [7] Guillaume Couairon, Marl`ene Careil, Matthieu Cord, St ́ephane Lathuilie`re, and Jakob Verbeek. Zero-shot spatial layout conditioning for text-to-image diffusion models. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 2174–2183, 2023. 3 [8] Katherine Crowson, Stella Biderman, Daniel Kornis, Dashiell Stander, Eric Hallahan, Louis Castricato, and Edward Raff. Vqgan-clip: Open domain image generation and editing with natural language guidance. In European Conference on Computer Vision, pages 88–105. Springer, 2022. 2
+[9] Ming Ding, Zhuoyi Yang, Wenyi Hong, Wendi Zheng, Chang Zhou, Da Yin, Junyang Lin, Xu Zou, Zhou Shao, Hongxia Yang, et al. Cogview: Mastering text-to-image generation via transformers. Advances in Neural Information Processing Systems, 34:19822–19835, 2021. [10] Oran Gafni, Adam Polyak, Oron Ashual, Shelly Sheynin, Devi Parikh, and Yaniv Taigman. Make-a-scene: Scenebased text-to-image generation with human priors. In European Conference on Computer Vision, pages 89–106. Springer, 2022. 2 [11] Yuying Ge, Yixiao Ge, Ziyun Zeng, Xintao Wang, and Ying Shan. Planting a seed of vision in large language model. arXiv preprint arXiv:2307.08041, 2023. 2
+[12] Tanmay Gupta, Dustin Schwenk, Ali Farhadi, Derek Hoiem, and Aniruddha Kembhavi. Imagine this! scripts to compositions to videos. In Proceedings of the European conference on computer vision (ECCV), pages 598–613, 2018. 5, 6, 7, 8, 12, 13, 14, 15, 16, 17, 18 [13] Amir Hertz, Ron Mokady, Jay Tenenbaum, Kfir Aberman, Yael Pritch, and Daniel Cohen-Or. Prompt-to-prompt image editing with cross attention control. arXiv preprint arXiv:2208.01626, 2022. 3
+[14] Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance. arXiv preprint arXiv:2207.12598, 2022. 6, 15
+[15] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. Advances in neural information processing systems, 33:6840–6851, 2020. 3 [16] Shaohan Huang, Li Dong, Wenhui Wang, Yaru Hao, Saksham Singhal, Shuming Ma, Tengchao Lv, Lei Cui, Owais Khan Mohammed, Qiang Liu, et al. Language is not all you need: Aligning perception with language models. arXiv preprint arXiv:2302.14045, 2023. 2
+[17] Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete Xiao, Spencer Whitehead, Alexander C Berg, Wan-Yen Lo, et al. Segment anything. arXiv preprint arXiv:2304.02643, 2023. 3, 15
+[18] Jing Yu Koh, Daniel Fried, and Ruslan Salakhutdinov. Generating images with multimodal language models. arXiv preprint arXiv:2305.17216, 2023. 2, 5
+9
+
+
+[19] Jing Yu Koh, Ruslan Salakhutdinov, and Daniel Fried. Grounding language models to images for multimodal generation. arXiv preprint arXiv:2301.13823, 2023. 2
+[20] Bo Li, Yuanhan Zhang, Liangyu Chen, Jinghao Wang, Jingkang Yang, and Ziwei Liu. Otter: A multi-modal model with in-context instruction tuning. arXiv preprint arXiv:2305.03726, 2023. 2
+[21] Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. Blip-2: Bootstrapping language-image pre-training with frozen image encoders and large language models. arXiv preprint arXiv:2301.12597, 2023. 2, 5, 13
+[22] Yitong Li, Zhe Gan, Yelong Shen, Jingjing Liu, Yu Cheng, Yuexin Wu, Lawrence Carin, David Carlson, and Jianfeng Gao. Storygan: A sequential conditional gan for story visualization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 63296338, 2019. 1, 2, 5, 6, 7, 13, 15, 16, 18, 19 [23] Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. arXiv preprint arXiv:2304.08485, 2023. 5 [24] Shaoteng Liu, Yuechen Zhang, Wenbo Li, Zhe Lin, and Jiaya Jia. Video-p2p: Video editing with cross-attention control. arXiv preprint arXiv:2303.04761, 2023. 3
+[25] Yiyang Ma, Huan Yang, Wenjing Wang, Jianlong Fu, and Jiaying Liu. Unified multi-modal latent diffusion for joint subject and text conditional image generation. arXiv preprint arXiv:2303.09319, 2023. 3
+[26] Adyasha Maharana and Mohit Bansal. Integrating visuospatial, linguistic and commonsense structure into story visualization. arXiv preprint arXiv:2110.10834, 2021. 1, 2, 5
+[27] Adyasha Maharana, Darryl Hannan, and Mohit Bansal. Improving generation and evaluation of visual stories via semantic consistency. arXiv preprint arXiv:2105.10026, 2021. 1, 2 [28] Adyasha Maharana, Darryl Hannan, and Mohit Bansal. Storydall-e: Adapting pretrained text-to-image transformers for story continuation. In European Conference on Computer Vision, pages 70–87. Springer, 2022. 1, 2, 5, 6, 14 [29] Joseph F McCarthy and Wendy G Lehnert. Using decision trees for coreference resolution. arXiv preprint cmplg/9505043, 1995. 1
+[30] OpenAI. Dall-e 3. https://openai.com/dall-e3/, 2023. 16 [31] Kishore Papineni, Salim Roukos, Todd Ward, and Wei-Jing Zhu. Bleu: a method for automatic evaluation of machine translation. In Proceedings of the 40th annual meeting of the Association for Computational Linguistics, pages 311–318, 2002. 5, 6, 13, 14 [32] Gaurav Parmar, Krishna Kumar Singh, Richard Zhang, Yijun Li, Jingwan Lu, and Jun-Yan Zhu. Zero-shot image-to-image translation. In ACM SIGGRAPH 2023 Conference Proceedings, pages 1–11, 2023. 3 [33] Alec Radford, Karthik Narasimhan, Tim Salimans, Ilya Sutskever, et al. Improving language understanding by generative pre-training. 2018. 4 [34] Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, Ilya Sutskever, et al. Language models are unsu
+pervised multitask learners. OpenAI blog, 1(8):9, 2019. 2, 4
+[35] Alec Radford, Jong Wook Kim, Chris Hallacy, A. Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. Learning transferable visual models from natural language supervision. In ICML, 2021. 15 [36] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In International conference on machine learning, pages 8748–8763. PMLR, 2021. 1, 3, 5, 6, 7, 12, 13, 14 [37] Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J Liu. Exploring the limits of transfer learning with a unified text-to-text transformer. The Journal of Machine Learning Research, 21(1):5485–5551, 2020. 2 [38] Tanzila Rahman, Hsin-Ying Lee, Jian Ren, Sergey Tulyakov, Shweta Mahajan, and Leonid Sigal. Make-a-story: Visual memory conditioned consistent story generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 2493–2502, 2023. 1, 3, 5, 6, 8, 14, 15 [39] Aditya Ramesh, Mikhail Pavlov, Gabriel Goh, Scott Gray, Chelsea Voss, Alec Radford, Mark Chen, and Ilya Sutskever. Zero-shot text-to-image generation. In International Conference on Machine Learning, pages 8821–8831. PMLR, 2021. 2
+[40] Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen. Hierarchical text-conditional image generation with clip latents. arXiv preprint arXiv:2204.06125, 1 (2):3, 2022. [41] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bjo ̈rn Ommer. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 10684–10695, 2022. 2, 3, 5, 6, 13, 14, 15 [42] Olaf Ronneberger, Philipp Fischer, and Thomas Brox. Unet: Convolutional networks for biomedical image segmentation. In Medical Image Computing and Computer-Assisted Intervention–MICCAI 2015: 18th International Conference, Munich, Germany, October 5-9, 2015, Proceedings, Part III 18, pages 234–241. Springer, 2015. 3 [43] Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily L Denton, Kamyar Ghasemipour, Raphael Gontijo Lopes, Burcu Karagol Ayan, Tim Salimans, et al. Photorealistic text-to-image diffusion models with deep language understanding. Advances in Neural Information Processing Systems, 35:36479–36494, 2022. 2 [44] Paul Hongsuck Seo, Andreas Lehrmann, Bohyung Han, and Leonid Sigal. Visual reference resolution using attention memory for visual dialog. Advances in neural information processing systems, 30, 2017. 1
+[45] Jing Shi, Wei Xiong, Zhe Lin, and Hyun Joon Jung. Instantbooth: Personalized text-to-image generation without testtime finetuning. arXiv preprint arXiv:2304.03411, 2023. 3
+10
+
+
+[46] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. arXiv preprint arXiv:2010.02502, 2020. 3
+[47] Yun-Zhu Song, Zhi Rui Tam, Hung-Jen Chen, Huiao-Han Lu, and Hong-Han Shuai. Character-preserving coherent story visualization. In European Conference on Computer Vision, pages 18–33. Springer, 2020. 1 [48] Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, et al. Llama 2: Open foundation and fine-tuned chat models. arXiv preprint arXiv:2307.09288, 2023. 8, 13
+[49] Maria Tsimpoukelli, Jacob L Menick, Serkan Cabi, SM Eslami, Oriol Vinyals, and Felix Hill. Multimodal few-shot learning with frozen language models. Advances in Neural Information Processing Systems, 34:200–212, 2021. 2
+[50] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. Advances in neural information processing systems, 30, 2017. 4
+[51] Ramakrishna Vedantam, C Lawrence Zitnick, and Devi Parikh. Cider: Consensus-based image description evaluation. In Proceedings of the IEEE conference on computer vision and pattern recognition, pages 4566–4575, 2015. 5, 6, 13, 14 [52] Wenhai Wang, Zhe Chen, Xiaokang Chen, Jiannan Wu, Xizhou Zhu, Gang Zeng, Ping Luo, Tong Lu, Jie Zhou, Yu Qiao, et al. Visionllm: Large language model is also an open-ended decoder for vision-centric tasks. arXiv preprint arXiv:2305.11175, 2023. 2
+[53] Yuxiang Wei, Yabo Zhang, Zhilong Ji, Jinfeng Bai, Lei Zhang, and Wangmeng Zuo. Elite: Encoding visual concepts into textual embeddings for customized text-to-image generation. arXiv preprint arXiv:2302.13848, 2023. 3
+[54] Shengqiong Wu, Hao Fei, Leigang Qu, Wei Ji, and Tat-Seng Chua. Next-gpt: Any-to-any multimodal llm. arXiv preprint arXiv:2309.05519, 2023. 2, 5
+[55] Guangxuan Xiao, Tianwei Yin, William T Freeman, Fre ́do Durand, and Song Han. Fastcomposer: Tuning-free multisubject image generation with localized attention. arXiv preprint arXiv:2305.10431, 2023. 3
+[56] Gangyan Zeng, Zhaohui Li, and Yuan Zhang. Pororogan: An improved story visualization model on pororo-sv dataset. In Proceedings of the 2019 3rd International Conference on Computer Science and Artificial Intelligence, pages 155159, 2019. 1 [57] Lai Zeqiang, Zhu Xizhou, Dai Jifeng, Qiao Yu, and Wang Wenhai. Mini-dalle3: Interactive text to image by prompting large language models. arXiv preprint arXiv:2310.07653, 2023. 2, 5 [58] Susan Zhang, Stephen Roller, Naman Goyal, Mikel Artetxe, Moya Chen, Shuohui Chen, Christopher Dewan, Mona Diab, Xian Li, Xi Victoria Lin, et al. Opt: Open pre-trained transformer language models. arXiv preprint arXiv:2205.01068, 2022. 2, 8, 13 [59] Yanzhe Zhang, Ruiyi Zhang, Jiuxiang Gu, Yufan Zhou, Nedim Lipka, Diyi Yang, and Tong Sun. Llavar: Enhanced
+visual instruction tuning for text-rich image understanding. arXiv preprint arXiv:2306.17107, 2023. 2
+[60] Deyao Zhu, Jun Chen, Xiaoqian Shen, Xiang Li, and Mohamed Elhoseiny. Minigpt-4: Enhancing vision-language understanding with advanced large language models. arXiv preprint arXiv:2304.10592, 2023. 2, 5
+11
+
+
+Appendix
+Fred is looking over the food on the table in the dinning room.
+Wilma is speaking to Fred in the dinning room.
+Fred is in the kitchen. He talks while lokking at a giant pile on the table.
+He is in the dinning room. He puts his hands on his hips as he talks.
+Wilma says (excitedly) Oh boy, look at all the food!
+Wilma looks at Fred in disblief.
+Wilma rolls her eys and muBers under her breath.
+Fred looks at Wilma with a mischievous grin on his face.
+Figure 7. Our model StoryGPT-V extending stories in both language and vision: Gray part represents the text descriptions from datasets. Blue part corresponds to the frames and the continued written stories based on the previous captions generated by our model StoryGPT-V. This is the first model capable of story visualization and multi-modal story generation (continuation) by leveraging an LLM.
+A. Multi-modal Story Generation
+Owing to StoryGPT-V design leveraging the advanced capabilities of Large Language Models (LLMs), it exhibits a unique proficiency in that it can extend visual stories. StoryGPT-V is not merely limited to visualizing stories based on provided textual descriptions. Unlike existing models, it also possesses the innovative capacity to extend these narratives through continuous text generation. Concurrently, it progressively synthesizes images that align with the newly generated text segments.
+Figure 7 presents an example of a multi-modal story generation. Initially, the first four frames are created according to the text descriptions from the FlintstonesSV [12] dataset (gray part). Subsequently, the model proceeds to write the description for the next frame (blue part), taking into account the captions provided earlier, and then creates a frame based on this new description (blue part). This method is employed iteratively to generate successive text descriptions and their corresponding frames.
+Our model represents a notable advancement in story visualization, being the first of its kind to consistently produce both high-quality images and coherent narrative descriptions. This innovation opens avenues for AI-assisted technologies to accelerate visual storytelling creation experiences by exploring various visualized plot extensions as the story builds.
+B. Ablation Studies
+B.1. Effect of first-stage design.
+In Table 7 lower half, we conducted an ablation study on how the stage-1 design contributes to the final performance. In the first line, the stage-2 LLM is aligned with vanilla LDM fine-tuned on FlintstonesSV [12]. The second line aligns the LLM output with our Char-LDM’s text embedding (Embtext), while the last line aligns with character-augmented fused embedding (Embfuse) of our Char-LDM. The first two lines align to the same text embedding encoded by the CLIP [36] text encoder, however, our Char-LDM enhanced with cross-attention control (Lreg) produces more precise characters. Different from Embtext, the last line is aligned with Embfuse, which is augmented with characters’ visual features. This visual guidance helps LLM to interpret references more effectively by linking “he, she, they” to the previous language and image context.
+B.2. Number of [IMG] Tokens
+We further examined the impact of the number of added [IMG] tokens. As indicated in Table 8, aligning with the fused embedding and setting R = 8 yields the best performance.
+12
+
+
+Models Aligning space Char-Acc (↑) Char-F1 (↑) BG-Acc (↑) BG-F1 (↑) FID (↓)
+Vanilla LDM [41] × 75.37 87.54 52.57 58.41 32.36
+Our Stage-2
+Vanilla LDM Embtext 84.06 92.54 53.18 58.29 22.94 Char-LDM Embtext 86.10 93.46 54.92 60.15 21.30 Char-LDM Embfuse (default) 87.96 94.17 56.01 61.07 21.71
+Table 7. The output of our stage-2 model is aligned with conditional input of vanilla LDM [41] (finetuned on FlintstonesSV [12]), our Char-LDM text embedding (Embtext) or character-augmented fused embedding (Embfuse).
+Models R Char-Acc (↑) Char-F1 (↑) BG-Acc (↑) BG-F1 (↑) FID (↓)
+Embtext 4 82.14 90.18 54.28 59.58 21.33 Embtext 8 86.10 93.46 54.92 60.15 21.30 Embtext 16 83.77 91.07 54.08 60.21 21.58
+Embfuse 4 86.23 93.43 54.57 59.61 21.97 Embfuse 8 87.96 94.17 56.01 61.07 21.71 Embfuse 16 85.35 91.96 52.93 58.86 23.73
+Table 8. StoryGPT-V Ablations: Impact of R, the number of added [IMG] tokens. Embtext: the output of LLM is aligned with text embedding extracted from the text encoder; Embfuse: aligned with fused embedding Embfuse of first stage model.
+Models # Params Char-Acc (↑) Char-F1 (↑) BG-Acc (↑) BG-F1 (↑) FID (↓) BLEU4 (↑) CIDEr (↑)
+OPT [58] 6.7b 87.96 94.17 56.01 61.07 21.71 0.5070 1.6607 Llama2 [48] 7b 89.08 95.07 57.29 62.62 21.56 0.5169 1.7516
+Table 9. Performance on FlintstonesSV [12] dataset with referential text using different LLMs.
+B.3. Different LLMs (OPT vs Llama2)
+Our primary contribution lies in leveraging Large Language Models (LLMs) for reference resolution for consistent story visualization. In our work, we experimented with OPT-6.7b6 and Llama2-7b-chat7 models. It’s important to note that the utilization of Llama2 was specifically to demonstrate its additional capability for multi-modal generation. The ablation study of different LLMs was not the main focus of our research. Our findings, as illustrated in Table 9, indicate only a slight improvement when changing from OPT [58] to Llama2 [48]. This marginal difference is attributed to the evaluation metric’s emphasis on image-generation capabilities, which assesses whether the model’s visual output aligns well with first-stage Char-LDM’s conditional input space.
+C. Evaluation
+C.1. Text-image alignment.
+CLIP [36] is trained on large-scale image-caption pairs to align visual and semantic space. However, a domain gap exists between pre-train data and the story visualization benchmark. Therefore, we finetune CLIP [36] on the story visualization datasets. However, we found it still hard to capture fine-grained semantics, either text-image (T-I) similarity or image-image similarity (I-I), i.e., the similarity between visual features of generated images and corresponding ground truth images. Upon this observation, we choose the powerful captioning model BLIP2 [21] as the evaluation model. We finetune BLIP2 on FlintstonesSV [12] and PororoSV [22], respectively, and employ it as an image captioner for generated visual stories. We avoided direct comparisons to bridge the gap between BLIP2’s predictions and the actual ground truth captions. Instead, we used the fine-tuned BLIP2 to generate five captions for each ground truth image and one caption for each generated image. and report average BLEU4 [31] or CIDEr [51] score based on these comparisons.
+6https://huggingface.co/facebook/opt-6.7b 7https://huggingface.co/meta-llama/Llama-2-7b-chat
+13
+
+
+Models CLIP (T-I) (↑) CLIP (I-I) (↑) BLEU4 (↑) CIDEr (↑)
+StoryDALL-E [28] 0.4417 0.8112 0.4460 1.3373 LDM [41] 0.5007 0.8786 0.4911 1.5103 Story-LDM [38] 0.4979 0.8795 0.4585 1.4004 StoryGPT-V (Ours) 0.5106 0.889 0.5070 1.6607
+Table 10. Text-image alignment score for FlintstonesSV [12] with referential text descriptions in terms of CLIP [36] similarity, BLEU4 [31] and CIDEr [51].
+C.2. Human evaluation.
+We use Mechanical Turk to assess the quality of 100 stories produced by our methods or Story-LDM [38] on FlintStonesSV [12]. Given a pair of stories generated by Story-LDM [38] and our model, people are asked to decide which generated four-frame story is better w.r.t visual quality, text-image alignment, character accuracy and temporal consistency. Each pair is evaluated by 3 unique workers. The human study interface is illustrated in Figure 8.
+Figure 8. Human study interface.
+14
+
+
+D. Implementation Details
+D.1. Data preparation
+FlintstonesSV [12] provides the bounding box location of each character in the image. We fed the bounding boxes into SAM [17] to obtain the segmentation map of corresponding characters. This offline supervision from SAM [17] is efficiently obtained without the need for manual labeling efforts. Furthermore, we enhance the original datasets from resolution of 128x128 to 512x512 via a super-resolution model8 and then we proceed to train and evaluate all models on this enhanced dataset.
+D.2. Extending dataset with referential text
+We follow Story-LDM [38] to extend the datasets with referential text by replacing the character names with references, i.e., he, she, or they, wherever applicable as shown in Algorithm 1. The statistics before and after the referentail extension are shown in Table 11. Please refer to Story-LDM [38] implementation9 for more details on how the referential dataset is extended.
+Dataset # Ref (avg.) # Chars # Backgrounds
+FlintstonesSV [12] 3.58 7 323 Extended FlintstonesSV 4.61 7 323 PororoSV [22] 1.01 9 None Extended PororoSV 1.16 9 None
+Table 11. Dataset statistics of FlintstonesSV [12] and PororoSV [22]
+D.3. First stage training
+We built upon pre-trained Stable Diffusion [41] v1-510 and use CLIP [35] ViT-L to extract characters’ visual features. We freeze the CLIP text encoder and fine-tune the remaining modules for 25,000 steps with a learning rate of 1e-5 and batch size of 32. The first stage utilizes solely the original text description without extended referential text. To enhance inference time robustness and flexibility, with or without reference images, we adopt a training strategy that includes 10% unconditional training, i.e., classifier-free guidance [14], 10% text-only training, and 80% augmented text training, which integrates visual features of characters with their corresponding token embeddings.
+D.4. Second stage training
+We use OPT-6.7B11 model as the LLM backbone in all experiments in the main paper. To expedite the second stage alignment training, we first pre-compute non-referential fused embeddings residing in the input space of the first-stage Char-LDM. We map visual features into m = 4 token embeddings as LLM input, set the max sequence length as 160 and the number of additional [IMG] tokens as R = 8, batch size as 64 training for 20k steps. Llama2 is only trained for the experiments highlighted in the supplementary materials, demonstrating its capability for multi-modal generation and the ablation of different LLMs. The training configuration is almost the same as OPT, except for batch size 32. All experiments are executed on a single A100 GPU.
+Please refer to all the details at the source code.
+8https://huggingface.co/CompVis/ldm-super-resolution-4x-openimages 9https://github.com/ubc-vision/Make-A-Story/blob/main/ldm/data 10https://huggingface.co/runwayml/stable-diffusion-v1-5 11https://huggingface.co/facebook/opt-6.7b
+15
+
+
+Algorithm 1 Character Replacement Algorithm
+Definitions:
+i: index for frames, ranging from 1 to N Si: text description of frame i Ci: a set contains immediate character(s) in the current frame
+for i ∈ {1, 2, . . . , N } do if i = 1 then
+Ci ← immediate character of Si else if Ci ⊆ Ci−1 then
+if length(Ci) = 1 then
+Replace Ci in Si with “he” or “she” else if length(c) > 1 then
+Replace Ci in Si with “they” end if end if
+Ci ← Ci−1
+end if end for
+• Fred is standing in the living room while holding the phone and talking. • He is in a room. He picks up the phone and then speaks into the phone. • He stands next to a small table in the room. He holds the receiver for a phone while talking to someone. He then hangs up the phone when he finishes the call. • Fred and Barney are standing in a room. There is a telephone next to Fred. Barney is talking with something in his hand.
+Ground Truth
+Ours
+DALL-E 3
+Figure 9. DALL-E 3 [30] zero-shot inference on FlintstonesSV [12] dataset.
+E. Limitations
+Our method demonstrates proficiency in resolving references and ensuring consistent character and background conditions in the context provided by guiding the output of a multi-modal Large Language Model (LLM) with character-augmented semantic embedding. However, several limitations remain. The process involves feeding the previously generated frame into the LLM to produce a visual output that aligns with the Latent Diffusion Model (LDM) input conditional space. This approach guarantees semantic consistency, enabling the generation of characters and environmental objects that resemble their originals. Nonetheless, there are minor discrepancies in detail. This is because the visual output from the Large Language Model (LLM) is aligned with the semantic embedding space rather than the pixel space, which hinders the complete reconstruction of all elements in the input image. However, the current most powerful multi-modal LLM, i.e., DALL-E 3 [30], could not solve this exact appearance replication in the multi-round image generation task (Figure 9), indicating an area ripe for further exploration and research.
+F. Qualitative Results
+We provide more generated samples on FlintstonesSV [12] and PororoSV [22] with referential text as Figure 10-19 show.
+16
+
+
+• Barney is in the dining room at the table. He is holding a stack of papers and talking. • He stands in the room, laughing at a newspaper. • He opens a box while holding papers in a room. Then he hold the papers with both hands and laughs. • Betty is sitting on a chair in the living room.
+LDM Ground Truth
+Ours Story-LDM
+Figure 10. Qualitative comparison on FlintstonesSV [12] with co-reference descriptions.
+• Wilma is in the room. She at first has her eyes closed and then opens them. • Fred is standing in the living room while talking. • He is in the living room with arms stretched out. • He is standing in the doorway of the living room, talking to someone off screen right.
+LDM Ground Truth
+Ours Story-LDM
+Figure 11. Qualitative comparison on FlintstonesSV [12] with co-reference descriptions.
+• Fred is in a room of the house. He is shaking his head as he talks. • He stands in the room and slightly shakes his head. • Fred and Wilma are standing in the living room. Fred speaks to Wilma. Then he raises his hand, looks down and closes his eyes. • They are standing in the living room. Wilma has her hands planted on her hips as Fred talks to her.
+LDM Ground Truth
+Ours Story-LDM
+Figure 12. Qualitative comparison on FlintstonesSV [12] with co-reference descriptions.
+• A man dressed with a hat holds a night stick to Fred's face while Fred leans on a mail box while they both stand on the sidewalk outside. • Fred is leaning against the mailbox on the street. • He is standing outside in front of the mailbox and is bending to pick up a letter. • He is outside. He lights dynamite and then throws it into the shut.
+LDM Ground Truth
+Ours Story-LDM
+Figure 13. Qualitative comparison on FlintstonesSV [12] with co-reference descriptions.
+17
+
+
+• Fred is in a room and talking with his eyes closed. • He is walking through a room. He is frowning and talking. • He is walking through the quarry. • Mr slate is in his office. He is talking with his hand on his desk.
+LDM Ground Truth
+Ours Story-LDM
+Figure 14. Qualitative comparison on FlintstonesSV [12] with co-reference descriptions.
+• Wilma and Betty are standing in a desert. Wilma is speaking to Betty as Betty stands with her hand on her hip. • They are standing in a desert while looking at something. • They are standing outdoors. They are laughing together. • The old man with pink color hat is in the desert. He is being dragged out to somewhere.
+LDM Ground Truth
+Ours Story-LDM
+Figure 15. Qualitative comparison on FlintstonesSV [12] with co-reference descriptions.
+• Fred is speaking to someone in the room and points to himself. • He is standing in a room. He point and then gestures with his arms while speaking. • Fred and Wilma are in a room. Fred is looking back at Wilma, speaking to her. Wilma is listening. • They are talking to each other in a good manner in a room.
+LDM Ground Truth
+Ours Story-LDM
+Figure 16. Qualitative comparison on FlintstonesSV [12] with co-reference descriptions.
+• Tongtong is talking while putting his hand around his mouth. • Pororo is talking and crong is standing beside pororo. • He is talking while moving his hand. Crong is looking at him. • He is calling with his hands around his mouth. crong looks at him and turns his head.
+Ours Story-LDM LDM Ground Truth
+Figure 17. Qualitative comparison on PororoSV [22] with coreference descriptions.
+18
+
+
+• Pororo throws the blue fish to Crong. Crong is trying to catch it with his mouth and eat it. • Pororo caught more fish. Pororo hands the fish to Crong. • He is happy that he caught many fish. He is holding a fishing rod and a fish. He goes over to Crong to check how many fish Crong caught. • He looks into the basket and is surprise. Then, he becomes angry at Crong.
+Ours Story-LDM LDM Ground Truth
+Figure 18. Qualitative comparison on PororoSV [22] with coreference descriptions.
+• Pororo smiles and say something to his friends. Then pororo turns his body and keeps going. • He is climbing the mountain. There is some snowstorm • He walks through snowstorm. He finally reach a top of the mountain. • He is surprised. He stands up on the top of the mountain. Mountain is so high.
+Ours Story-LDM LDM Ground Truth
+Figure 19. Qualitative comparison on PororoSV [22] with coreference descriptions.
+19

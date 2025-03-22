@@ -1,0 +1,2290 @@
+Computational Visual Media https://doi.org/10.1007/CVM.XXXX
+Review Article
+Personalized Image Generation with Deep Generative Models: A Decade Survey
+Yuxiang Wei1,2, Yiheng Zheng1, Yabo Zhang1, Ming Liu1 (B), Zhilong Ji3, Lei Zhang2, and Wangmeng Zuo1
+© The Author(s)
+Abstract Recent advancements in generative models have
+significantly facilitated the development of personalized con
+tent creation. Given a small set of images with user-specific
+concept, personalized image generation allows to create im
+ages that incorporate the specified concept and adhere to
+provided text descriptions. Due to its wide applications in
+content creation, significant effort has been devoted to this
+field in recent years. Nonetheless, the technologies used
+for personalization have evolved alongside the development
+of generative models, with their distinct and interrelated
+components. In this survey, we present a comprehensive re
+view of generalized personalized image generation across
+various generative models, including traditional GANs, con
+temporary text-to-image diffusion models, and emerging
+multi-model autoregressive (AR) models. We first define a
+unified framework that standardizes the personalization pro
+cess across different generative models, encompassing three
+key components, i.e., inversion spaces, inversion methods,
+and personalization schemes. This unified framework offers a
+structured approach to dissecting and comparing personal
+ization techniques across different generative architectures.
+Building upon this unified framework, we further provide an
+in-depth analysis of personalization techniques within each
+generative model, highlighting their unique contributions and
+innovations. Through comparative analysis, this survey eluci
+dates the current landscape of personalized image generation,
+identifying commonalities and distinguishing features among
+existing methods. Finally, we discuss the open challenges in
+the field and propose potential directions for future research.
+We keep tracing related works at https://github.com/csyxwei
+/Awesome-Personalized-Image-Generation.
+Keywords Personalized Image Generation, Generative
+Models, Generative Adversarial Networks, Text-to-Image
+Diffusion Models, Multi-modal AutoRegressive Models
+1 Introduction
+In recent years, generative models have undergone rapid
+evolution, advancing from Generative Adversarial Networks
+(GANs) [1] to Diffusion Models (DMs) [2] and Autore
+gressive (AR) Models [3]. These models have demonstrated
+superiority in generating diverse and high-quality images.
+More recently, text-to-image (T2I) generation models [4–7]
+have showcased exceptional flexibility in controlling image
+generation through textual inputs. Benefiting from large-scale
+pretraining, these T2I models exhibit remarkable semantic
+understanding, enabling them to create photorealistic images
+that accurately reflect the given textual prompts. These ad
+vancements have facilitated various downstream tasks, such
+as conditional generation [8], image editing [9–11], and art
+creation [12, 13]. Among them, personalized image genera
+tion [14–17] has attracted significant attention, which focuses
+on creating user-specific concepts through image generation. Contemporary personalization approaches [12, 14–18] pri
+marily leverage text-to-image diffusion models, enhancing
+them to generate user-specific concepts within specified con
+text. Specifically, the user-specific concept is indicated by a
+small set of images containing the target concept (e.g., sub
+jects, faces, or styles, typically 3 ∼ 5 images), while the spec
+ified context is provided by the target text. In this survey, we
+explore the generalized personalized image generation tech
+niques across various generative models, including traditional
+GANs, current text-to-image diffusion models, and emerging
+multi-model autoregressive models. For example, as illus
+trated in Fig. 4, GAN Inversion [19–23] maps real images into
+a GAN’s latent space, allowing for subsequent manipulations
+1 Faculty of Computing, Harbin Institute of Technology, Harbin 150001, China. E-mail: yuxiang.wei.cs@gmail.com; zhengyihengCV@outlook.com; hitzhangyabo2017@gmail.com; csmliu@outlook.com(B); wmzuo@hit.edu.cn
+2 Department of Computing, The Hong Kong Polytechnic University, Hong Kong, China. E-mail: cslzhang@comp.polyu.edu.hk
+3 Tomorrow Advancing Life, Beijing 100081, China. E-mail: jizhilong@tal.com
+arXiv:2502.13081v1 [cs.CV] 18 Feb 2025
+
+
+2 Y. Wei, Y. Zheng, Y. Zhang, et al.
+0
+50
+100
+150
+200
+250
+300
+350
+2016 2017 2018 2019 2020 2021 2022 2023 2024 2025
+Number of Papers
+Year (Papers Counted by Feb. 2025)
+Personalized Image Generation
+GVM InvertingGAN
+Ramesh et al.
+PDG Image2
+StyleGAN
+InterfaceGAN GanSpace psp SeFa
+Mystyle DeltaEdit Dreambooth Textual Inversion Custom Diffusion
+ELITE FastComposer IPAdapter PhotoMaker InstantID Emu
+MoMA PuLID OmniGen OminiControl SeedX Emu2 Chameleon
+• GAN-Based • Diffusion-Based • AR-Based
+StyleCLIP StyleGAN-NADA e4e Restyle PTI Hyperinverter
+Nested Attention
+Fig. 1 The rough number of papers on personalized image generation with deep generative models. Representative works on the personalization task over time are shown. The GAN-based methods, diffusion-based methods, and autoregressive-based methods are highlighted in blue, orange, green, respectively
+to achieve generalized personalization. These GAN Inver
+sion techniques have significantly inspired the development
+of concept inversion techniques in current diffusion-based
+personalization methods [16, 24, 25]. Furthermore, recent
+advancements of autoregressive models [3, 26–28] in multi
+modal generation have introduced promising new avenues for
+personalization. Therefore, in this paper, we consider these
+techniques collectively as generalized personalized image
+generation and provide a comprehensive survey of person
+alization utilizing these generative models. Fig. 1 illustrates
+the number of papers and representative works in this field in
+recent years. Over the past two years, more than 180 methods
+have been proposed for diffusion-based personalization, and
+more than 300 methods have been developed across various
+generative models over the past decade.
+Several surveys [29–32] have provided comprehensive
+reviews of state-of-the-art diffusion-based methods for con
+ditional image synthesis. While these works offer valuable
+insights, they predominantly focus on general conditional
+generation techniques and do not extensively explore the
+field of personalized image generation. Among them, two
+recent surveys [32, 33] are particularly relevant to our work.
+Shuai et al. [32] summarizes the application of text-to-image
+diffusion models in image editing, categorizing personalized
+image generation as a form of content-free editing. Zhang et
+al. [33] surveys personalized image generation with diffusion
+models, but tends to overlook advancements introduced by
+other generative models. In contrast to these existing sur
+veys, our study focuses on personalization across various
+generative models, including GANs, text-to-image diffusion
+models, and multi-modal autoregressive models. We provide
+a comprehensive overview of the personalization techniques
+within these models, highlighting their commonalities and
+differences to clarify the current landscape of personalized
+image generation methods.
+To systematically explore personalized image generation, in
+this survey, we first define a unified framework that standard
+izes the personalization process among different generative
+models. Specifically, we categorize personalized image gener
+ation into two main stages: concept inversion and personalized
+generation, which consist of three key components. Inversion
+Spaces: The personalization process begins by inverting a
+given concept into a representation that the generative model
+can manipulate, with various spaces explored for this purpose.
+Inversion Methods: Once the target space is selected, several
+inversion methods can be employed to learn the representa
+tion, such as optimization-based approaches, learning-based
+approaches, etc. Personalization Schemes: The generative
+model then integrates the inverted concept representation to
+produce the personalized images. This step involves various
+personalization methods and concept categories tailored to
+each generative model. Building upon this unified framework,
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 3
+we provide an in-depth analysis of personalization techniques within each generative model, highlighting both commonali
+ties and distinctions across various scenarios. Additionally, we introduce the evaluation metrics and datasets commonly
+used in personalized image generation, as well as discuss the open challenges and potential directions for future research. The rest of this paper is organized as follows. Section 2
+defines the problem of personalized image generation and introduces the preliminaries of generative models. Sections 3∼5 discusses the personalization techniques specific to different
+generative models, including GANs, diffusion models, and AR models. Section 6 reviews the existing evaluation datasets
+and metrics used in personalized image generation. Section 7 identifies the open challenges and outlines potential future research directions. Finally, Section 8 concludes the survey
+by summarizing key insights and contributions. Fig. 2 illustrates the organization of our survey and categorizes reviewed
+papers in each section.
+2 Problem Definition and Preliminary
+2.1 Problem Definition
+Personalized image generation focuses on creating images
+that incorporate the user-specified concept (e.g., specific subjects, faces, or styles) and adhere to provided context. The visual concept is represented by a set of images, denoted as
+Xc, which contain the target concept yc (e.g., a pet corgi), while the desired context is indicated by a target text yt
+(e.g., “wearing spacesuit”). Here, we first define personalized image generation within a unified framework across different generative models. Formally, the generation process of a
+generative model G can be described as:
+x = G(z, c; θG ), (1)
+where θG represents the parameters of G, and z ∼ N (0, I) is a randomly sampled Gaussian noise. c = [c0, · · · , cN ] comprises a set of optional conditions, such as text or se
+mantic maps. Given the concept images Xc and target text yt, personalized image generation aims to produce image xc
+that incorporate the given visual concept yc and align with the description indicated by yt,
+xc = G(z, c, yt, Xc; θG ). (2)
+The generation process generally involves two main steps: Firstly, in the concept inversion step, the given concept image
+Xc are projected into a representation space to obtain the concept condition cc,
+cc = φ(Xc), (3)
+where feeding cc into G yields an image containing the concept yc. φ(·) denotes the inversion operation, and various
+inversion spaces and inversion methods can be employed
+for this projection. Then, in the personalized generation step,
+the concept condition cc is integrated with the target text yt
+to generate the desired image:
+xc = G(z, c, yt, cc; θG ). (4)
+Various personalization schemes and concepts have been
+explored, tailored to specific generative models. Based on this definition, we present a comprehensive re
+view of personalization techniques across various generative
+models, including GANs, text-to-image diffusion models,
+and multi-model autoregressive models. These models, as
+illustrated in Fig. 4, offer a generalized approach to personal
+ized image generation. In the following, we first provide an
+introduction to these representative generative models.
+2.2 Generative Models
+2.2.1 Generative Adversarial Networks
+Generative Adversarial Networks (GANs) [1] are a powerful
+class of generative models that consist of two neural networks:
+a generator and a discriminator, as shown in Fig. 3(a). These
+networks are trained simultaneously through an adversarial
+process, where the generator aims to produce realistic im
+ages, and the discriminator strives to distinguish between
+real and generated (fake) images. This adversarial training
+dynamic compels the generator to create increasingly realistic
+images over time. In recent years, significant efforts have
+been dedicated to enhance the stability of training and the
+quality of GAN-generated images. These improvements focus
+on various areas, including network architectures [198–201],
+loss functions [202–205], and training schemes [200, 206]. Among these advancements, the style-based GAN se
+ries [200, 201, 207] have garnered significant attention due to
+their superior ability to generate high-resolution images (e.g.,
+1024×1024). Unlike traditional GANs that use latent noise
+directly as input, StyleGAN [200] (as shown in Fig. 5) begins
+with a constant input and modulates the intermediate feature
+using projected latent styles. A mapping network is adopted
+to transform the random noise into hierarchical latent styles.
+This layer modulation mechanism enables the generator to
+control different aspects of the generated images through
+various layers. Building on this foundation, StyleGAN2 [201]
+introduces weight demodulation to replace Adaptive Instance
+Normalization (AdaIN), further enhancing the perceptual
+quality and reducing artifacts in the generated images. Beyond architectural and training improvements, several
+methods [208–210] have been proposed to condition image
+generation on specific inputs (e.g., category or text), en
+hancing the controllability of GANs. Building upon these
+
+
+4 Y. Wei, Y. Zheng, Y. Zhang, et al.
+Personalized Image Generation with Deep Generative Models
+GANs (§ 3)
+Inversion Space (§ 3.2)
+(a) Generalized Style Space: Z Space [19] , Z+ Pace [34] , W Space [20] , W+ Space [21] , S Space [35] (b) Feature Space: HFGI [36] , SAMInversion [37] , StylePrompter [38] (b) Parameter Space: PTI [39] , HyperStyle [40]
+Inversion Method (§ 3.3)
+(a) Optimization-based: InvertingGAN [41] , StochasticClipping [42] , PGD [43] , Ma et al. [44] , Image2StyleGAN [45] , Image2StyleGAN++ [46] , Feng et al. [47] (b) Learning-based: psp [20] , e4e [21] , Hyperstyle [40] , SAMInversion [37] , HyperInverter [48] , Restyle [49] , E2Style [50] , HFGI [36] , StyleTransformer [51] (c) Hybrid: GVM [19] , PTI [39]
+Latent-based Editing (§ 3.4)
+(a) Latent Navigation: InterFaceGAN [52] , SeFa [53] , HijackGAN [54] , Viazovetskyi et al. [55] , StyleFlow [56] , Parihar et al. [57] , HessianPenalty [58] , Ramesh et al. [59] , Voynov et al. [60] , WarpedGANSpace [61] , GANSpace [62] , DragGAN [63] (b) Text-driven Editing: StyleCLIP [64] , StyleMC [65] , PPE [66] , Zheng et al. [67] , FFCLIP [68] , DeltaEdit [69] , HairCLIP [70] , StyleGAN-NADA [71] , Mind the GAP [72] , DiFa [73] , HyperGAN-CLIP [74]
+Diffusion Models (§ 4)
+Inversion Space (§ 4.2)
+(a) Noise Space: Start Noise [75] , DDPM Noise [2] , Unconditional Noise [76] (b) Textual Space: Word Embedding [14] , Layer Feature [77] , Output Feature [78] , P+ [79] , P∗ [80] , Celeb Basis [81] (c) Feature Space: ELITE [16] , InstantBooth [82] , IPAdapter [17] (d) Parameter Space: Full Parameters [15] , Key Parameters [83, 84] , LoRA [85]
+Inversion Method (§ 4.3)
+(a) Training-Free: DDIM Inversion [75] , DDPM Inversion [86] , RF Inversion [87] , Diffusion Self-Guidance [88] , Pick-and-Draw [89] (b) Optimization-based: Textual Inversion [14] , Dreambooth [15] , Custom Diffusion [18] , ProFusion [90] (c) Learning-based: ELITE [16] , IP-Adapter [17] , MOMA [91] , SubjectDiffusion [92] , FastComposer [93] , PhotoMaker [12] (d) Hybrid: E4T [24] , BLIP-Diffusion [94] , HybridBooth [95]
+Personalized Generation (§ 4.4)
+(a) Subject-Driven: Textual Inversion [14] , Dreambooth [15] , Custom Diffusion [18] , ViCo [96] , HiPer [78] , P+ [79] , NeTI [80] , HiFiTuner [97] , NestedAttention [98] , OFT [99] , BOFT [100] , Cones [83] , Disenbooth [101] , DETEX [102] , Dreamtuner [103] , BreakAScene [104] , DreamMatcher [105] , ComFusion [106] , SingleInsert [107] , DCO [108] , Instructbooth [109] , Ding et al. [110] FaceChain-SuDe [111] , CoRe [112] , DreamBlend [113] , E4T [24] , ELITE [16] , UMM [114] , Instantbooth [82] , SubjectDiffusion [92] , IPAdapter [17] , BootPIG [115] , MOMA [91] , TamingEncoder [116] , BLIPDiffusion [94] , CustomizationAssistant [117] , SAG [118] , CustomContrast [119] , AnyDressing [120] , DisEnvisioner [121] , Song et al. [122] , JeDi [123] , SSREncoder [124] , PALP [125] , Diffusion Self-Distillation [126] , InstructImagen [127] , OminiControl [128] , OmniGen [129] , Fei et al. [130] , PRISM [131] (b) Face-Driven: FastComposer [93] , CelebBasis [81] , DreamIdentity [132] , StableIdentity [133] , ID-Booth [134] , DiffLoRA [135] , Cross Initialization [136] , PhotoMaker [12] , InstantID [137] , Face2Diffusion [138] , PhotoVerse [139] , PuLID [140] , PortraitBooth [141] , LCM-Lookahead [142] , W+ Adapter [143] , PreciseControl [144] , FlashFace [145] , Infinite-ID [146] , MasterWeaver [147] , Imagine-yourself [148] , ConsistentID [149] , CapHuman [150] (c) Character-Driven: StoryMaker [151] , Character-Adapter [152] , RETRIBOORU [153] , SerialGen [154] , AnyStory [155] (d) Style-Driven: InST [156] , InstantStyle [13] , CSGO [157] , StyleBoost [158] , StyleForge [159] , PairCustomization [160] , U-VAP [161] , ZipLoRA [162] , UnZipLoRA [163] , StyleAdapter [164] , ArtAdapter [165] , FineStyle [166] , Artistic-Intelligence [167] , CSGO [157] (e) High-level Semantics: ReVersion [168] , Lego [169] , ADI [170] , ImPoster [171] , FreeEvent[172] (f) Multiple Concept: Custom Diffusion [18] , SVDiff [173] , Cones2 [174] , MC2 [175] , OMG [176] , ConceptWeaver [177] , CIDM [178] , SEGuidance [179] , ConceptConductor [180] , MagicTailor [181] , GroundingBooth [182] , MS-Diffusion [183] , RelationBooth [184] , TokenVerse [185]
+Text-driven Editing
+(§ 4.5) DDS [186] , Prompt2Prompt [9] , LEDIT [86] , LEDITS++ [10] , MasaCtrl [11] , Stable Flow [187] , Head Router [188] , Xu et al. [189]
+AR Models
+(§ 5) Emu[3] , Emu2[28] , Emu3[190] , Seed-X [191] , MetaMorph [192] , Chameleon [193] , PUMA [194] , Liquid [195] , ILLUME [196] , X-Prompt [197]
+Fig. 2 Taxonomy of Personalized Image Generation.
+advancements, GAN-based personalization methods have
+been explored, which will be introduced in Sec. 3.
+2.2.2 Text-to-Image Diffusion Models
+Denoising Diffusion Probabilistic Models (DDPMs) [2] repre
+sent a novel class of generative models that have demonstrated
+remarkable ability in producing photo-realistic images. Un
+like GANs, Diffusion Models (DMs) produce image through
+a step-by-step denoising procedure that progressively con
+verts noise into the desired output. Specifically, they operate
+through two primary processes: the forward diffusion process
+and the reverse denoising process. In the forward diffusion
+process, the model gradually adds Gaussian noise to the data
+x0 ∼ q(x0) over a series of steps (e.g., T timesteps), finally
+converting the data into a noise distribution. Conversely, the
+reverse denoising process aims to reconstruct the original
+data from the noisy inputs by learning to remove the added
+noise step-by-step. This process begins from the randomly
+sampled noise xT and transitions towards the original data
+distribution q(x0). These processes are formulated as param
+eterized Markov chains, enabling DDPMs to generate highly
+detailed and realistic images from random noise. In recent years, diffusion models have widely applied in the field of text-to-image (T2I) generation [4–7, 211–213]. These models leverage pretrained text encoders, such as CLIP [214] or T5 [215] to transform textual information into feature representations. This encoded text is then integrated into the image generation process through cross-attention mechanisms, allowing the models to produce images that align closely with the provided descriptions. Benefiting from training on large-scale text-image datasets [216, 217], these T2I diffusion models are capable of generating textually coherent and high-quality images. Among these advancements, the Stable Diffusion series [4, 5, 212] are one of the representative open-sourced latent diffusion models, which is primarily utilized for personalized image generation. To enhance computational efficiency, Stable Diffusion [4] first employs an AutoEncoder to encode images into a latent space. A Unet-based diffusion model is then trained in the latent space, significantly reducing the computational resources required. This approach has demonstrated the superior capacity in generating high-quality and diverse images, and
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 5
+a dog wearing sunglasses
+...
+AutoRegressive Model
+a dog wearing sunglasses
+...
+TXT Token
+TXT
+Token <SEP> IMG
+Token
+IMG
+... Token <END>
+Decoder
+Encoder
+Tokenizer
+VQVAE
+(a) Generative Adversarial Networks (b) Text-to-Image Diffusion Models (c) Text-to-Image AutoRegressive Models
+Real or Fake
+Fig. 3 Illustration of different Generative Models.
+facilitated a surge of recent advances in downstream tasks.
+Building on the foundation of Stable Diffusion, Stable Dif
+fusion XL [5] introduces a larger Unet architecture and an
+additional text encoder. These enhancements resulted in im
+proved image generation quality, greater textual fidelity, and
+support for higher resolution outputs. More recently, Stable
+Diffusion 3 [212] and FLUX [218] further push the boundaries
+of image generation by incorporating diffusion transformer
+(DiT) [219] based architectures and flow-matching training
+techniques [220]. These innovations have led to higher quality
+and more controllable image generation capabilities.
+Further discussions on integrating these models into per
+sonalized image generation are provided in Sec. 4.
+2.2.3 Multi-model AutoRegressive Models
+AutoRegressive (AR) models employ the next-token predic
+tion strategy, where each subsequent element in a sequence
+is predicted based on the preceding elements. These mod
+els have demonstrated exceptional performance in natural
+language processing (NLP) [221–223], showcasing impres
+sive scalability, adaptability, and generalizability. Building
+on these successes, recent research has extended AR mod
+els to the domain of visual generation [3, 26, 224, 225].
+A pioneering effort in this field is DALL-E [26], which
+converts both text and images into discrete tokens. By us
+ing text tokens as a prefix condition, DALL-E learns to
+predict subsequent image tokens, effectively bridging the
+gap between textual descriptions and visual representations.
+Following it, several methods [27, 226, 227] have adopted
+similar framework to enhance text-to-image generation. Be
+yond token-wise prediction, some approaches [228–230] have
+introduced next-scale prediction, which generate images pro
+gressively from coarse to fine scales. Furthermore, recent
+advancements [28, 191, 192, 194, 225] have explored the
+use of autoregressive models for multi-modal generation,
+combining both visual and textual information for image gen
+eration. For example, Emu2 [28] combines tokenized image
+embeddings with text tokens to predict the generated image
+embeddings in an autoregressive manner. Moreover, diffusion
+models have been investigated as image decoders within these
+frameworks to refine and stabilize the quality of generated
+images [3, 28, 190, 191, 225]. The multi-modal generation framework has also been inves
+tigated for personalized image creation. By integrating both
+visual and textual information, it can generate customized
+and contextually relevant images. The topic will be detailed
+explored in Sec. 5.
+3 Personalized Image Generation in GANs
+3.1 Overview
+Although many GAN-based techniques can be used for
+image editing [52, 53, 231], we primarily focus on GAN
+inversion-based frameworks for generalized personalized
+image generation, as these frameworks share greater com
+monality with diffusion-based personalization methods. In
+practice, these methods relies heavily on pretrained style
+based GANs [200, 201]. Mathematically, the generation
+process can be described as: x = G(z; θG ). Here, θG is
+the parameters of GAN model, and additional constants and
+spatial noise are omitted for simplicity. As shown in Fig. 4,
+given one concept image xc (e.g., face), the personalized
+image generation with GANs involves two main stages. In
+the first stage, the given concept image is inverted into the
+representation space of GAN, resulting in a concept condition
+cc. This inversion ensures that when cc is input into the G,
+it can accurately reconstruct the original concept image, i.e.,
+xc ≈ G(cc). Various inversion spaces and inversion methods
+have been developed to facilitate this process. The second
+stage involves generating target images by editing the inverted
+concept condition. In the subsequent sections, we will intro
+duce different inversion spaces and inversion methods used
+in GAN Inversion, along with several editing techniques.
+3.2 Inversion Space
+As illustrated in Fig. 5, there are several potential spaces for
+GAN inversion. In this discussion, we focus on StyleGAN, a
+
+
+6 Y. Wei, Y. Zheng, Y. Zhang, et al.
+(c) Diffusion: Text-driven Image Editing
+Invert
+Diffusion Model a dog wearing sunglasses
+(d) Diffusion: Personalized Image Generation
+Invert
+a S* wearing sunglasses
+S* Diffusion Model
+AutoRegressive Model
+a dog wearing sunglasses
+...
+TXT
+Token <SEP> IMG
+Token
+Encoder
+Tokenizer
+<END>
+TXT Token
+TXT Token
+IMG
+... Token <SEP> IMG
+Token
+...
+Decoder
+IMG Token
+Decoder
+IMG Token
+Smiling
+(a) GAN: Inversion
+Invert
+(b) GAN: Latent Editing
+Predefine
+(e) AutoRegressive Model: Personalized Image Generation / Image Editing
+Fig. 4 Generalized personalized image generation with generative models. (a)-(b): Generalized personalized image generation with Generative Adversarial Networks (GANs). GAN Inversion first maps real images into a GAN’s latent space, which can be used to reconstruct the input images. Then, latent editing is performed to generate personalized concepts with various attributes. The editing directions can be either predefined or derived from text. (c) Text-driven image editing with text-to-image diffusion models. After inverting the given image into noise space, text-driven editing techniques are applied to create target concepts with desired attributes specified by text. (d) Personalized image generation with text-to-image diffusion models. The target concept is inverted into the representation space of diffusion models, which is then directly combined with text prompts to generate the desired personalized images. (e) Personalized image generation with multi-modal autoregressive models. Images and text are encoded into a shared latent space, enabling the integration of these information to generate target personalized images.
+widely adopted GAN architecture, as an example. However,
+the definitions of these inversion spaces are general and can
+be extended to other GAN architectures.
+Generalized Style Space. As shown in Fig. 5, Style
+GANs [200, 201] utilize a random noise vector z to generate
+the output image. A natural choice to obtain concept condi
+tion cc is to directly invert the concept image xc back to a
+random noise z, which spans the Z space. However, the Z
+space typically follows a simple distribution (e.g., the stan
+dard Gaussian distribution), and the semantic features within
+this space are often entangled. This entanglement makes it
+challenging to faithfully represent complex concepts. To dis
+entangle the semantics, the StyleGAN series [200, 201, 207]
+introduce a multi-layer perceptron (MLP) to project the noise
+into a more disentangled W space. Compared with Z space,
+W space offers better semantic disentanglement, allowing
+for a more faithful representation of concepts. Furthermore,
+benefiting from layer-wise modulation in StyleGANs, some
+approaches [20, 34, 45, 46] propose to predict an individual
+latent representation for each layer of the generator, resulting
+in W+ space. The W+ space allows for more precise inver
+sion and better controllability. Furthermore, the S space [35],
+or stylespace, is introduced to further enhance controllability.
+The S space is defined by channel-wise style parameters s,
+which serve as modulation parameters in each layer of the
+generator and are derived from w. Compared with W+ space,
+S space [35, 232] offers superior spatial disentanglement,
+enabling fine-grained control over local features such as eyes,
+mouth, and hair. Overall, these various latent spaces primarily
+control the style of images. Collectively, they are referred to
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 7
+Constant
+Normalize
+FC
+FC
+FC
+FC
+FC
+FC
+FC
+FC
+toRGB
+Layer 1
+Layer 2
+Layer 3
+Layer N LeReLU
+Fea...ture Space
+Parameter Space
+a photo of dog
+Tokenizer
+Transformer 1
+Transformer 2
+Transformer N
+...
+Text Feature
+Token Space
+Noise Space
+Feature Space Parameter Space
+Generalized Style Space
+AutoRegressive Model
+a dog wearing sunglasses
+...
+TXT
+Token <SEP> IMG
+Token
+Encoder
+Tokenizer
+<END>
+TXT Token
+TXT Token
+IMG
+... Token <SEP> IMG
+Token
+...
+Decoder
+IMG Token
+Textual Space
+(a) Inversion spaces of GAN-based methods
+(b) Inversion spaces of diffusion-based methods
+(c) Inversion spaces of AR-based methods
+Fig. 5 Inversion spaces of different generative models. (a) For GAN-based personalization methods, the concept can be inverted into generalized style space, feature space, or parameter space. (b) For diffusion-based personalization methods, the concept can be inverted into noise space, textual space, feature space or parameter space. (c) For AR-based personalization methods, the concept is typically encoded into a shared space with text, referred to here as token space.
+as generalized style spaces.
+Feature Space. Although generalized style spaces demon
+strate superior controllability over inverted concept, their
+limited capacities (i.e., 18 × 512 dimensions for W+ space
+and 9088 dimensions for S space) hinder the faithful re
+construction of high-frequency details in the given concept.
+To enhance detail consistency, numerous studies [36, 37]
+have proposed mapping the input concept image into both
+a w+ vector and intermediate residual features, referred to
+as the feature space. The inverted residual feature, which
+has a larger capacity, is integrated with the corresponding
+layer’s feature during generation to improve the preservation
+of high-frequency details. However, these intermediate fea
+tures typically maintain a fixed spatial structure, reducing
+their editability, particularly in the later layers of the network.
+Therefore, elaborate design [38] is required to effectively
+balance the fidelity and editability.
+Parameter Space. To improve inversion fidelity, PTI [39]
+introduces a novel approach that finetunes the generator’s
+parameters to accurately reconstruct a given image. We refer to
+this as the parameter space. The parameter space demonstrates
+enhanced capability to faithfully capture the detailed nuances
+of a given concept, even for out-of-domain details.
+3.3 GAN Inversion Method
+Given a pretrained GAN model G, a target inversion space,
+and a concept image xc, there are many GAN inversion
+methods to obtain the corresponding concept condition cc.
+These methods can be broadly categorized into optimization
+based, learning-based, and hybrid approaches.
+3.3.1 Optimization-based Method
+One intuitive approach to obtaining the concept condition
+is to optimize it directly, which we call optimization-based
+methods [19, 41–45, 47, 233]. The inversion process can be
+formulated as,
+c∗
+c = arg mcicn
+l(G(cc; θG ), xc), (5)
+where l represents the distance metric, such as l1 or l2
+distance. Here cc can be an representation in various space,
+such as W+ space or S space. Given that the generator G is
+differentiable, Eqn. 5 can be effectively solved using gradient
+descent techniques.
+Training Objective. To ensure high reconstruction fidelity,
+several loss functions have been explored in optimization
+based methods. For example, l2 and perception loss are two
+common adopted losses [45, 46]. Image2StyleGAN++ [46]
+further introduces a style loss to enhance the consistency of
+fine details in the reconstructed images. Building on obser
+vations from Zhu et al. [234], BDInvert [235] incorporates
+
+
+8 Y. Wei, Y. Zheng, Y. Zhang, et al.
+考
+Generative Model
+௖
+Rec. Loss
+Generative Model
+௖
+Rec. Loss
+Enc
+Generative Model
+௖
+Rec. Loss
+Generative Model
+Rec. Loss
+Enc
+Initialization
+(a) Optimization-based Method
+(b) Learning-based Method (c) Hybrid Method
+Fig. 6 Different inversion methods for personalization. (a) Optimization-based personalization methods treat the concept condition as learnable parameters and optimize them directly. (b) Learning-based personalization methods employ an encoder to project the given concept into the concept condition. (c) Hybrid methods combine the strengths of learning-based techniques with optimization-based refinement. They use a learned encoder to obtain a coarse concept condition and then perform several optimization steps to enhance fidelity.
+distribution regularization on the learned concept condition
+to improve inversion quality. In the domain of face images,
+face recognition loss is widely adopted to preserve identity
+fidelity, ensuring that the reconstructed image maintains the
+identity of the original concept image.
+Initialization Strategy. A significant challenge in
+optimization-based inversion is the initialization of the con
+cept condition cc. Since the optimization of Eqn. 5 is highly
+non-convex, the quality of the reconstruction heavily depends
+on a good initialization. A straightforward strategy involves
+starting with multiple random initializations and selecting the
+one that yields the minimal loss. However, this approach is
+computationally expensive and may not always provide accu
+rate results. To address this, Image2Stylegan [45] proposes
+using the average latent code of the pretrained generator as
+an initial point, thereby improving efficiency. Despite this
+improvement, such initialization methods may still fall short
+in accurately representing the given concept image. Conse
+quently, several methods [19, 39] leverage learning-based
+encoders (as discussed in Sec. 3.3.2) to provide more in
+formed initializations, thereby enhancing both the accuracy
+and efficiency of the inversion process.
+A notable drawback of optimization-based methods is
+their computational inefficiency. Typically, the optimization
+procedure requires thousands of update iterations, resulting
+in prolonged inversion times. To overcome this limitation,
+learning-based methods offer an alternative by predicting the
+latent representation in a single forward pass, significantly
+reducing the time required for inversion.
+3.3.2 Learning-based Method
+Learning-based GAN inversion methods [20, 21, 37, 40]
+address efficiency challenges by incorporating an additional
+encoder, denoted as E , which maps input images to concept
+conditions in a forward pass. The encoder is first pretrained
+on a dataset X to learn the mapping from images to their cor
+responding concept representations. This pretraining process
+is formulated as,
+θ∗
+E = arg mθEin
+X
+xi ∈X
+l(G(E (xi; θE ); θG ), xi), (6)
+where θE denotes the parameters of E , and G is typically
+kept fixed during training. The encoder’s output can reside
+in any of the GAN’s representation spaces as discussed in
+Sec. 3.2. Since the encoder is trained on comprehensive image
+datasets, it generally exhibits generalization capabilities to
+invert unseen images effectively. Encoder Design. The design of the encoder is a pivotal
+aspect of learning-based GAN inversion methods. Existing
+methods [20, 51] commonly employ a ResNet backbone
+to extract image features, followed by a mapping network
+that predicts the concept condition within different spaces.
+For example, pSp [20] utilizes a ‘map2style’ network to
+transform intermediate features into layer-wise w+ vector.
+StyleTransformer [51] adopts a transformer-based mapping to
+convert image features into w+ vectors. HyperStyle [40] and
+HyperInverter [48] employ a hypernetwork to predict delta
+parameters of the generator. Some methods [36, 37] extend
+to perform inversion across multiple spaces simultaneously.
+For example, in addition to w+ encoder, HFGI [36] further
+includes an encoder that predicts delta features to enhance
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 9
+Input Smiling Bowlcut Hair Curly Hair Sunglasses Ukiyoe Oil Simpson Marble
+Fig. 7 Visual generation results of GAN-based personalization methods. Images generated by e4e [21] combined with DeltaEdit [69] and StyleGAN-NADA [71].
+fidelity. These methods often incorporate techniques that
+concatenation or subtraction between a coarse image gen
+erated by w+ and the concept image to guide the inversion
+process. To further improve inversion accuracy, ReStyle [49]
+introduces an iterative refinement mechanism. At each step,
+the encoder concatenates the original image with the currently
+predicted image to predict the refined latent code. Similarly,
+E2Style [50] proposes a multi-stage refinement scheme that
+balances both accuracy and efficiency.
+Training Objective. During encoder training, learning
+based GAN inversion methods typically employ a combi
+nation of loss functions to ensure high-quality inversion.
+Two widely adopted loss functions are the l2 loss and per
+ceptual loss, which help preserve the overall structure and
+visual fidelity of the inverted images. In addition to these,
+identity loss is commonly used to enhance identity consis
+tency [20, 21, 36, 37, 51]. For applications in the face domain,
+models like ArcFace [236] are typically employed as iden
+tity recognition models. For other domains [21], recognition
+models trained with contrastive learning [237] are utilized.
+Adversarial learning is also incorporated either in the la
+tent space [21] or directly on the images [21, 36] to further
+improve the inversion quality.
+Training Dataset. To effectively train the encoder, existing
+approaches typically utilize datasets that are standard for
+GAN training, such as FFHQ [200], LSUN Church, Cars,
+Horses, and Cats [238]. These datasets provide a diverse set
+of images that help the encoder learn generalizable mapping.
+3.3.3 Hybrid Method
+While learning-based GAN inversion methods offer high
+efficiency, they often face challenges in achieving perfect
+reverse mappings solely through an encoder. This limitation
+stems from the encoder’s inherent generalization capabilities,
+which may not fully capture the intricate complexities of
+the representation space required for accurate inversion. To
+address this issue and enhance both efficiency and accuracy,
+hybrid methods have been proposed [19, 39, 233, 239, 240].
+These approaches integrate the strengths of learning-based
+techniques with optimization-based refinement, resulting in
+more precise and reliable GAN inversion. One of the pioneer
+ing hybrid approaches was introduced by Zhu et al. [19]. This
+approach involves training an encoder network to provide a
+coarse initialization of the concept condition, which is then
+refined through optimization. Building upon this foundation,
+IDInvert [239] further enhances the inversion process by
+incorporating discriminator regularization during training.
+In contrast to methods that focus solely on optimizing latent
+codes, the PTI [39] introduces a generator-tuning technique.
+It begins with an initial latent code as a pivot and makes subtle
+adjustments to the pretrained generator. This tuning allows for
+the faithful reconstruction of input images, including those
+details that are out-of-domain, effectively mapping them into
+an in-domain space.
+3.4 Latent-based Image Editing
+With the inverted concept condition cc, users further employ
+it to create personalized images. In GAN-based methods,
+personalization scheme is primarily achieved through latent
+editing. This process can be described as:
+xc = G(c + n; θG ), (7)
+where n represents the direction associated with a specific edit,
+such as changing attributes like age, gender, or expression.
+The editing direction can be obtained either through latent
+navigation methods or derived from text inputs, providing
+
+
+10 Y. Wei, Y. Zheng, Y. Zhang, et al.
+flexible control over the generated image.
+3.4.1 Latent Navigation
+To find the editing directions of some attributes, several latent
+navigation methods have been proposed [52, 54, 56, 57, 241,
+242]. For example, InterFaceGAN [52] employs the support
+vector machine (SVM) to learn a hyperplane that separates
+two binary attributes within the latent space (e.g., male and
+female). The normal vector of this hyperplane is then used as
+the editing direction, allowing for the manipulation of the cor
+responding attribute in the generated image. HijackGAN [54]
+trains a proxy model that maps input noise vectors to the
+attribute space. By computing the gradient of the proxy model
+with respect to the input noise, HijackGAN derives non-linear
+editing directions that facilitate attribute manipulation. Vi
+azovetskyi et al. [55] utilizes a pre-trained image attribute
+classifier to determine the class centers of different attributes
+in the latent space. The direction between these class centers
+serves as the editing direction for altering specific attributes.
+Instead of learning editing directions, StyleFlow [56] intro
+duces a conditional normalizing flow model in the W space of
+StyleGAN. This model maps latent vectors back into the noise
+space based on attribute conditions, enabling flexible attribute
+editing by generating edited latent vectors from new attribute
+conditions. Parihar et al. [57] explore a new perspective for
+attribute editing and propose to learn the distribution over
+plausible attribute edits. They train diffusion model [2] within
+the latent space to capture the edit directions for each attribute.
+This allows users to generate multiple edit variations for a
+given attribute and select the most suitable one. In addition to supervised methods, several unsupervised
+approaches [53, 58–62, 243] have been explored to discover
+editing directions without the need for manual attribute anno
+tations. For example, Ramesh et al. [59] identifies directions
+corresponding to the principal eigenvectors of the latent
+space’s covariance matrix, which is extended by Wang et
+al. [243] via further introducing the Riemannian geometry
+metrics. HessianPenalty [58] proposes a Hessian-based regu
+larization term to identify interpretable directions in the latent
+space that correspond to meaningful image transformations.
+Voynov et al. [60] learn a set of editing directions by ensuring
+that perturbations along these directions are predictable by
+models. WarpedGANSpace [61] introduces a Radial Basis
+Function (RBF) kernel to map latent representations into a
+non-linear space, enabling the learning of non-linear editing
+paths. By performing Principal Component Analysis (PCA)
+on the features of early layers in the GAN, GANSpace [62]
+identifies principal components that correspond to important
+factors of variation, and uses these components as semantic
+editing directions. SeFa [53] derives a closed-form factor
+ization method for latent semantic discovery, which utilizes
+the eigenvectors of the weights of fully connected layers
+as directions. Despite the effectiveness of these methods in
+discovering latent editing directions, the semantic meaning of
+the learned directions is not inherently determined. Human
+intervention is often required to interpret and label these
+directions based on their visual impact. Recently, several
+methods [63, 244] have explored drag-based image editing
+techniques, which can optimize the inverted latents to follow
+structural deformations based on the user’s point instructions.
+3.4.2 Text-driven Editing
+In addition to latent navigation methods, editing directions can
+also be derived from textual inputs [64–70, 214, 245–248].
+By leveraging natural language descriptions, users can specify
+desired changes in generated images through text prompts,
+allowing for more intuitive and flexible image generation.
+One of the most influential approaches in this domain is
+StyleCLIP [64]. With the aid of CLIP [214], it trains mappers
+that directly predict the editing direction corresponding to the
+given text input. StyleMC [65] further extends the framework
+by training multiple mappers to produce directions within
+the S space. HairCLIP [70] focuses specifically on hair
+style manipulation and trains a direction mapper that enables
+fine-grained text-based control over hairstyles. To address
+the issue of attribute entanglement, PPE [66] introduces
+a method to predict entangled attributes from synthesized
+images and incorporates an entanglement loss to prevent such
+entanglements. This ensures that changes in one attribute
+do not undesirably affect others. Zheng et al. [67] propose
+to predict editing directions from the delta features of a
+CLIP encoder, achieving arbitrary text-driven manipulation
+without additional computation during inference. Similarly,
+DeltaEdit [69] learns to map the changes in CLIP image
+features to directions in the StyleGAN’s S space, enabling
+seamless generalization to predict editing directions from
+changes in text features. In addition to attribute editing, numerous methods have
+explored style editing within GANs. StyleGAN-NADA [71]
+finetunes the GAN model using CLIP text prompts, enabling
+adaptation to specific style domains. This approach allows for
+the generation of images that embody target styles effectively.
+Following it, Mind the GAP [72] and DiFa [73] further en
+hance style-driven generation capabilities by learning styles
+from user-specific reference images. Several regularization
+techniques have been introduced to maintain diversity in the
+generated images. Furthermore, HyperGAN-CLIP [74] incor
+porates a hypernetwork to predict the modulated parameters
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 11
+of the generator. The modulated weights are blended seam
+lessly with the original generator to enable the production of
+images that align with specified domains or tasks, such as
+reference-guided synthesis and text-guided manipulation.
+4 Personalized Image Generation in DMs
+4.1 Overview
+Text-to-image (T2I) diffusion models, as illustrated in Fig. 3
+(b), utilize a text prompt y as condition and iteratively denoise
+randomly sampled noise z to generate corresponding image.
+Benefiting from large-scale pretraining, these models can
+produce photo-realistic images based on textual descriptions.
+Building upon these advancements, personalized image gener
+ation with diffusion models further enhances their capabilities
+to generate user-specific concepts, such as particular subjects,
+faces, or styles. Typically, the concept is indicated by a set
+of images Xc containing the target concept (usually 3 ∼ 5
+images), and the desired context for generation is specified
+via target text yt. As shown in Fig. 4 (d), similar to GANs,
+personalized image generation with diffusion models begins
+by inverting the given concept into the model’s representation
+space to obtain a concept representation cc (S*). In contrast
+to GANs, the text-to-image framework allows these models
+to directly integrate the inverted concept condition with tar
+get text prompts to generate personalized images, offering
+superior controllability and flexibility.
+In the subsequent sections, we will introduce various inver
+sion spaces and inversion methods used in existing diffusion
+based personalization methods. Besides, the advanced gen
+eration capabilities of T2I diffusion models allow for the
+customization of a wide range of concepts (e.g., subject,
+face, etc.). Therefore, we further introduce the different ap
+proaches categorized by their concept types. Additionally, as
+depicted in Fig. 4 (c), text-driven image editing is considered
+a generalized form of personalization. This approach allows
+users to modify existing images through textual descriptions,
+offering another layer of customization. Thus, we also provide
+a brief overview of editing-based methods to complement the
+discussion on diffusion-based personalization.
+4.2 Inversion Space
+Text-to-image diffusion models provide flexible inversion
+spaces for personalized image generation. In this discussion,
+we use Stable Diffusion [4], a widely used T2I model for
+personalized image generation, as an example. As illustrated
+in Fig. 5, these spaces can be categorized into four types,
+i.e., noise space, textual space, feature space, and parameter
+space. The definitions of these inversion spaces are general
+and can be extended to other models.
+Noise Space. Analogous to GANs, the noise space in diffusion
+models serves as a natural choice for representing individual
+concept images. However, unlike GANs, the mathematical
+foundation of diffusion processes enables the direct inversion
+of a given image into the noise space through techniques
+such as DDIM inversion [75]. This inversion process does
+not require additional training, making it a straightforward
+and efficient method for image reconstruction. Beyond the
+start noise, some approaches have explored the DDPM noise
+space [10, 249], which encompasses the noise space across
+all diffusion steps. This time-wise noise space enables a more
+precise representation of target images. Additionally, several
+methods [76] have investigated the use of unconditional noise
+within Classifier-Free Guidance (CFG) [250] to improve the
+inversion quality. Collectively, these variations are referred to
+as the Noise Space. The inverted noise condition has same
+similar spatial dimensions with original image, and contains
+rich structure information. Therefore, directly composing
+it with target text can not generate desired images [9], and
+elaborately designed image editing techniques are required to
+achieve personalized image generation, which are discussed in
+Sec. 4.5. Furthermore, the editing flexibility of the noise space
+is constrained, particularly for non-rigid editing, limiting its
+applicability in more dynamic image generation.
+Textual Space. In text-to-image models, another intuitive
+and effective approach for personalization is representing
+the target concept using word, such as “S*”. This allows
+the inverted concept to be seamlessly integrated with other
+textual descriptions to generate personalized images, such
+as “Photo of S* wearing sunglasses”. Researchers have ex
+plored various textual-related spaces [14, 77, 79–81, 90, 114].
+Taking Stable Diffusion [4] as an example. As illustrated in
+Fig. 5, it employs a pre-trained CLIP text encoder [214]
+to transform text prompts into textual features. During this
+process, each word or sub-word in the text prompt is first
+converted into a word embedding through an index-based
+lookup. Then, the concatenated embeddings are sent to a
+transformer model to project as textual features, which are
+further used to steer the image generation. Based on this,
+various methods [14, 18, 77, 114, 174] have been proposed
+to invert the concept into different layers of the text encoder.
+For example, Textual Inversion [14] proposes to learn a new
+word embedding to represent the target concept, spanning the
+Textual (Word) Space. This space is widely adopted because
+the learned embedding is plug-and-play, offering greater flex
+ibility to be combined with other textual embeddings. Instead,
+
+
+12 Y. Wei, Y. Zheng, Y. Zhang, et al.
+Cones2 [174] directly inverts the concept as the output feature
+of the text encoder, which is referred to as the Textual (Output)
+Space. CatVersion [77] represents the concept as intermediate
+features within the layers of the text transformer, spanning the
+Textual (Layer) Space. Furthermore, several extended textual
+spaces [79–81] have been investigated to improve the identity
+fidelity and text controllability of the inverted concept. For
+example, inspired by the W+ space [46], where an image is
+represented with layer-wise latents, P+ [79] utilizes different
+word embeddings across various Unet layers to represent the
+target concept. This Textual (P+) Space allows for a more
+granular and detailed representation of the concept within
+the textual space. NeTI [80] further expands the space as
+the time-wise Textual (P*) Space. In the domain of human
+faces, CelebBasis [81] explores the Textual (Celeb) Space
+by projecting the word embeddings of celebrities, which
+demonstrates superior editability. Collectively, these methods
+aim to generate text features that encapsulate both the target
+concept and the desired contextual information, and we refer
+to these spaces as Textual Spaces.
+Feature Space. In addition to representing concepts within
+textual-related spaces, several approaches [16, 17, 82, 93, 114]
+project the target concept into the intermediate feature space
+of diffusion models, commonly known as the Feature Space.
+The inverted concept features are then integrated with the
+text information to generate target images. Unlike GANs,
+which typically inject inverted features into intermediate lay
+ers through addition, current diffusion-based personalization
+methods utilize adaptive adapters to inject the features, provid
+ing superior flexibility in generating concepts across various
+contexts. Various types of adapters have been explored for
+integrating features into layers of diffusion models, including
+cross attention [16, 17, 143], self attention [92, 137], and
+concatenation [115]. Compared to textual spaces, the feature
+space captures much finer details of the concept, thereby
+enhancing the fidelity of the generated concept. Additionally,
+the feature space usually incorporates with learning-based
+concept learning framework for personalization, which will
+be discussed in Sec. 4.3.
+Parameter Space. Similar to GANs, several methods [15, 18,
+83–85, 99, 173] finetune the parameters of the model to learn
+the new concept, spanning the Parameter Space. For example,
+DreamBooth [15] finetunes the parameters of diffusion Unet
+to align the user-specific concept with a unique identifier (e.g.,
+S*). To reduce the storage burden of full parameter finetuning,
+techniques like LoRA [85] are commonly used. Additionally,
+instead of adjusting all parameters, some methods [18, 83, 84,
+173] focus on identifying and modifying only key parameters
+essential for personalized generation. This not only minimizes
+computational overhead but also helps preserve the model’s
+original priors. Compared to other inversion spaces, parameter
+space demonstrates a greater capacity to faithfully represent
+the given concept while offering enhanced text controllability.
+Meanwhile, optimization-based concept learning framework
+is typically employed to learn new parameters, which will be
+discussed in Sec. 4.3.
+It is worth noting that these spaces are not mutually exclu
+sive. A single concept can be inverted into multiple spaces
+simultaneously. For example, Custom Diffusion [18] inverts a
+concept into both the textual (word) space and the parameter
+space, leveraging the strengths of each space to achieve more
+robust personalized generation.
+4.3 Concept Inversion Method
+Given a target representation space within a diffusion model,
+several methods can be utilized to obtain the concept condition
+of a given concept. Specifically, we categorize them into four
+types, including training-free methods, optimization-based
+methods, learning-based methods, and hybrid methods.
+4.3.1 Training-Free Method
+Training-free inversion methods [75, 87–89, 249] leverage
+the inherent properties of diffusion models to invert con
+cepts without the need for additional training. For instance,
+DDIM Inversion [75] provides a technique to invert the given
+image as the start noise that can be used to reconstruct the
+target image. To improve the reconstruction quality, DDPM
+Inversion [249] projects the image into DDPM noise space,
+which encompasses noise maps across all diffusion steps.
+Besides the noise representation, some methods [88, 89] ex
+plore intermediate representations within the diffusion models
+to achieve training-free personalization. For example, Dif
+fusion Self Guidance [88] leverages activations from Unet
+at each timestep to represent the coarse appearance of the
+image, while using self and cross-attention maps to cap
+ture structural information. During inference, it aligns the
+structure and appearance features of generated image with
+that of the reference image through gradient guidance, al
+lowing for personalized image generation without additional
+training. Similarly, Pick-and-Draw [89] adopts earth movers
+distance (EMD) to calculate the spatial adaptive distance
+among the appearance features, which helps generate subjects
+consistent with the reference image. These training-free in
+version methods offer a straightforward approach to achieving
+personalization without requiring extra training.
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 13
+4.3.2 Optimization-based Method
+Optimization-based concept learning methods [14, 15, 18,
+77, 96, 101, 103, 106, 108, 163] treat the concept condition
+cc as learnable parameters and optimize them based on the
+given concept images Xc. The optimization process can be
+formulated as,
+c∗
+c = arg mcicn
+Exc ∈Xc ,y ,ε,t
+h
+∥ε − εθ(zt, t, τ (y), cc)∥2
+2
+i
+, (8)
+where εθ(·) denotes pretrained diffusion models, and here
+we take Stable Diffusion [4] as an example. ε represents the
+unscaled noise, t is the time step. s zt is encoded latent noise
+of image x at time t. τ (·) represents the pretrained CLIP text
+encoder [214], and y is the input text.
+Training Prompt Construction. As shown in Eqn. 8, a text
+y related to concept image xc is required during optimization.
+The choice of text prompts significantly influences the learning
+of the concept condition [108, 251]. Textual Inversion [14]
+uses simple text templates, such as “a photo of S*”, as training
+prompts. Here S* denotes the pseudo word representing the
+target concept. Dreambooth [15] further incorporates a class
+word in the text prompt, for example, “a photo of S* dog”. The
+inclusion of the class word provides the category prior and
+facilitates the learning of target concept. To disentangle target
+concept from irrelevant context (e.g., pose and background),
+several methods [108, 251] also include additional contextual
+information of input image in the text, such as “a photo of S*
+running on the beach”. Some approaches [101, 102] further
+introduce learnable embeddings into text prompts to explicitly
+capture irrelevant information. For example, DETEX [102]
+employs prompts like “a photo of S* dog with [P] pose
+and [B] background” during training, where [P] and [B] are
+learnable embeddings designed to capture irrelevant pose and
+background information, respectively.
+Data Augmentation. During optimization, only a small
+number of training samples (typically 3∼5 images) is adopted.
+This limited dataset size usually leads to overfitting of the
+learned concept conditions, resulting in poor editability. To
+address this issue, several methods [15, 18, 81, 90] employ
+data augmentation techniques to enhance the generalization.
+For example, Custom Diffusion [18] utilizes random cropping,
+flipping, and resizing to increase the diversity of the training
+data. Similarly, ProFusion [90] adopts an inpainting approach
+to augment the background of images, further improving
+dataset variability.
+Training Objective. To effectively learn the target concept
+while preserving the prior of T2I models, various losses have
+been introduced [15, 101, 102, 104, 107, 111]. For exam
+ple, during finetuning, Dreambooth [15] introduces a prior
+preservation regularization to maintain the prior of original
+T2I model and prevent language drift. A predefined dataset
+consisting of images from a specific category is required to
+calculate the regularization. Some methods [107, 108, 112]
+regularize the finetuned model to remain consistent with the
+original model across various representations, thereby improv
+ing prior preservation. Besides, several losses [106, 111, 252]
+have been proposed to improve the text controllability of
+context and actions. Additionally, attention loss and masked
+diffusion loss [101, 102, 104] are commonly used to improve
+the fidelity of learned concepts.
+Initialization. Similar to GANs, initialization plays an im
+portant role to affect the performance of personalization in
+diffusion models. Existing initialization methods [14, 79, 80]
+are primarily designed for the textual (word) space and typi
+cally initialize the textual embedding with a super-category
+token (e.g., “dog” or “cat”). To speed up the optimization
+process, Cross Initialization [136] employs the mean textual
+embedding of 691 well-known names as the initialization,
+which provides the prior of human identities.
+4.3.3 Learning-based Method
+Optimization-based methods usually suffer from low effi
+ciency, requiring several or tens of minutes to learn a new
+concept. To address this, learning-based concept inversion
+methods [16, 17, 24, 82, 93] have been developed that employ
+encoders to directly invert given images as concept condition.
+The learning process of encoder can be formulated as follow,
+θ∗
+E = arg mθEin
+Ex∈X ,y,ε,t
+h
+∥ε−εθ(zt, t, τ (y), E (x; θE ))∥2
+2
+i
+,
+(9)
+where E is the encoder to project the given concept image
+as the concept condition, that cc = E (x; θE ), and θE is
+the parameter of E . It is worth noting that learning-based
+inversion methods usually use a single concept image as
+reference for personalization, but they can be easily extended
+to accommodate multiple reference images.
+Encoder Design. In learning-based methods, the design of
+the encoder is crucial for achieving effective and faithful
+concept inversion. Existing approaches [12, 16, 17, 91, 93,
+94, 114, 115, 137, 253] typically utilize an image encoder
+followed by a mapping model to project the input image
+into a concept condition. Several image encoders have been
+explored to extract semantically rich features, including CLIP
+image encoder [16, 17, 114], DINO encoder [253], reference
+Unet [115, 137], and multi-modal encoder [91, 94]. For
+example, ELITE [16] employs the pretrained CLIP image
+encoder to extract the multi-layer features, and utilizes global
+and local mapping to project them into the textual word space
+
+
+14 Y. Wei, Y. Zheng, Y. Zhang, et al.
+and feature space, respectively. This dual mapping approach
+allows ELITE to achieve flexible text controllability while
+maintaining rich details of the target concept. Similarly, IP
+Adapter [17] uses a simple linear projection to encode the
+projected CLIP image feature as image embeddings. It also
+alternatively explores the use of Resampler to capture finer
+details from extracted features, enhancing the fidelity of the
+generated concepts. To improve the concept fidelity, various
+methods [115, 137] adopt reference Unet to extract time
+and layer-wise features from the given concept image, which
+captures intricate details of the given concept. Moreover,
+some approaches [91, 94] leverage multi-modal models to
+extract concept information alongside text input, allowing
+for more precise and flexible control over the generated
+images. Face customization methods [12, 81] also employ ID
+encoders [236, 254] to extract domain-specific information.
+To integrate the extracted features into diffusion model to
+guide the concept generation, several types of adapters have
+been explored, such as cross attention [16, 17, 140, 143], self
+attention [92, 137], and concatenation [115] mechanisms. For
+example, IP-Adapter [17] employs dual cross attention mech
+anism that calculates text and image attention in parallel and
+subsequently fuses them for personalization. Additional key
+and value projections are introduced into the cross attention
+layers for image attention calculation. For recent DiT-based
+diffusion models, such as FLUX [218] and Stable Diffusion
+3 [212], a new cross attention is usually introduced after each
+attention block to inject the concept information [140].
+Dataset Construction. Existing learning-based methods pre
+train the encoders and adapters using self-constructed datasets.
+The training datasets [16, 17, 92] are typically composed of
+triplet image pairs, i.e., {reference image, target text, target
+image}, where the reference image provides concept informa
+tion. Additional information such as bounding boxes [92, 183]
+and masks [12, 16, 93] may also be incorporated to facilitate
+the model training. In practice, the training datasets used are
+typically constructed from existing corpus, such as LAION
+5B [217] and LAION 400M [216], where the reference im
+age and the target image are derived from the same source
+image [17, 92]. However, training model on these datasets
+usually leads to copy-paste issues, resulting in poor text
+editability [17, 140, 147]. To address this issue, several meth
+ods [12, 115, 117, 123, 126, 132, 148, 183, 184, 255, 256]
+propose to create the unpaired datasets, where the refer
+ence image and the target image originate from different
+sources. For example, PhotoMaker [12] collects multiple im
+ages of the same celebrities to form an unpaired dataset, while
+MS-Diffusion [183] construct such an unpaired dataset by
+leveraging existing video datasets. Beyond collecting images
+from real-world sources, some methods [117, 255] propose
+to generate datasets synthetically. SUTI [255] trains mil
+lions of optimization-based models [15], and uses them
+to produce unpaired target images based on given text.
+CustomizationAssistant [117] adopts a self-distillation ap
+proach, where a previously trained personalized model is
+used to generate unpaired images. Additionally, several meth
+ods [115, 123, 126, 132, 148, 184, 256] exploit the advanced
+generative capabilities of pretrained text-to-image models to
+construct unpaired datasets. For instance, JeDi [123] uses the
+pretrained SDXL model to generate a dataset of same-subject
+photo collages by appending the text “photos of the same” to
+each of the text prompts. Table 3 provides a detailed overview
+of the training datasets used in learning-based methods.
+Training Objective. In addition to Eqn. 9, several loss func
+tions [93, 140, 143, 147] have been proposed to facilitate
+the learning of concept identities while disentangling irrel
+evant information such as pose and background. Similar to
+optimization-based methods, attention loss and masked diffu
+sion loss [93, 143] are commonly used to improve the fidelity
+and quality of learned concepts. To further enhance text con
+trollability, several methods [140, 147] propose to regularize
+the intermediate features of personalization models to align
+them with those of the original T2I model. The identity loss
+is also employed for face personalization [140].
+4.3.4 Hybrid Method
+Similar to GANs, while learning-based methods offer high
+efficiency, they often encounter challenges in generalization
+and struggle to achieve adequate identity fidelity through an
+encoder. To address this, hybrid methods [24, 25, 94, 95, 257]
+have been adopted, which integrates the strengths of learning
+based techniques with optimization-based refinement. For
+example, BLIP-Diffusion [94] employs a learned encoder to
+initially obtain the concept condition, and optimizes this con
+dition over several steps to improve identity consistency. After
+obtaining the concept condition, HybridBooth [95] further
+optimizes the model parameters to enhance identity fidelity.
+Compared with existing learning-based and optimization
+based methods, hybrid methods demonstrate a comparable
+learning speed while maintaining superior fidelity.
+4.4 Personalized Image Generation
+Benefiting from the text-to-image framework, diffusion-based
+personalization methods enable the direct integration of in
+verted conditions with target text prompts to generate person
+alized images, offering superior controllability and flexibility.
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 15
+Input
+Subject-Driven Face-Driven
+Character-Driven Style-Driven
+Relation-Driven Multiple Subjects
+Wearing Christmas hat
+Wearing
+sunglasses Skiing Gray Hair Wearing hat and
+sunglasses
+Chinese ink painting
+Input Taking a selfie Holding a book Eating breakfast Cat Tree Bird
+Input Cat <R>
+Canvas
+Spiderman <R> Wall
+Cat <R> Building
+On vacation by the sea
+Working in a futuristic lab
+Standing before Eiffel Tower
+Input
+Input
+Input
+Fig. 8 Visual generation results of diffusion-based personalization methods. Images generated by OminiControl [128], PuLID [140], StoryMaker [151], InstantStyle [13], Reversion [168], and OMG [176].
+In this section, we provide an overview of personalized image
+generation across various categories, including subject, face,
+and style, etc.
+4.4.1 Subject-Driven Personalization
+Subject-driven personalization is a widely researched area
+that aims to generate images containing the subject concept
+from reference images. For better understanding, we will
+introduce them sequentially based on their inversion methods,
+i.e., optimization-based, learning-based, etc.
+Given a small set of images containing target subject,
+Textual Inversion [14] learns a new word embedding to
+represent the given subject. After optimization, it can be
+used for personalized subject generation in a plug-and-play
+manner without affecting the priors of T2I models. Similar to
+Textual Inversion, DreamBooth [15] introduces a rare word
+as a unique identifier to represent the target subject. A prior
+preserved parameter finetuning is adopted to align the unique
+identifier with the given subject. These two methods give the
+the foundation for numerous subsequent optimization-based
+methods [18, 77–80, 96–98, 258, 259].
+Identity fidelity is one of key factors in subject-driven
+personalization. To improve the identity fidelity of learned
+concept, various inversion spaces [15, 77–80, 85, 96, 97, 99,
+259–261] have been explored, as discussed in Sec. 4.2. For
+example, inspired by the W+ space in StyleGANs, P+ [79]
+proposed to use the different word embeddings for different
+layers to represent the target concept. A similar layer-wised
+disentanglement is found in stable diffusion Unet, where color
+is determined by the fine outer layers and content is determined
+by the coarse inner layers. NeTI [80] further extents P+
+space across time dimension, resulting in time and layer
+independent embeddings. Besides, ViCo [96] incorporates
+the image information to enhance the subject details.
+Parameter tuning methods demonstrate enhanced rep
+resentational capacity to capture the intricate details of a
+given subject. However, it brings increased computational de
+mands and potential prior degradation due to limited dataset
+scale [18, 83, 84]. To address this, Custom Diffusion [18]
+sidentifies critical parameters for personalization by exploiting
+several existing DreamBooth models. Specifically, it targets
+the key and value projections within cross-attention layers for
+updating. Following it, several methods [83, 84, 173, 262]
+have been proposed to explore different key parameters
+for personalization, such as neurons [83], value projection
+weights [84], the singular values of model weights [173],
+and output projection weights [262]. Moreover, parameter
+efficient tuning (PEFT) methods, such as LoRA [85], also play
+an important role in personalization. Orthogonal finetuning
+methods [99, 100] have also been proposed to improve the
+generalization capabilities.
+
+
+16 Y. Wei, Y. Zheng, Y. Zhang, et al.
+Text alignment is another critical challenge in personal
+ization tasks. Numerous studies [101–105, 113, 263] have
+been conducted to address this issue through disentangle
+ment learning. Among them, masks are widely adopted to
+minimize the effects of the background [101, 104]. Several
+methods [101, 102] introduce learnable embeddings to cap
+ture the irrelevant information, such as background and pose.
+By optimizing these embeddings alongside the subject em
+bedding with designed losses, these methods can achieve
+more flexible pose and context control through text prompts.
+DreamTuner [103] introduces ControlNet [8] to provide ad
+ditional pose information, which helps decouple the pose
+from learn subject concept. Additionally, several loss func
+tions [15, 106–109, 111, 112, 125, 264] are employed to
+improve text alignment. Dreambooth [15] introduces a prior
+preservation loss that regularizes the class prior to match that
+of the pretrained model. This approach employs a regular
+ization dataset comprising images from a specific category
+to compute the loss. ComFusion [106] further extends it by
+preserving both class-specific and scene-specific knowledge
+from pretrained models through a class-scene prior loss.
+FaceChain-SuDe [111] introduces a subject-derived regular
+ization, which helps the subject inherit the public attributes
+of its super-category while learning its private attributes. In
+structBooth [109] incorporates reinforcement learning (RL)
+finetuning to enhance text alignment. ImageReward [252] is
+utilized to measure the alignment between generated images
+and text prompts. PALP [125] adopts a prompt-aligned score
+sampling to encourage the personalized model to keep the
+ability to generate images aligned with a specific prompt.
+To improve the efficiency, learning-based methods [16,
+17, 24, 82, 92, 114, 116, 124, 127, 255] employ encoders
+with optional adapters to inject target concept into genera
+tion process, offering a significant speed advantage. Some
+works focus on domain-aware encoders specifically designed
+to encode images from target domains [24, 82, 120]. For
+example, E4T [24] employs a time-aware encoder to predict
+the delta word embedding from the subject image. It also
+updates the parameters of Unet model to adapt it to a specific
+domain, such as face or cat. AnyDressing [120] utilizes a
+Unet-based GarmentsNet to extract detailed features from
+garments, which are then injected into the diffusion process
+through the proposed dressing attention. It also supports the
+customization of multiple garments simultaneously and gen
+erates the corresponding human images, demonstrating great
+potential for e-commerce applications.
+In contrast to domain-specific personalization, other meth
+ods adopt a domain-agnostic approach, which train encoders
+on open-world images to extract more generalized condi
+tions [16, 17, 91, 92, 114–116]. Among these, IP-Adapter [17]
+is a widely used technique. It employs a pretrained CLIP im
+age encoder to extract image features, subsequently projecting
+them into feature space as image embeddings. To integrate
+these embeddings with text for personalized generation, IP
+Adapter introduces additional key and value projections into
+the cross-attention layers for image attention calculation,
+which is called dual cross attention. The text and image
+attentions are then combined to guide image generation. Fol
+lowing a similar framework, various encoders and adapters
+have been explored to enhance the fidelity of the learned
+subject concepts, as discussed in Sec. 4.3.3. For example,
+with the development of vision language models (VLMs),
+several studies [91, 94, 117, 119, 265] leverage VLMs to
+encode images and text simultaneously, achieving better text
+controllability. Additionally, some methods [16, 82, 114]
+project images into text-related spaces to obtain textual fea
+tures that can be directly utilized by T2I models without
+adapter training. Furthermore, several approaches [25, 257]
+employ hypernetwork-like encoders, which predict weight
+deltas of T2I models for personalized generation.
+To address the copy-paste problem, a common issue in
+learning-based methods, several studies [118, 121, 122] have
+been conducted. DisEnvisioner [121] disentangles the features
+of the subject and other irrelevant components by projecting
+the image feature into two distinct and orthogonal tokens.
+Then, the disentangled features are refined to produce identity
+consistent images that adhere to the input text. Besides,
+several methods construct unpaired image datasets to address
+these challenges, as discussed in Sec. 4.3.3. Based on these
+datasets, more flexible personalization methods have been
+developed. However, there is still a lack of large-scale, high
+quality open-source datasets for future research. Several
+approaches [118, 122] enhance text editability through post
+processing methods. For example, during inference, Song et
+al. [122] adjust the visual embedding to be orthogonal to
+the textual embedding. This adjustment accurately guides
+the generation process in a direction that adheres to the text
+prompt. SAG [118] introduces dual classifier-free guidance
+to improve text alignment by attenuating the subject-aware
+condition. Furthermore, several sampling techniques [16, 82,
+93, 146] have been proposed to balance the text alignment
+and subject fidelity.
+Various personalization frameworks have also been ex
+plored [123, 126, 266]. Instead of encoding the subject image,
+JeDi [123] treats personalized image generation as an im
+age inpainting task. It leverages reference subject images
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 17
+as examples and inpaints the output images based on target
+text. Similarly, Diffusion Self-Distillation [126] performs
+personalized image generation through image-guided video
+generation, where the given subject image serves as the first
+frame to guide the generation of subsequent frame. Consider
+ing that the reference image may contain multiple concepts
+simultaneously, SSREncoder [124] utilizes a token-to-patch
+aligner to highlight selective regions in the reference image
+based on a given query. During inference, users can flexi
+bly select the target concept from the image using mask or
+text input. Recently, several methods [127–129, 267, 268]
+have been developed to train personalized image generation
+alongside other tasks, resulting in multi-conditional control
+lable generation techniques. For example, OmniGen [129]
+jointly models text and images within a single framework and
+supports various downstream tasks, such as image editing,
+subject-driven generation, and visual conditional generation. In addition to the aforementioned methods, several re
+searchers have explored alternative training techniques. Fei et
+al. [130] propose a gradient-free textual inversion method
+that optimizes word embeddings without accessing the gra
+dients of the text-to-image model. Similarly, PRISM [131]
+introduces a black-box personalization approach that em
+ploys a vision-language model (VLM) to generate human
+interpretable prompts for the desired concept. During the
+learning process, the VLM serves as both a prompt engineer
+ing assistant and a judge to iteratively adjust the prompts.
+Ding et al. [110] utilize a linear projection to transform CLIP
+image features into text features, which can be sent to a T2I
+model directly to generate customized images. Several meth
+ods [24, 25, 94, 95, 257] also employ the hybrid framework,
+which integrates the strengths of learning-based techniques
+with optimization-based refinement.
+4.4.2 Face-Driven Personalization
+Personalized face generation is specifically focused on cre
+ating human-centric images that maintain the same identity
+as the individuals depicted in the reference images. This task
+can be considered a specialized case of personalized subject
+generation, and the methods mentioned in Sec. 4.4.1 are also
+applicable to this task. Compared with general subject domain,
+face domain have been widely studied in previous researches,
+such as face generation [200], face editing [69], and face
+analysis [269, 270]. In this section, we focus on techniques
+that are specifically designed for face-driven personalization. Similar to subject-driven personalization, several face per
+sonalization methods [81, 90, 133, 134, 136, 271] employ an
+optimization-based framework to project a given face image
+into textual or parameter space. Among them, CelebBasis [81]
+leverages the existing celebrity knowledge within pretrained
+T2I models, and projects the embeddings of well-known
+names to construct the celeb basis. Based on the celeb basis,
+the model can represent a new identity with 1,024 learnable
+coefficients, enabling flexible controllability on learned faces.
+Following it, StableIdentity [133] uses an identity encoder and
+a multilayer perceptron to extract the identity representation
+and projects it into the constructed celeb embedding space.
+In contrast to optimization-based personalization, learning
+based framework is widely adopted in face-driven generation
+methods [93, 272–279]. For example, FastComposer [93]
+employs an image encoder to extract subject embeddings
+and utilizes a multilayer perceptron (MLP) to fuse them with
+person-related text features (e.g., man or woman) to inject
+identity information. During inference, a delayed identity
+conditioning mechanism is introduced to balance identity
+consistency and text controllability. To improve face identity,
+several methods [132, 141, 280–282] propose to employ face
+recognition models [236, 254] to extract identity-related in
+formation. Face2Diffusion [138] retrains the face recognition
+model to remove identity-irrelevant information from the
+extracted identity embeddings. Identity loss is also widely
+adopted to improve identity consistency [139–142, 283, 284].
+Additionally, inspired by the attributes controllability in Style
+GANs, several methods [143, 144] propose adapting the W+
+space to text-to-image models for personalized face genera
+tion. This adaptation allows for more precise manipulation of
+facial attributes based on latent editing, such as eye size and
+age (as discussed in Sec. 3.4). Moreover, DiffLoRA [135]
+utilizes a diffusion model to predict identity-specific LoRA
+weights from reference images, which are then merged into
+SDXL for inference. It leverages LoRA’s custom generation
+capabilities, while avoiding the complex optimization process.
+Similar to subject-driven generation, the copy-paste prob
+lem poses a significant challenge for learning-based methods.
+Several methods [12, 145, 146, 285] tackle the copy-paste
+problem from the dataset perspective. For example, Pho
+toMaker [12] collects multiple images of the same identity
+and constructs an unpaired dataset for training, resulting in su
+perior text editability. Additionally, it stacks face embeddings
+from multiple images to enhance identity fidelity. In addition
+to collecting datasets, several methods [132, 147, 148] utilize
+generated unpaired images. For example, DreamIdentity [132]
+leverages the celebrity knowledge from pretrained T2I models
+to generate different images of celebrities, thereby forming an
+unpaired training dataset. MasterWeaver [147] utilizes face
+editing models [69] to augment the facial attributes of the ref
+erence face image. From the training perspective, several ap
+
+
+18 Y. Wei, Y. Zheng, Y. Zhang, et al.
+proaches [140, 142, 147] introduce specialized loss functions
+to address the copy-paste problem. LCM-Lookahead [142]
+employs the LCM model [286] to generate an image in several
+steps, which is used to calculate a text alignment loss, thereby
+improving text controllability. PuLID [140] introduces a se
+mantic alignment loss between the identity condition branch
+and the pure text branch to encourage the text controllabil
+ity of personalization model is aligned with original T2I
+model. Various approaches [93, 146, 287, 288] address the
+problem from the sampling perspective. For example, Face
+diffuser [287] employs two independent models for scene
+and character generation, and introduces a saliency-adaptive
+noise fusion mechanism to automatically blend the noise from
+both models during the generation process. Infinite-ID [146]
+utilizes decoupled cross-attention and replaces self-attention
+with a mixed attention mechanism during the inference stage. Facial analysis is an extensively researched area in deep
+learning, and numerous tools have been developed, such as
+face attribute classification, face detection, and face parsing.
+Therefore, several methods incorporate these face conditions
+to provide additional controllability [141, 149, 150, 289
+292]. For example, methods [141, 289, 290] like Portrait
+Booth [141] incorporate expression conditions into the gener
+ation process to control the facial expressions of the generated
+images. Based on the face parsing map, ConsistentID [149]
+employs a fine-grained feature extractor to extract detailed
+multimodal facial features from different parts of the face,
+which are used to improve identity fidelity. Additionally,
+methods [137, 291] such as InstantID [137] integrate face
+landmarks with additional ControlNet to provide spatial in
+formation, enhancing the controllability of the generation
+process. CapHuman [150] introduces a 3D parametric face
+model to provide structure and pose conditions for face gener
+ation, offering a more flexible and fine-grained head control.
+4.4.3 Character-Driven Personalization
+Personalized character generation further ensures consistency
+in both the identity and the body during the personalization. To ensure body consistency, some methods [151–153, 293,
+294] employ additional encoders to process the face and
+body separately and optimize them simultaneously. For in
+stance, StoryMaker [151] employs two independent encoders
+to extract face and body embeddings from masked face and
+body images. To disentangle irrelevant pose and background
+information, it further extracts pose and background em
+beddings and incorporates them with character embeddings
+for disentanglement learning. During inference, users can
+optionally provide reference keypoints to control the pose of
+the generated character. Besides, several methods [152, 153]
+process the upper and lower body separately, allowing for the
+flexible generation of images by composing parts from dif
+ferent sources. Recently, some approaches [154, 155] encode
+the character image as a single character condition for per
+sonalization, similar to subject and face personalization. For
+example, AnyStory [155] employs a ReferenceNet combined
+with a CLIP image encoder to faithfully encode the character
+information. It further introduces an instance-aware subject
+router to encourage the generation of multiple characters with
+out interfering with each other. SerialGen [154] first utilizes a
+model to project the given character image as a standardized
+reference. During personalization, this standardized reference
+is used to provide the character information, offering high
+text controllability and appearance consistency.
+4.4.4 Style-Driven Personalization
+Style-driven personalization aims to generate images with
+style as indicated by reference images, while ensuring that
+the content aligns with the given text prompt. The style of an
+image typically encompasses a variety of artistic elements,
+including colors, textures, brush strokes, etc. Numerous studies [156, 158–162, 295–298] have employed
+optimization-based methods for style personalization. For
+example, Textual Inversion [14] and subsequent methods [156,
+259, 295] simply utilize learned word embeddings to capture
+the style of reference images. During inference, these methods
+employ prompts structured like “[content] in the style of S*”
+for style-driven personalization, where S* denotes the learned
+style embedding and [content] is the content-related text. To
+facilitate accurate style learning, U-VAP [161] leverages a
+large language model to generate sentences describing the
+desired attributes and unrelated attributes, separately. Based
+on these sentences, it learns both target and non-target material
+word embeddings, which can be fused for decoupled target
+style generation. Several methods [158–160, 162, 163, 299] focus on fine
+tuning model parameters to capture specific styles. Since the
+given images contain both subject and style, the learned style
+concept is easily entangled with irrelevant content informa
+tion, resulting unsatisfactory generation results. To address
+this issue, various methods [160, 163] adopt an additional
+content LoRA to capture content-specific information, thereby
+decoupling style from content. For instance, PairCustomiza
+tion [160] learns the style and content LoRAs from a pair
+of (content, style) images, where the style image and con
+tent image share the same content but differ in style. During
+training, the content LoRA is exclusively trained with the
+content image to capture the content information. By jointing
+optimizing the style LoRA and content LoRA, it effectively
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 19
+disentangles content information from style learning. UnZi
+pLoRA [163] employs three types of prompts, i.e., mixed
+prompts, individual style prompts, and individual content
+prompts, to help learn decoupled content and style. During
+training, each type of prompt is assigned its own LoRA, and
+an orthogonal loss is applied among the style and content
+LoRAs to disentangle the style from the content.
+For efficiency, several approaches [157, 164–167, 267, 300]
+utilize learning-based frameworks that employ encoders to ex
+tract style-related conditions. Since there is a lack of datasets
+consisting of content-style-stylized image pairs, these methods
+typically use existing style images for training. For example,
+StyleAdapter [164] leverages a CLIP image encoder to extract
+style information from multiple style references. To decouple
+the content information from the style embeddings, it shuffles
+the patch-based vision embeddings and removes the orig
+inal class embedding. The extracted style embeddings are
+then injected through a dual cross-attention mechanism [17].
+Instead, ArtAdapter [165] introduces an Auxiliary Content
+Adapter (ACA), which uses an augmented image to provide
+weak content guidance during training, enhancing the accu
+racy of style learning. Based on B-LoRA [301], CSGO [157]
+constructs a dataset consists of content-style-stylized image
+pairs. Using this dataset, CSGO employs the content image
+with ControlNet to provide structural information, effectively
+preventing the content image from leaking style informa
+tion. Additionally, InstantStyle [13] employs the IP Adapter
+for personalized style generation by injecting style features
+selectively into specific cross-attention layers.
+Several studies [302–307] have also explored training-free
+frameworks to efficiently apply desired styles from reference
+images to image generation. For example, StyleAligned [303]
+utilizes an inversion method to extract style features from
+the reference image. During the image generation process, it
+encourages the generated image to maintain target styles by uti
+lizing a shared attention mechanism. Additionally, some meth
+ods [302, 304, 305] adopt style-guided sampling to achieve
+personalized style generation. For example, SAG [304] cal
+culates a style loss between the estimated clean image and
+the style image using a CLIP image encoder. This loss is
+then used to guide the sampling process through gradient
+guidance, ensuring that the style of the generated image aligns
+with that of the reference image.
+4.4.5 High-level Semantic Personalization
+Personalized image generation has also been expanded to
+include the generation of specific semantic relations or actions,
+which we refer to as high-level semantic personalization.
+Given several exemplar images, Reversion [168] aims
+to extract the common relation among them, such as “A
+<R> B” and <R> can represent actions like “shakes hands”
+or relations like “is painted on”. Specifically, Reversion
+introduces a relation steering contrastive learning to guide
+relation embeddings toward proper prepositions, facilitating
+the training process. Lego [169] focuses on learning more
+general concepts, such as adjectives and verbs, which are
+often intertwined with the subject’s appearance. To better
+disentangle the concept from the subject, Lego learns the
+subject embedding from subject-only images, while learning
+the concept jointly with subject in a contrastive setting. ADI [170] proposes a method to learn the customized action
+from limited data. To disentangle action-agnostic information
+from the learned action, it extracts the gradient invariance
+from the constructed sample triples and masks the updates
+of irrelevant channels. ImPoster [171] further combines the
+subject-driven generation and action-driven generation. Given
+a single “source” image and a “driving” image along with
+their corresponding text descriptions, ImPoster could generate
+an image of the source subject performing the driving actions. FreeEvent [172] introduces the event-customized image
+generation, which aims to learn all the actions, poses, rela
+tions, or interactions between different entities in the reference
+image. To achieve this, FreeEvent incorporates two additional
+generation paths. The entity switching path applies cross
+attention guidance and regulation for target entity generation.
+The event transferring path injects spatial features and self
+attention maps from the reference image into the target image
+for event generation. This approach enables FreeEvent to
+accurately capture complex events and generates customized
+images with various target entities.
+4.4.6 Multiple Concept Personalization
+Multiple concept personalization aims to generate images that
+incorporate multiple customized concepts, such as “a dog*
+and a cat*”, where dog* and cat* are user-indicated concepts. A straightforward approach for multiple concept personal
+ization is learning these concepts jointly using images that
+contain all the desired concepts together. However, collecting
+such images requires human labeling. To address this, SVD
+iff [173] employs a simple technique called Cut-Mix-Unmix
+to create training images composing multiple objects. Using
+the constructed training dataset, SVDiff further trains a per
+sonalization model to learn multiple concepts simultaneously.
+With the guidance of part masks, MagicTailor [181] learns
+to compose multiple parts form different faces. In contrast,
+CIDM [178] treats the task as a continual learning problem.
+During training, it introduces a concept consolidation loss
+
+
+20 Y. Wei, Y. Zheng, Y. Zhang, et al.
+along with an elastic weight aggregation module to mitigate
+the forgetting of previously learned concepts.
+Additionally, several methods have been proposed to com
+bine separately trained models for multiple concept per
+sonalization. Several weight fusion methods have been pro
+posed [18, 83, 162, 308–312]. For example, Custom Diffu
+sion [18] proposes to merge finetuned key and value matrices
+through solving a constrained optimization method. Po et
+al. [309] propose a technique that encourages customized
+models, which do not have access to each other during
+fine-tuning, to have orthogonal residual weights. During
+inference, these customized models can be summed with min
+imal interference, facilitating multiple concept generation.
+Furthermore, several methods [175–177] propose merging
+multiple concepts through noise fusion. OMG [176] and Con
+ceptWeaver [177] first generate a template image to provide
+structural information, and then regenerate the multi-concept
+image by mixing multiple score estimation outputs. Other
+approaches also utilize attention maps to refine the generation
+of multiple concepts [174, 175, 179, 313, 314]. For example,
+SEGuidance [179] employs a backward loss on the attention
+maps to ensure that there exists at least one patch in the
+attention map with a high attention value for each concept,
+which facilitates the generation of each concept.
+To address location conflicts among different concepts,
+additional layout inputs (e.g., bounding boxes or keypoints)
+are usually employed [174, 180, 315–317]. For example,
+Cones2 [174] utilizes layout guidance to strengthen the signal
+of the target concept while weakening the signals of irrel
+evant concepts. ConceptConductor [180] uses a reference
+image to provide layout information. During generation, the
+output features from the attention layers of different con
+cept models are multiplied by their corresponding masks and
+summed to obtain a fused feature map. For learning-based
+methods [92, 182–185, 318], the location information are
+usually encoded and injected through adapters. For example,
+GroundingBooth [182] employs a grounding input module
+that takes layout and images to extract grounding tokens,
+which are then injected through gated self-attention.
+4.5 Text-driven Image Editing
+Similar to GANs, with the inverted noise of given concept
+image, text-guided image editing is another possible way to
+create personalized content, as illustrated in Fig. 4 (c). Here,
+we also give a brief introduction to several representative
+text-based image editing techniques [9–11, 186, 187, 319].
+For example, DDS [186] modifies the inverted noise to per
+form editing. After inverting the concept image into the noise
+space, it employs a text-based image editing scoring function to guide noise towards the intended direction of text descriptions. Different from GANs, text-driven editing methods for T2I diffusion models can be performed in a training-free framework. For instance, Prompt-to-prompt [9] investigates the attention mechanism in diffusion models for image editing. Specifically, it inverts the given image into the noise space based on the source prompt and then uses it to generate an edited image with a new editing prompt. To ensure accurate editing while keeping irrelevant parts unchanged, it leverages the attention maps from the reconstruction path to replace the corresponding maps in the editing path. LEDITS++ [10] edits the image by manipulating the noise estimation during generation based on a set of edit instructions. DDPM inversion is employed to represent the image as a sequence of noises. However, these editing techniques often yield unsatisfactory results for non-rigid edits, such as pose editing. To address this, MasaCtrl [11] introduces a mutual self-attention mechanism, where the key and value in the editing path are derived from the reconstruction path. By querying the reference context, MasaCtrl maintains the object’s appearance while adhering to non-rigid guidance specified in the edit instructions, such as changes in pose or action. Recently, based on advanced T2I models, such as Stable Diffusion 3 [212] or FLUX [218], several methods have been proposed to achieve more flexible editing [187–189]. For example, Stable Flow [187] identifies the vital layers in DiTbased diffusion models that are crucial for image formation during generation. During generation, it injects the editing instructions only into these vital layers, yielding a stable edit for both attribute and non-rigid editing. HeadRouter [188] investigates the sensitivity of various attention heads to different image semantics within DiTs, and proposes to perform editing by adaptively routing text guidance to the appropriate attention heads during generation.
+5 Personalized Image Generation in ARs
+With the advancement of large language models (LLMs), autoregressive (AR) models have gained significant attention for their capabilities in text-to-image and multi-modal image generation. Although existing AR-based methods designed for personalized image generation are rare, this task can be considered a subset of multi-modal image generation. Consequently, many critical techniques overlap between personalization and multi-modal image generation. In this section, we explore various AR-based multi-modal generation methods that hold potential for personalized image generation. As shown in Fig. 5, unlike GANs and diffusion models, multi-modal AR models [28, 191–196] encode both images
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 21
+generate the cat on the beach generate the dog swimming generate a cat with same style generate the man with Christmas hat
+An oil painting of three dogs,
+the first dog
+the second dog
+the third dog
+A <dog> wearing a red hat on the beach
+Fig. 9 Visual generation results of AR-based personalization methods. Images generated by Seed-X [191] and Emu2-Gen [28].
+and text into a shared token space, enabling the generation of
+target images by integrating these modalities. For example,
+Emu2 [28] tokenizes images into embeddings using a CLIP
+based visual encoder. During generation, image embeddings
+are combined with text tokens to predict the generated im
+age embeddings autoregressively. These visual embeddings
+are then decoded into images via a diffusion-based visual
+decoder. Chameleon [193] leverages VQGAN as both the vi
+sual encoder and decoder, bridging image understanding and
+generation through discrete image tokens. This mixed-modal
+approach allows the model to understand and generate images
+and text in arbitrary sequences. Seed-X [191] introduces dy
+namic resolution image encoding that enables the processing
+of images with varying sizes and aspect ratios by dividing
+them into grids of sub-images. To retain fine-grained details
+for image manipulation, it adopts a diffusion-based visual
+de-tokenizer and finetunes it to accept an additional condition
+image as input. PUMA [194] utilizes a CLIP-based semantic
+image encoder to extract multi-scale features, which serve as
+the foundation for diverse visual tasks. Then, the autoregres
+sive multimodal large language model (MLLM) processes
+these multi-scale image features alongside text features to
+predicting each token sequentially, from the coarsest to the
+finest granularity level. A set of diffusion-based decoders is
+then employed to generate or reconstruct images conditioned
+on different features. ILLUME [196] uses a pretrained vision
+encoder to extract semantic features and supervises the quanti
+zation process through feature reconstruction loss. It employs
+the Stable Diffusion model as a decoder to reconstruct these
+semantic features back into high-resolution images.
+During training, these methods are typically trained us
+ing a next-token prediction framework and employ a two
+stage training pipeline, i.e., multimodal pretraining followed
+by task-specific instruction tuning. During the pretraining
+phase, models are trained on large text-image pairs to enable
+comprehensive ability of image understanding and genera
+tion. Depending on the type of image embeddings, classi
+fication loss or regression loss is adopted to regularize the
+predicted image tokens. Subsequently, models are aligned
+to follow specific task instructions through instruction tun
+ing [28, 190, 191, 196]. For example, Emu2 [28] leverages
+a mix of high-quality datasets to enhance controllable gen
+eration within context. More specific, grounded image-text
+pair datasets are utilized to improve the model’s ability for
+personalized image generation.
+Overall, the multi-modal capabilities of AR models demon
+strates great potential for personalized image generation by
+leveraging the strengths of text and image understanding.
+However, several challenges remain. For example, the iden
+tity consistency between the generated images and reference
+images remains limited, as illustrated in Fig. 9.
+6 Evaluation
+6.1 Evaluation Dataset
+Several datasets have been developed to facilitate the evalua
+tion of personalized image generation models:
+DreamBench [15] is a primary dataset consisting of 30
+subjects, including categories such as backpacks, animals,
+cars, and toys. For each subject, 25 prompts are incorpo
+rated to ensure diverse evaluation, covering various contexts,
+accessories, and attributes.
+DreamBench-v2 [255] is expanded upon DreamBench by
+adding 220 additional test prompts for each subject, enhancing
+the dataset’s variability.
+Dreambench++ [339] scales the DreamBench data to include
+150 images and 1,350 prompts, providing a more extensive
+framework for evaluating model performance.
+Custom101 [18] is a dataset of 101 concepts with 3-15 images
+
+
+22 Y. Wei, Y. Zheng, Y. Zhang, et al.
+and 20 prompts for each concept, offering a broader scope for
+evaluation compared to previous datasets.
+For specialized evaluation tasks, additional datasets and
+benchmarks are employed to evaluate models’ performance in
+specific scenarios. For example, face-driven methods typically
+utilize images from the CelebA dataset, which provides a
+rich collection of facial images. Unlike face personalization,
+style personalization lacks a standardized benchmark dataset.
+Consequently, users often rely on self-collected datasets
+tailored to their specific evaluation requirements.
+6.2 Evaluation Metrics
+Personalized image generation should ensure both the fidelity
+of the generated concept and the alignment with input texts.
+Therefore, the primary evaluation metrics are categorized into
+several categories, i.e., concept fidelity and text editability.
+6.2.1 Concept Fidelity
+Concept fidelity measures how accurately the generated im
+ages reflect the target concepts. Several metrics are used:
+Fre ́chet inception distance [340] (FID) calculates the
+Fre ́chet distance between feature vectors of real and gen
+erated images extracted from the Inception-v3 [341] model’s
+pool3 layer. A lower FID score indicates better perceptual
+quality and closer resemblance to real images.
+Identity score (ID) is relevant for face generation, which
+measures the similarity between the generated image and
+target image using a pretrained face recognition model [236].
+Higher ID scores denote greater similarity in identity.
+CLIP-I calculates the CLIP visual similarity between the
+generated images and the concept images. Higher CLIP-I
+values indicate greater alignment between the images.
+DINO-I calculates cosine similarity between the ViTS/16
+DINO [342] embeddings of the generated images and the
+concept images. Similar to CLIP-I, higher DINO-I values
+reflect better image similarity.
+To ensure that background elements do not skew the evalu
+ation of the main subject, some studies [102] calculate CLIP-I
+and DINO-I exclusively on foreground objects.
+6.2.2 Text Editability
+Text editability assesses how well the generated images adhere
+to the semantic instructions provided in text prompts. Key
+metrics include:
+CLIP-T evaluates the alignment between text prompts and
+generated images by measuring the similarity of their re
+spective CLIP embeddings. Higher scores indicate better
+adherence to the textual instructions.
+ImageReward [252] is a metric that measures the alignment
+of generated images with text prompts, providing an additional
+layer of assessment for image-text compatibility.
+6.2.3 Subjective Metrics
+In addition to quantitative metrics, subjective evaluations
+involving human raters are employed to gauge the quality
+and relevance of generated images. A common approach is
+user study [16, 18] . Participants are presented with sets of
+images, typically including the source image, results from a
+baseline model, and results from the proposed method. They
+are asked questions such as “Which image is more consistent
+with text?” or “Which image better represents the objects in
+target image?”. The percentage of preferences for proposed
+method over baselines provides insight into its effectiveness.
+While subjective metrics offer valuable insights into human
+perception and satisfaction, they come with drawbacks such
+as potential biases, variance in human judgment, and high
+costs associated with conducting comprehensive studies.
+7 Challenge and Future Directions
+While significant advancements have been made in personal
+ized image generation, several critical challenges remain. In
+this section, we will discuss the key challenges of personal
+ization as well as the future research directions.
+7.1 Trade off on Subject Fidelity and Text Controllability
+Personalized image generation aims to produce images that
+faithfully represent the target concept while adhering to tex
+tual prompts. Existing methods [17, 91, 92] have made great
+efforts to enhance the identity fidelity, but usually suffer
+from overfitting issues. These approaches tend to replicate
+the given concept in the generated image while neglecting
+the text instructions, especially when generating the concept
+in diverse poses or with varying attributes. To enhance text
+controllability, several techniques have been proposed, in
+cluding disentanglement learning [101, 102], advanced loss
+functions [140, 142, 147], data augmentation [12, 123], and
+sampling strategies [90]. Despite these advancements, the
+results remain suboptimal. Intuitively, achieving high subject
+fidelity involves capturing and reproducing intricate details
+of user-specific concept, which may conflict with the changes
+(e.g., poses or attributes) suggested by textual prompts. There
+fore, more elaborate design is worth investigating to better
+balance identity fidelity and text controllability.
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 23
+7.2 Universal Category Personalization
+Current personalization methods typically focus on specific
+domains, such as subjects [14, 16, 91], faces [12, 81, 137,
+140], clothing [120], or styles [13, 156]. However, in prac
+tice, users further expect the ability to incorporate multiple
+customized concepts within a single image. Although several
+methods [160, 162, 176, 183] have explored generating mul
+tiple subjects or combining content and style, their capacities
+remain limited. Therefore, there is a need to develop methods
+that enable universal category personalization, which provide
+more flexible and versatile generation capabilities. Beyond
+the existing personalization categories, more fine-grained
+personalization, such as attribute or part, is also needed to
+enable users to precisely control the generated images.
+7.3 Multi-Condition Controllable Image Generation
+Multi-condition image generation is an emerging and promis
+ing field focused on developing unified models capable of
+handling multiple conditional inputs and supporting a variety
+of tasks. For example, several recent methods [28, 128, 129]
+have explored using a single model to handle diverse con
+ditions and tasks simultaneously, including text-to-image
+synthesis, personalized image generation, conditional image
+generation, and image editing. Implementing such a unified
+framework significantly enhances the versatility and applica
+bility of generative models across a wide range of contexts.
+Despite these advancements, there remains a need to develop
+robust multi-condition image generation methods that ensure
+both scalability and high generation quality.
+7.4 Personalization with Advanced Generative Models
+Generative models have undergone significant evolution, in
+cluding recent advancements such as DiT-based text-to-image
+diffusion models [212, 218] and multi-model autoregressive
+models [3, 28, 191]. Effectively incorporating personalized
+concepts into these advanced models presents new challenges.
+As shown in Fig. 9, the identity fidelity of autoregressive
+based personalization methods remains unsatisfactory. Devel
+oping effective personalization techniques that are compatible
+with these models is an ongoing area of research.
+7.5 Personalized Video and 3D Generation
+In recent years, video and 3D content generation have ad
+vanced rapidly, with several methods [343–351] also explore
+the application of personalization techniques in these areas.
+These methods introduce new opportunities for content cre
+ation, but also present new challenges. For example, person
+alized video generation requires maintaining appearance and
+structure consistency across frames, which is more complex
+than single-image generation. Similarly, 3D generation in
+volves ensuring multi-view consistency, necessitating models
+that can effectively understand and depict three-dimensional
+structures. Future research can be done on these fields to ex
+tend personalized generation techniques beyond static images
+to dynamic and spatially complex content.
+8 Conclusion
+In this paper, we present a comprehensive survey of per
+sonalized image generation with various generative models,
+including Generative Adversarial Networks (GANs), text
+to-image diffusion models, and multi-modal autoregressive
+models. We begin by defining the scope of personalized
+image generation from a holistic perspective, unifying dif
+ferent approaches under a common framework. Specifically,
+we categorize personalized image generation into three key
+components: inversion spaces, inversion methods, and per
+sonalization schemes. Building on this unified framework,
+we provide an in-depth analysis of techniques within each
+category of generative models, highlighting both the common
+alities and differences across existing methods. Finally, we
+discuss the open challenges in the field and propose potential
+directions for future research. Our survey offers a current and
+comprehensive overview of personalized image generation,
+systematically tracking related studies in this rapidly evolving
+domain.
+Acknowledgements
+The work was supported by National Key R&D Program of
+China under Grant No. 2022YFA1004100.
+References
+[1] Goodfellow I, Pouget-Abadie J, Mirza M, Xu B, Warde-Farley D, Ozair S, Courville A, Bengio Y. Generative adversarial networks. Communications of the ACM, 2020, 63(11): 139144. [2] Ho J, Jain A, Abbeel P. Denoising diffusion probabilistic models. Advances in neural information processing systems, 2020, 33: 6840–6851. [3] Sun Q, Yu Q, Cui Y, Zhang F, Zhang X, Wang Y, Gao H, Liu J, Huang T, Wang X. Emu: Generative pretraining in multimodality. In The Twelfth International Conference on
+Learning Representations, 2023.
+[4] Rombach R, Blattmann A, Lorenz D, Esser P, Ommer B. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF conference on computer
+vision and pattern recognition, 2022, 10684–10695.
+[5] Podell D, English Z, Lacey K, Blattmann A, Dockhorn T, M ̈uller J, Penna J, Rombach R. Sdxl: Improving latent
+
+
+24 Y. Wei, Y. Zheng, Y. Zhang, et al.
+diffusion models for high-resolution image synthesis. arXiv preprint arXiv:2307.01952, 2023.
+[6] Saharia C, Chan W, Saxena S, Li L, Whang J, Denton EL, Ghasemipour K, Gontijo Lopes R, Karagol Ayan B, Salimans T, et al.. Photorealistic text-to-image diffusion models with deep language understanding. Advances in neural information processing systems, 2022, 35: 36479–36494. [7] Ramesh A, Dhariwal P, Nichol A, Chu C, Chen M. Hierarchical text-conditional image generation with clip latents. arXiv preprint arXiv:2204.06125, 2022, 1(2): 3.
+[8] Zhang L, Rao A, Agrawala M. Adding conditional control to text-to-image diffusion models. In Proceedings of the IEEE/CVF International Conference on Computer Vision, 2023, 3836–3847. [9] Hertz A, Mokady R, Tenenbaum J, Aberman K, Pritch Y, Cohen-Or D. Prompt-to-prompt image editing with cross attention control. arXiv preprint arXiv:2208.01626, 2022. [10] Brack M, Friedrich F, Kornmeier K, Tsaban L, Schramowski P, Kersting K, Passos A. Ledits++: Limitless image editing using text-to-image models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 8861–8870. [11] Cao M, Wang X, Qi Z, Shan Y, Qie X, Zheng Y. Masactrl: Tuning-free mutual self-attention control for consistent image synthesis and editing. In Proceedings of the IEEE/CVF International Conference on Computer Vision, 2023, 2256022570. [12] Li Z, Cao M, Wang X, Qi Z, Cheng MM, Shan Y. Photomaker: Customizing realistic human photos via stacked id embedding. In Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, 2024, 8640–8650.
+[13] Wang H, Spinelli M, Wang Q, Bai X, Qin Z, Chen A. Instantstyle: Free lunch towards style-preserving in text-toimage generation. arXiv preprint arXiv:2404.02733, 2024. [14] Gal R, Alaluf Y, Atzmon Y, Patashnik O, Bermano AH, Chechik G, Cohen-Or D. An image is worth one word: Personalizing text-to-image generation using textual inversion. arXiv preprint arXiv:2208.01618, 2022.
+[15] Ruiz N, Li Y, Jampani V, Pritch Y, Rubinstein M, Aberman K. Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2023, 22500–22510. [16] Wei Y, Zhang Y, Ji Z, Bai J, Zhang L, Zuo W. Elite: Encoding visual concepts into textual embeddings for customized text-to-image generation. In Proceedings of the IEEE/CVF International Conference on Computer Vision, 2023, 1594315953. [17] Ye H, Zhang J, Liu S, Han X, Yang W. Ip-adapter: Text compatible image prompt adapter for text-to-image diffusion models. arXiv preprint arXiv:2308.06721, 2023.
+[18] Kumari N, Zhang B, Zhang R, Shechtman E, Zhu JY. Multiconcept customization of text-to-image diffusion. In Proceed
+ings of the IEEE/CVF Conference on Computer Vision and
+Pattern Recognition, 2023, 1931–1941.
+[19] Zhu JY, Kra ̈henbu ̈hl P, Shechtman E, Efros AA. Generative visual manipulation on the natural image manifold. In Computer Vision–ECCV 2016: 14th European Conference, Amsterdam,
+The Netherlands, October 11-14, 2016, Proceedings, Part V 14, 2016, 597–613.
+[20] Richardson E, Alaluf Y, Patashnik O, Nitzan Y, Azar Y, Shapiro S, Cohen-Or D. Encoding in style: a stylegan encoder for image-to-image translation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2021, 2287–2296.
+[21] Tov O, Alaluf Y, Nitzan Y, Patashnik O, Cohen-Or D. Designing an encoder for stylegan image manipulation. ACM Transactions on Graphics (TOG), 2021, 40(4): 1–14.
+[22] Liu M, Wei Y, Wu X, Zuo W, Zhang L. Survey on leveraging pre-trained generative adversarial networks for image editing and restoration. Science China Information Sciences, 2023, 66(5): 151101.
+[23] Xia W, Zhang Y, Yang Y, Xue JH, Zhou B, Yang MH. Gan inversion: A survey. IEEE transactions on pattern analysis and machine intelligence, 2022, 45(3): 3121–3138.
+[24] Gal R, Arar M, Atzmon Y, Bermano AH, Chechik G, CohenOr D. Encoder-based domain tuning for fast personalization of text-to-image models. ACM Transactions on Graphics (TOG), 2023, 42(4): 1–13.
+[25] Arar M, Gal R, Atzmon Y, Chechik G, Cohen-Or D, Shamir A, H Bermano A. Domain-agnostic tuning-encoder for fast personalization of text-to-image models. In SIGGRAPH Asia 2023 Conference Papers, 2023, 1–10.
+[26] Ramesh A, Pavlov M, Goh G, Gray S, Voss C, Radford A, Chen M, Sutskever I. Zero-shot text-to-image generation. In International conference on machine learning, 2021, 88218831.
+[27] Ding M, Yang Z, Hong W, Zheng W, Zhou C, Yin D, Lin J, Zou X, Shao Z, Yang H, et al.. Cogview: Mastering textto-image generation via transformers. Advances in neural information processing systems, 2021, 34: 19822–19835.
+[28] Sun Q, Cui Y, Zhang X, Zhang F, Yu Q, Wang Y, Rao Y, Liu J, Huang T, Wang X. Generative multimodal models are in-context learners. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 14398–14409.
+[29] Cao P, Zhou F, Song Q, Yang L. Controllable generation with text-to-image diffusion models: A survey. arXiv preprint arXiv:2403.04279, 2024.
+[30] Zhang N, Tang H. Text-to-Image Synthesis: A Decade Survey. arXiv preprint arXiv:2411.16164, 2024.
+[31] Zhan Z, Chen D, Mei JP, Zhao Z, Chen J, Chen C, Lyu S, Wang C. Conditional Image Synthesis with Diffusion Models: A Survey. arXiv preprint arXiv:2409.19365, 2024.
+[32] Shuai X, Ding H, Ma X, Tu R, Jiang YG, Tao D. A Survey
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 25
+of Multimodal-Guided Image Editing with Text-to-Image Diffusion Models. arXiv preprint arXiv:2406.14555, 2024. [33] Zhang X, Wei XY, Zhang W, Wu J, Zhang Z, Lei Z, Li Q. A Survey on Personalized Content Synthesis with Diffusion Models. arXiv preprint arXiv:2405.05538, 2024.
+[34] Katsumata K, Vo DM, Liu B, Nakayama H. Revisiting Latent Space of GAN Inversion for Real Image Editing. arXiv preprint arXiv:2307.08995, 2023.
+[35] Wu Z, Lischinski D, Shechtman E. Stylespace analysis: Disentangled controls for stylegan image generation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2021, 12863–12872. [36] Wang T, Zhang Y, Fan Y, Wang J, Chen Q. High-fidelity gan inversion for image attribute editing. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2022, 11379–11388. [37] Parmar G, Li Y, Lu J, Zhang R, Zhu JY, Singh KK. Spatiallyadaptive multilayer selection for gan inversion and editing. In Proceedings of the IEEE/CVF conference on computer vision
+and pattern recognition, 2022, 11399–11409.
+[38] Zhuang C, Gao P, Smolic A. StylePrompter: All Styles Need Is Attention. In Proceedings of the 31st ACM International
+Conference on Multimedia, 2023, 2487–2497.
+[39] Roich D, Mokady R, Bermano AH, Cohen-Or D. Pivotal tuning for latent-based editing of real images. ACM Transactions on graphics (TOG), 2022, 42(1): 1–13. [40] Alaluf Y, Tov O, Mokady R, Gal R, Bermano A. Hyperstyle: Stylegan inversion with hypernetworks for real image editing. In Proceedings of the IEEE/CVF conference on computer
+Vision and pattern recognition, 2022, 18511–18521.
+[41] Creswell A, Bharath AA. Inverting the generator of a generative adversarial network. IEEE transactions on neural networks and learning systems, 2018, 30(7): 1967–1974.
+[42] Lipton ZC, Tripathi S. Precise recovery of latent vectors from generative adversarial networks. arXiv preprint arXiv:1702.04782, 2017.
+[43] Shah V, Hegde C. Solving linear inverse problems using gan priors: An algorithm with provable guarantees. In 2018 IEEE international conference on acoustics, speech and signal
+processing (ICASSP), 2018, 4609–4613.
+[44] Ma F, Ayaz U, Karaman S. Invertibility of convolutional generative networks from partial measurements. Advances in Neural Information Processing Systems, 2018, 31.
+[45] Abdal R, Qin Y, Wonka P. Image2stylegan: How to embed images into the stylegan latent space? In Proceedings of the IEEE/CVF international conference on computer vision, 2019, 4432–4441. [46] Abdal R, Qin Y, Wonka P. Image2stylegan++: How to edit the embedded images? In Proceedings of the IEEE/CVF
+conference on computer vision and pattern recognition, 2020, 8296–8305. [47] Feng Q, Shah V, Gadde R, Perona P, Martinez A. Near perfect gan inversion. arXiv preprint arXiv:2202.11833, 2022.
+[48] Dinh TM, Tran AT, Nguyen R, Hua BS. Hyperinverter: Improving stylegan inversion via hypernetwork. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2022, 11389–11398. [49] Alaluf Y, Patashnik O, Cohen-Or D. Restyle: A residual-based stylegan encoder via iterative refinement. In Proceedings of the IEEE/CVF international conference on computer vision, 2021, 6711–6720. [50] Wei T, Chen D, Zhou W, Liao J, Zhang W, Yuan L, Hua G, Yu N. E2Style: Improve the efficiency and effectiveness of StyleGAN inversion. IEEE Transactions on Image Processing, 2022, 31: 3267–3280. [51] Hu X, Huang Q, Shi Z, Li S, Gao C, Sun L, Li Q. Style transformer for image inversion and editing. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2022, 11337–11346. [52] Shen Y, Yang C, Tang X, Zhou B. Interfacegan: Interpreting the disentangled face representation learned by gans. IEEE transactions on pattern analysis and machine intelligence, 2020, 44(4): 2004–2018. [53] Shen Y, Zhou B. Closed-form factorization of latent semantics in gans. In Proceedings of the IEEE/CVF conference on
+computer vision and pattern recognition, 2021, 1532–1540. [54] Wang HP, Yu N, Fritz M. Hijack-gan: Unintended-use of pretrained, black-box gans. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2021, 7872–7881. [55] Viazovetskyi Y, Ivashkin V, Kashin E. Stylegan2 distillation for feed-forward image manipulation. In Computer VisionECCV 2020: 16th European Conference, Glasgow, UK,
+August 23–28, 2020, Proceedings, Part XXII 16, 2020, 170186. [56] Abdal R, Zhu P, Mitra NJ, Wonka P. Styleflow: Attributeconditioned exploration of stylegan-generated images using conditional continuous normalizing flows. ACM Transactions on Graphics (ToG), 2021, 40(3): 1–21. [57] Parihar R, Balaji P, Magazine R, Vora S, Karmali T, Jampani V, Babu RV. Exploring Attribute Variations in Style-based GANs using Diffusion Models. arXiv preprint arXiv:2311.16052, 2023.
+[58] Peebles W, Peebles J, Zhu JY, Efros A, Torralba A. The hessian penalty: A weak prior for unsupervised disentanglement. In Computer Vision–ECCV 2020: 16th European Conference,
+Glasgow, UK, August 23–28, 2020, Proceedings, Part VI 16, 2020, 581–597. [59] Ramesh A, Choi Y, LeCun Y. A spectral regularizer for unsupervised disentanglement. arXiv preprint arXiv:1812.01161, 2018. [60] Voynov A, Babenko A. Unsupervised discovery of interpretable directions in the gan latent space. In International conference on machine learning, 2020, 9786–9796.
+[61] Tzelepis C, Tzimiropoulos G, Patras I. Warpedganspace: Finding non-linear rbf paths in gan latent space. In Proceed
+
+
+26 Y. Wei, Y. Zheng, Y. Zhang, et al.
+ings of the IEEE/CVF international conference on computer vision, 2021, 6393–6402.
+[62] H ̈ark ̈onen E, Hertzmann A, Lehtinen J, Paris S. Ganspace: Discovering interpretable gan controls. Advances in neural information processing systems, 2020, 33: 9841–9850.
+[63] Pan X, Tewari A, Leimk ̈uhler T, Liu L, Meka A, Theobalt C. Drag your gan: Interactive point-based manipulation on the generative image manifold. In ACM SIGGRAPH 2023 Conference Proceedings, 2023, 1–11.
+[64] Patashnik O, Wu Z, Shechtman E, Cohen-Or D, Lischinski D. Styleclip: Text-driven manipulation of stylegan imagery. In Proceedings of the IEEE/CVF international conference on computer vision, 2021, 2085–2094.
+[65] Kocasari U, Dirik A, Tiftikci M, Yanardag P. Stylemc: Multichannel based fast text-guided image generation and manipulation. In Proceedings of the IEEE/CVF Winter Conference
+on Applications of Computer vision, 2022, 895–904.
+[66] Xu Z, Lin T, Tang H, Li F, He D, Sebe N, Timofte R, Van Gool L, Ding E. Predict, prevent, and evaluate: Disentangled text-driven image manipulation empowered by pre-trained vision-language model. In Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition, 2022, 18229–18238.
+[67] Zheng W, Li Q, Guo X, Wan P, Wang Z. Bridging clip and stylegan through latent alignment for image editing. arXiv preprint arXiv:2210.04506, 2022.
+[68] Zhu Y, Liu H, Song Y, Yuan Z, Han X, Yuan C, Chen Q, Wang J. One model to edit them all: Free-form text-driven image manipulation with semantic modulations. Advances in Neural Information Processing Systems, 2022, 35: 25146–25159.
+[69] Lyu Y, Lin T, Li F, He D, Dong J, Tan T. Deltaedit: Exploring text-free training for text-driven image manipulation. arXiv preprint arXiv:2303.06285, 2023.
+[70] Wei T, Chen D, Zhou W, Liao J, Tan Z, Yuan L, Zhang W, Yu N. Hairclip: Design your hair by text and reference image. In Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, 2022, 18072–18081.
+[71] Gal R, Patashnik O, Maron H, Bermano AH, Chechik G, Cohen-Or D. Stylegan-nada: Clip-guided domain adaptation of image generators. ACM Transactions on Graphics (TOG), 2022, 41(4): 1–13.
+[72] Zhu P, Abdal R, Femiani J, Wonka P. Mind the gap: Domain gap control for single shot domain adaptation for generative adversarial networks. arXiv preprint arXiv:2110.08398, 2021.
+[73] Zhang Y, Yao M, Wei Y, Ji Z, Bai J, Zuo W, et al.. Towards diverse and faithful one-shot adaption of generative adversarial networks. Advances in Neural Information Processing Systems, 2022, 35: 37297–37308.
+[74] Anees AB, Baykal AC, Kizil MB, Ceylan D, Erdem E, Erdem A. HyperGAN-CLIP: A Unified Framework for Domain Adaptation, Image Synthesis and Manipulation. In SIGGRAPH Asia 2024 Conference Papers, 2024, 1–12.
+[75] Song J, Meng C, Ermon S. Denoising diffusion implicit models. arXiv preprint arXiv:2010.02502, 2020.
+[76] Mokady R, Hertz A, Aberman K, Pritch Y, Cohen-Or D. Nulltext inversion for editing real images using guided diffusion models. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition, 2023, 6038–6047. [77] Zhao R, Zhu M, Dong S, Wang N, Gao X. Catversion: Concatenating embeddings for diffusion-based text-to-image personalization. arXiv preprint arXiv:2311.14631, 2023.
+[78] Han I, Yang S, Kwon T, Ye JC. Highly personalized text embedding for image manipulation by stable diffusion. arXiv preprint arXiv:2303.08767, 2023.
+[79] Voynov A, Chu Q, Cohen-Or D, Aberman K. p+: Extended textual conditioning in text-to-image generation. arXiv preprint arXiv:2303.09522, 2023.
+[80] Alaluf Y, Richardson E, Metzer G, Cohen-Or D. A neural space-time representation for text-to-image personalization. ACM Transactions on Graphics (TOG), 2023, 42(6): 1–10. [81] Yuan G, Cun X, Zhang Y, Li M, Qi C, Wang X, Shan Y, Zheng H. Inserting anybody in diffusion models via celeb basis. arXiv preprint arXiv:2306.00926, 2023.
+[82] Shi J, Xiong W, Lin Z, Jung HJ. Instantbooth: Personalized text-to-image generation without test-time finetuning. In Proceedings of the IEEE/CVF Conference on Computer Vision
+and Pattern Recognition, 2024, 8543–8552.
+[83] Liu Z, Feng R, Zhu K, Zhang Y, Zheng K, Liu Y, Zhao D, Zhou J, Cao Y. Cones: Concept neurons in diffusion models for customized generation. arXiv preprint arXiv:2303.05125, 2023. [84] Tewel Y, Gal R, Chechik G, Atzmon Y. Key-locked rank one editing for text-to-image personalization. In ACM SIGGRAPH 2023 Conference Proceedings, 2023, 1–11.
+[85] Hu EJ, Shen Y, Wallis P, Allen-Zhu Z, Li Y, Wang S, Wang L, Chen W. Lora: Low-rank adaptation of large language models. arXiv preprint arXiv:2106.09685, 2021.
+[86] Tsaban L, Passos A. Ledits: Real image editing with ddpm inversion and semantic guidance. arXiv preprint arXiv:2307.00522, 2023.
+[87] Rout L, Chen Y, Ruiz N, Caramanis C, Shakkottai S, Chu WS. Semantic image inversion and editing using rectified stochastic differential equations. arXiv preprint arXiv:2410.10792, 2024. [88] Epstein D, Jabri A, Poole B, Efros A, Holynski A. Diffusion self-guidance for controllable image generation. Advances in Neural Information Processing Systems, 2023, 36: 1622216239. [89] Lv H, Xiao J, Li L. Pick-and-draw: Training-free semantic guidance for text-to-image personalization. In Proceedings of the 32nd ACM International Conference on Multimedia, 2024, 10535–10543. [90] Zhou Y, Zhang R, Sun T, Xu J. Enhancing detail preservation for customized text-to-image generation: A regularizationfree approach. arXiv preprint arXiv:2305.13579, 2023.
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 27
+[91] Song K, Zhu Y, Liu B, Yan Q, Elgammal A, Yang X. Moma: Multimodal llm adapter for fast personalized image generation. In European Conference on Computer Vision, 2025, 117–132. [92] Ma J, Liang J, Chen C, Lu H. Subject-diffusion: Open domain personalized text-to-image generation without test-time finetuning. In ACM SIGGRAPH 2024 Conference Papers, 2024, 1–12. [93] Xiao G, Yin T, Freeman WT, Durand F, Han S. Fastcomposer: Tuning-free multi-subject image generation with localized attention. International Journal of Computer Vision, 2024: 1–20. [94] Li D, Li J, Hoi S. Blip-diffusion: Pre-trained subject representation for controllable text-to-image generation and editing. Advances in Neural Information Processing Systems, 2024, 36. [95] Guan S, Ge Y, Tai Y, Yang J, Li W, You M. HybridBooth: Hybrid Prompt Inversion for Efficient Subject-Driven Generation. In European Conference on Computer Vision, 2025, 403–419. [96] Hao S, Han K, Zhao S, Wong KYK. ViCo: Plug-and-play Visual Condition for Personalized Text-to-image Generation. arXiv preprint arXiv:2306.00971, 2023.
+[97] Wang Z, Wei W, Zhao Y, Xiao Z, Hasegawa-Johnson M, Shi H, Hou T. Hifi tuner: High-fidelity subject-driven fine-tuning for diffusion models. arXiv preprint arXiv:2312.00079, 2023. [98] Patashnik O, Gal R, Ostashev D, Tulyakov S, Aberman K, Cohen-Or D. Nested Attention: Semantic-aware Attention Values for Concept Personalization. arXiv preprint arXiv:2501.01407, 2025.
+[99] Qiu Z, Liu W, Feng H, Xue Y, Feng Y, Liu Z, Zhang D, Weller A, Sch ̈olkopf B. Controlling text-to-image diffusion by orthogonal finetuning. Advances in Neural Information Processing Systems, 2023, 36: 79320–79362. [100] Liu W, Qiu Z, Feng Y, Xiu Y, Xue Y, Yu L, Feng H, Liu Z, Heo J, Peng S, et al.. Parameter-efficient orthogonal finetuning via butterfly factorization. arXiv preprint arXiv:2311.06243, 2023. [101] Chen H, Zhang Y, Wang X, Duan X, Zhou Y, Zhu W. Disenbooth: Disentangled parameter-efficient tuning for subject-driven text-to-image generation. arXiv preprint arXiv:2305.03374, 2023, 3.
+[102] Cai Y, Wei Y, Ji Z, Bai J, Han H, Zuo W. Decoupled textual embeddings for customized image generation. In Proceedings of the AAAI Conference on Artificial Intelligence, 2024, 909–917. [103] Hua M, Liu J, Ding F, Liu W, Wu J, He Q. Dreamtuner: Single image is enough for subject-driven generation. arXiv preprint arXiv:2312.13691, 2023.
+[104] Avrahami O, Aberman K, Fried O, Cohen-Or D, Lischinski D. Break-a-scene: Extracting multiple concepts from a single image. In SIGGRAPH Asia 2023 Conference Papers, 2023, 1–12.
+[105] Nam J, Kim H, Lee D, Jin S, Kim S, Chang S. Dreammatcher: Appearance matching self-attention for semantically-consistent text-to-image personalization. In Proceedings of the IEEE/CVF Conference on Computer Vision
+and Pattern Recognition, 2024, 8100–8110.
+[106] Hong Y, Zhang J. ComFusion: Personalized Subject Generation in Multiple Specific Scenes From Single Image. arXiv preprint arXiv:2402.11849, 2024.
+[107] Wu Z, Yu C, Zhu Z, Wang F, Bai X. Singleinsert: Inserting new concepts from a single image into text-to-image models for flexible editing. arXiv preprint arXiv:2310.08094, 2023. [108] Lee K, Kwak S, Sohn K, Shin J. Direct consistency optimization for compositional text-to-image personalization. arXiv preprint arXiv:2402.12004, 2024.
+[109] Chae D, Park N, Kim J, Lee K. Instructbooth: Instructionfollowing personalized text-to-image generation. arXiv preprint arXiv:2312.03011, 2023.
+[110] Ding Y, Tian C, Ding H, Liu L. The CLIP model is secretly an image-to-prompt converter. Advances in Neural Information
+Processing Systems, 2024, 36.
+[111] Qiao P, Shang L, Liu C, Sun B, Ji X, Chen J. FaceChainSuDe: Building Derived Class to Inherit Category Attributes for One-shot Subject-Driven Generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 7215–7224. [112] Wu F, Pang Y, Zhang J, Pang L, Yin J, Zhao B, Li Q, Mao X. CoRe: Context-Regularized Text Embedding Learning for Text-to-Image Personalization. arXiv preprint arXiv:2408.15914, 2024.
+[113] Ram S, Neiman T, Feng Q, Stuart A, Tran S, Chilimbi T. DreamBlend: Advancing personalized fine-tuning of text-toimage diffusion models, 2025. [114] Ma Y, Yang H, Wang W, Fu J, Liu J. Unified multi-modal latent diffusion for joint subject and text conditional image generation. arXiv preprint arXiv:2303.09319, 2023.
+[115] Purushwalkam S, Gokul A, Joty S, Naik N. Bootpig: Bootstrapping zero-shot personalized image generation capabilities in pretrained diffusion models. arXiv preprint arXiv:2401.13974, 2024.
+[116] Jia X, Zhao Y, Chan KC, Li Y, Zhang H, Gong B, Hou T, Wang H, Su YC. Taming encoder for zero fine-tuning image customization with text-to-image diffusion models. arXiv preprint arXiv:2304.02642, 2023.
+[117] Zhou Y, Zhang R, Gu J, Sun T. Customization assistant for text-to-image generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 9182–9191. [118] Chan KC, Zhao Y, Jia X, Yang MH, Wang H. Improving Subject-Driven Image Synthesis with Subject-Agnostic Guidance. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition, 2024, 6733–6742. [119] Chen N, Huang M, Chen Z, Zheng Y, Zhang L, Mao Z. CustomContrast: A Multilevel Contrastive Perspective For
+
+
+28 Y. Wei, Y. Zheng, Y. Zhang, et al.
+Subject-Driven Text-to-Image Customization. arXiv preprint arXiv:2409.05606, 2024.
+[120] Li X, Sun Q, Zhang P, Ye F, Liao Z, Feng W, Zhao S, He Q. AnyDressing: Customizable Multi-Garment Virtual Dressing via Latent Diffusion Models. arXiv preprint arXiv:2412.04146, 2024.
+[121] He J, Li H, Hu Y, Shen G, Cai Y, Qiu W, Chen YC. DisEnvisioner: Disentangled and Enriched Visual Prompt for Customized Image Generation. arXiv preprint arXiv:2410.02067, 2024.
+[122] Song Y, Kim J, Park W, Shin W, Rhee W, Kwak N. Harmonizing Visual and Textual Embeddings for Zero-Shot Textto-Image Customization. arXiv preprint arXiv:2403.14155, 2024.
+[123] Zeng Y, Patel VM, Wang H, Huang X, Wang TC, Liu MY, Balaji Y. JeDi: Joint-Image Diffusion Models for FinetuningFree Personalized Text-to-Image Generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 6786–6795.
+[124] Zhang Y, Song Y, Liu J, Wang R, Yu J, Tang H, Li H, Tang X, Hu Y, Pan H, et al.. Ssr-encoder: Encoding selective subject representation for subject-driven generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 8069–8078.
+[125] Arar M, Voynov A, Hertz A, Avrahami O, Fruchter S, Pritch Y, Cohen-Or D, Shamir A. PALP: prompt aligned personalization of text-to-image models. In SIGGRAPH Asia 2024 Conference Papers, 2024, 1–11.
+[126] Cai S, Chan E, Zhang Y, Guibas L, Wu J, Wetzstein G. Diffusion Self-Distillation for Zero-Shot Customized Image Generation. arXiv preprint arXiv:2411.18616, 2024.
+[127] Hu H, Chan KC, Su YC, Chen W, Li Y, Sohn K, Zhao Y, Ben X, Gong B, Cohen W, et al.. Instruct-Imagen: Image generation with multi-modal instruction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 4754–4763.
+[128] Tan Z, Liu S, Yang X, Xue Q, Wang X. OminiControl: Minimal and Universal Control for Diffusion Transformer. arXiv preprint arXiv:2411.15098, 2024.
+[129] Xiao S, Wang Y, Zhou J, Yuan H, Xing X, Yan R, Wang S, Huang T, Liu Z. Omnigen: Unified image generation. arXiv preprint arXiv:2409.11340, 2024.
+[130] Fei Z, Fan M, Huang J. Gradient-free textual inversion. In Proceedings of the 31st ACM International Conference on Multimedia, 2023, 1364–1373.
+[131] He Y, Robey A, Murata N, Jiang Y, Williams J, Pappas GJ, Hassani H, Mitsufuji Y, Salakhutdinov R, Kolter JZ. Automated Black-box Prompt Engineering for Personalized Text-to-Image Generation. arXiv preprint arXiv:2403.19103, 2024.
+[132] Chen Z, Fang S, Liu W, He Q, Huang M, Zhang Y, Mao Z. Dreamidentity: Improved editability for efficient
+face-identity preserved image generation. arXiv preprint arXiv:2307.00300, 2023.
+[133] Wang Q, Jia X, Li X, Li T, Ma L, Zhuge Y, Lu H. Stableidentity: Inserting anybody into anywhere at first sight. arXiv preprint arXiv:2401.15975, 2024.
+[134] Tomasˇevic ́ D, Boutros F, Damer N, Struc V, Peer P. ID-Booth: Identity-consistent image generation with diffusion models. [135] Wu Y, Shi Y, Wei J, Sun C, Zhou Y, Yang Y, Shen HT. Difflora: Generating personalized low-rank adaptation weights with diffusion. arXiv preprint arXiv:2408.06740, 2024.
+[136] Pang L, Yin J, Xie H, Wang Q, Li Q, Mao X. Cross Initialization for Face Personalization of Text-to-Image Models. In Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, 2024, 8393–8403.
+[137] Wang Q, Bai X, Wang H, Qin Z, Chen A, Li H, Tang X, Hu Y. Instantid: Zero-shot identity-preserving generation in seconds. arXiv preprint arXiv:2401.07519, 2024.
+[138] Shiohara K, Yamasaki T. Face2Diffusion for Fast and Editable Face Personalization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 6850–6859. [139] Chen L, Zhao M, Liu Y, Ding M, Song Y, Wang S, Wang X, Yang H, Liu J, Du K, et al.. Photoverse: Tuning-free image customization with text-to-image diffusion models. arXiv preprint arXiv:2309.05793, 2023.
+[140] Guo Z, Wu Y, Chen Z, Chen L, Zhang P, He Q. Pulid: Pure and lightning id customization via contrastive alignment. arXiv preprint arXiv:2404.16022, 2024.
+[141] Peng X, Zhu J, Jiang B, Tai Y, Luo D, Zhang J, Lin W, Jin T, Wang C, Ji R. Portraitbooth: A versatile portrait model for fast identity-preserved personalization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 27080–27090. [142] Gal R, Lichter O, Richardson E, Patashnik O, Bermano AH, Chechik G, Cohen-Or D. Lcm-lookahead for encoder-based text-to-image personalization. arXiv preprint arXiv:2404.03620, 2024, 2(3): 4.
+[143] Li X, Hou X, Loy CC. When stylegan meets stable diffusion: a w+ adapter for personalized image generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 2187–2196. [144] Parihar R, Sachidanand V, Mani S, Karmali T, Venkatesh Babu R. Precisecontrol: Enhancing text-to-image diffusion models with fine-grained attribute control. In European Conference on Computer Vision, 2025, 469–487.
+[145] Zhang S, Huang L, Chen X, Zhang Y, Wu ZF, Feng Y, Wang W, Shen Y, Liu Y, Luo P. FlashFace: Human Image Personalization with High-fidelity Identity Preservation. arXiv preprint arXiv:2403.17008, 2024.
+[146] Wu Y, Li Z, Zheng H, Wang C, Li B. Infinite-ID: Identitypreserved Personalization via ID-semantics Decoupling Paradigm. In European Conference on Computer Vision, 2025, 279–296.
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 29
+[147] Wei Y, Ji Z, Bai J, Zhang H, Zhang L, Zuo W. MasterWeaver: Taming Editability and Face Identity for Personalized Textto-Image Generation. In European Conference on Computer Vision, 2025, 252–271. [148] He Z, Sun B, Juefei-Xu F, Ma H, Ramchandani A, Cheung V, Shah S, Kalia A, Subramanyam H, Zareian A, et al.. Imagine yourself: Tuning-free personalized image generation. arXiv preprint arXiv:2409.13346, 2024.
+[149] Huang J, Dong X, Song W, Li H, Zhou J, Cheng Y, Liao S, Chen L, Yan Y, Liao S, et al.. Consistentid: Portrait generation with multimodal fine-grained identity preserving. arXiv preprint arXiv:2404.16771, 2024.
+[150] Liang C, Ma F, Zhu L, Deng Y, Yang Y. Caphuman: Capture your moments in parallel universes. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 6400–6409. [151] Zhou Z, Li J, Li H, Chen N, Tang X. StoryMaker: Towards Holistic Consistent Characters in Text-to-image Generation. arXiv preprint arXiv:2409.12576, 2024.
+[152] Ma Y, Xu W, Tang J, Jin Q, Zhang R, Zhao Z, Fan C, Hu Z. Character-Adapter: Prompt-Guided Region Control for High-Fidelity Character Customization. arXiv preprint arXiv:2406.16537, 2024.
+[153] Tang H, Zhou X, Deng J, Pan Z, Tian H, Chaudhari P. Retrieving conditions from reference images for diffusion models. arXiv preprint arXiv:2312.02521, 2023.
+[154] Xie C, Zou H, Yu R, Zhang Y, Zhan Z. SerialGen: Personalized Image Generation by First Standardization Then Personalization. arXiv preprint arXiv:2412.01485, 2024.
+[155] He J, Tuo Y, Chen B, Zhong C, Geng Y, Bo L. AnyStory: Towards Unified Single and Multiple Subject Personalization in Text-to-Image Generation. arXiv preprint arXiv:2501.09503, 2025. [156] Zhang Y, Huang N, Tang F, Huang H, Ma C, Dong W, Xu C. Inversion-based style transfer with diffusion models. In Proceedings of the IEEE/CVF conference on computer vision
+and pattern recognition, 2023, 10146–10156.
+[157] Image S. CSGO: Content-Style Composition in Text-to-Image Generation. [158] Park J, Ko B, Jang H. StyleBoost: A Study of Personalizing Text-to-Image Generation in Any Style using DreamBooth. In 2023 14th International Conference on Information and
+Communication Technology Convergence (ICTC), 2023, 9398. [159] Park J, Ko B, Jang H. Text-to-Image Synthesis for Any Artistic Styles: Advancements in Personalized Artistic Image Generation via Subdivision and Dual Binding. arXiv preprint arXiv:2404.05256, 2024.
+[160] Jones M, Wang SY, Kumari N, Bau D, Zhu JY. Customizing text-to-image models with a single image pair. In SIGGRAPH Asia 2024 Conference Papers, 2024, 1–13.
+[161] Wu Y, Liu K, Mi X, Tang F, Cao J, Li J. U-VAP: User-specified Visual Appearance Personalization via Decoupled Self Aug
+mentation. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition, 2024, 9482–9491. [162] Shah V, Ruiz N, Cole F, Lu E, Lazebnik S, Li Y, Jampani V. Ziplora: Any subject in any style by effectively merging loras. In European Conference on Computer Vision, 2025, 422–438. [163] Liu C, Shah V, Cui A, Lazebnik S. UnZipLoRA: Separating Content and Style from a Single Image. arXiv preprint arXiv:2412.04465, 2024.
+[164] Wang Z, Wang X, Xie L, Qi Z, Shan Y, Wang W, Luo P. StyleAdapter: A Unified Stylized Image Generation Model. International Journal of Computer Vision, 2024: 1–18.
+[165] Chen DY, Tennent H, Hsu CW. ArtAdapter: Text-to-Image Style Transfer using Multi-Level Style Encoder and Explicit Adaptation. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition, 2024, 8619–8628. [166] Zhang G, Sohn K, Hahn M, Shi H, Essa I. FineStyle: Finegrained Controllable Style Personalization for Text-to-image Models. In The Thirty-eighth Annual Conference on Neural
+Information Processing Systems.
+[167] Yang W, Zhao Y. Artistic Intelligence: A Diffusion-Based Framework for High-Fidelity Landscape Painting Synthesis. IEEE Access, 2024.
+[168] Huang Z, Wu T, Jiang Y, Chan KC, Liu Z. ReVersion: Diffusion-based relation inversion from images. In SIGGRAPH Asia 2024 Conference Papers, 2024, 1–11.
+[169] Motamed S, Paudel DP, Van Gool L. Lego: Learning to disentangle and invert concepts beyond object appearance in textto-image diffusion models. arXiv preprint arXiv:2311.13833, 2023. [170] Huang S, Gong B, Feng Y, Chen X, Fu Y, Liu Y, Wang D. Learning disentangled identifiers for action-customized text-to-image generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 7797–7806. [171] Kothandaraman D, Kulkarni K, Shekhar S, Srinivasan BV, Manocha D. ImPoster: Text and Frequency Guidance for Subject Driven Action Personalization using Diffusion Models. arXiv preprint arXiv:2409.15650, 2024.
+[172] Wang Z, Jiang Y, Zheng D, Xiao J, Chen L. Event-Customized Image Generation. arXiv preprint arXiv:2410.02483, 2024. [173] Han L, Li Y, Zhang H, Milanfar P, Metaxas D, Yang F. Svdiff: Compact parameter space for diffusion fine-tuning. In Proceedings of the IEEE/CVF International Conference on Computer Vision, 2023, 7323–7334. [174] Liu Z, Zhang Y, Shen Y, Zheng K, Zhu K, Feng R, Liu Y, Zhao D, Zhou J, Cao Y. Customizable image synthesis with multiple subjects. Advances in Neural Information Processing Systems, 2024, 36. [175] Jiang J, Zhang Y, Feng K, Wu X, Zuo W. MC2: Multi-concept Guidance for Customized Multi-concept Generation. arXiv preprint arXiv:2404.05268, 2024.
+[176] Kong Z, Zhang Y, Yang T, Wang T, Zhang K, Wu B, Chen
+
+
+30 Y. Wei, Y. Zheng, Y. Zhang, et al.
+G, Liu W, Luo W. Omg: Occlusion-friendly personalized multi-concept generation in diffusion models. In European Conference on Computer Vision, 2025, 253–270.
+[177] Kwon G, Jenni S, Li D, Lee JY, Ye JC, Heilbron FC. Concept Weaver: Enabling Multi-Concept Fusion in Text-to-Image Models. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition, 2024, 8880–8889. [178] Dong J, Liang W, Li H, Zhang D, Cao M, Ding H, Khan S, Khan FS. How to Continually Adapt Text-to-Image Diffusion Models for Flexible Customization? arXiv preprint arXiv:2410.17594, 2024.
+[179] Liu S, Wang B, Ma Y, Yang T, Cao X, Chen Q, Li H, Dong D, Jiang P. Training-free Subject-Enhanced Attention Guidance for Compositional Text-to-image Generation. arXiv preprint arXiv:2405.06948, 2024.
+[180] Yao Z, Feng F, Li R, Wang X. Concept Conductor: Orchestrating Multiple Personalized Concepts in Text-to-Image Synthesis. arXiv preprint arXiv:2408.03632, 2024.
+[181] Zhou D, Huang J, Bai J, Wang J, Chen H, Chen G, Hu X, Heng PA. MagicTailor: Component-Controllable Personalization in Text-to-Image Diffusion Models. arXiv preprint arXiv:2410.13370, 2024.
+[182] Xiong Z, Xiong W, Shi J, Zhang H, Song Y, Jacobs N. GroundingBooth: Grounding Text-to-Image Customization. arXiv preprint arXiv:2409.08520, 2024.
+[183] Personalization Ss. MS-Diffusion: Multi-subject Zero-shot Image Personalization with Layout Guidance. [184] Shi Q, Qi L, Wu J, Bai J, Wang J, Tong Y, Li X, Yang MH. RelationBooth: Towards Relation-Aware Customized Object Generation. arXiv preprint arXiv:2410.23280, 2024.
+[185] Garibi D, Yadin S, Paiss R, Tov O, Zada S, Ephrat A, Michaeli T, Mosseri I, Dekel T. TokenVerse: Versatile Multi-concept Personalization in Token Modulation Space. arXiv preprint arXiv:2501.12224, 2025.
+[186] Hertz A, Aberman K, Cohen-Or D. Delta denoising score. In Proceedings of the IEEE/CVF International Conference on Computer Vision, 2023, 2328–2337. [187] Avrahami O, Patashnik O, Fried O, Nemchinov E, Aberman K, Lischinski D, Cohen-Or D. Stable Flow: Vital Layers for Training-Free Image Editing. arXiv preprint arXiv:2411.14430, 2024.
+[188] Xu Y, Tang F, Cao J, Zhang Y, Kong X, Li J, Deussen O, Lee TY. HeadRouter: A Training-free Image Editing Framework for MM-DiTs by Adaptively Routing Attention Heads. arXiv preprint arXiv:2411.15034, 2024.
+[189] Xu P, Jiang B, Hu X, Luo D, He Q, Zhang J, Wang C, Wu Y, Ling C, Wang B. Unveil Inversion and Invariance in Flow Transformer for Versatile Image Editing. arXiv preprint arXiv:2411.15843, 2024.
+[190] Wang X, Zhang X, Luo Z, Sun Q, Cui Y, Wang J, Zhang F, Wang Y, Li Z, Yu Q, et al.. Emu3: Next-token prediction is all you need. arXiv preprint arXiv:2409.18869, 2024.
+[191] Ge Y, Zhao S, Zhu J, Ge Y, Yi K, Song L, Li C, Ding
+X, Shan Y. Seed-x: Multimodal models with unified multigranularity comprehension and generation. arXiv preprint arXiv:2404.14396, 2024.
+[192] Tong S, Fan D, Zhu J, Xiong Y, Chen X, Sinha K, Rabbat M, LeCun Y, Xie S, Liu Z. MetaMorph: Multimodal Understanding and Generation via Instruction Tuning. arXiv preprint arXiv:2412.14164, 2024.
+[193] Team C. Chameleon: Mixed-modal early-fusion foundation models. arXiv preprint arXiv:2405.09818, 2024.
+[194] Fang R, Duan C, Wang K, Li H, Tian H, Zeng X, Zhao R, Dai J, Li H, Liu X. Puma: Empowering unified mllm with multigranular visual generation. arXiv preprint arXiv:2410.13861, 2024. [195] Wu J, Jiang Y, Ma C, Liu Y, Zhao H, Yuan Z, Bai S, Bai X. Liquid: Language Models are Scalable Multi-modal Generators. arXiv preprint arXiv:2412.04332, 2024.
+[196] Wang C, Lu G, Yang J, Huang R, Han J, Hou L, Zhang W, Xu H. ILLUME: Illuminating Your LLMs to See, Draw, and Self-Enhance. arXiv preprint arXiv:2412.06673, 2024.
+[197] Sun Z, Chu Z, Zhang P, Wu T, Dong X, Zang Y, Xiong Y, Lin D, Wang J. X-Prompt: Towards Universal In-Context Image Generation in Auto-Regressive Vision Language Foundation Models. arXiv preprint arXiv:2412.01824, 2024.
+[198] Radford A. Unsupervised representation learning with deep convolutional generative adversarial networks. arXiv preprint arXiv:1511.06434, 2015.
+[199] Zhang H, Xu T, Li H, Zhang S, Wang X, Huang X, Metaxas DN. Stackgan: Text to photo-realistic image synthesis with stacked generative adversarial networks. In Proceedings of the IEEE international conference on computer vision, 2017, 5907–5915. [200] Karras T, Laine S, Aila T. A style-based generator architecture for generative adversarial networks. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2019, 4401–4410. [201] Karras T, Laine S, Aittala M, Hellsten J, Lehtinen J, Aila T. Analyzing and improving the image quality of stylegan. In Proceedings of the IEEE/CVF conference on computer vision
+and pattern recognition, 2020, 8110–8119.
+[202] Mao X, Li Q, Xie H, Lau RY, Wang Z, Paul Smolley S. Least squares generative adversarial networks. In Proceedings of the IEEE international conference on computer vision, 2017, 2794–2802. [203] Arjovsky M, Chintala S, Bottou L. Wasserstein generative adversarial networks. In International conference on machine learning, 2017, 214–223. [204] Gulrajani I, Ahmed F, Arjovsky M, Dumoulin V, Courville AC. Improved training of wasserstein gans. Advances in neural information processing systems, 2017, 30.
+[205] Miyato T, Kataoka T, Koyama M, Yoshida Y. Spectral normalization for generative adversarial networks. arXiv preprint arXiv:1802.05957, 2018.
+[206] Karras T. Progressive Growing of GANs for Improved Quality,
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 31
+Stability, and Variation. arXiv preprint arXiv:1710.10196, 2017.
+[207] Karras T, Aittala M, Laine S, Ha ̈rko ̈nen E, Hellsten J, Lehtinen J, Aila T. Alias-free generative adversarial networks. Advances in neural information processing systems, 2021, 34: 852–863.
+[208] Brock A, Donahue J, Simonyan K. Large scale GAN training for high fidelity natural image synthesis. arXiv 2018. arXiv preprint arXiv:1809.11096, 2018.
+[209] Sauer A, Karras T, Laine S, Geiger A, Aila T. Stylegan-t: Unlocking the power of gans for fast large-scale text-to-image synthesis. In International conference on machine learning, 2023, 30105–30118.
+[210] Kang M, Zhu JY, Zhang R, Park J, Shechtman E, Paris S, Park T. Scaling up gans for text-to-image synthesis. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2023, 10124–10134.
+[211] Balaji Y, Nah S, Huang X, Vahdat A, Song J, Zhang Q, Kreis K, Aittala M, Aila T, Laine S, et al.. ediff-i: Text-to-image diffusion models with an ensemble of expert denoisers. arXiv preprint arXiv:2211.01324, 2022.
+[212] Esser P, Kulal S, Blattmann A, Entezari R, Mu ̈ller J, Saini H, Levi Y, Lorenz D, Sauer A, Boesel F, et al.. Scaling rectified flow transformers for high-resolution image synthesis. In Forty-first International Conference on Machine Learning, 2024.
+[213] Team K. Kolors: Effective Training of Diffusion Model for Photorealistic Text-to-Image Synthesis. arXiv preprint, 2024.
+[214] Radford A, Kim JW, Hallacy C, Ramesh A, Goh G, Agarwal S, Sastry G, Askell A, Mishkin P, Clark J, et al.. Learning transferable visual models from natural language supervision. In International conference on machine learning, 2021, 87488763.
+[215] Ni J, Abrego GH, Constant N, Ma J, Hall KB, Cer D, Yang Y. Sentence-t5: Scalable sentence encoders from pre-trained text-to-text models. arXiv preprint arXiv:2108.08877, 2021.
+[216] Schuhmann C, Vencu R, Beaumont R, Kaczmarczyk R, Mullis C, Katta A, Coombes T, Jitsev J, Komatsuzaki A. Laion400m: Open dataset of clip-filtered 400 million image-text pairs. arXiv preprint arXiv:2111.02114, 2021.
+[217] Schuhmann C, Beaumont R, Vencu R, Gordon C, Wightman R, Cherti M, Coombes T, Katta A, Mullis C, Wortsman M, et al.. Laion-5b: An open large-scale dataset for training next generation image-text models. Advances in Neural Information Processing Systems, 2022, 35: 25278–25294.
+[218] Labs BF. FLUX. https://github.com/black-forest-labs/flux, 2024.
+[219] Peebles W, Xie S. Scalable diffusion models with transformers. In Proceedings of the IEEE/CVF International Confer
+ence on Computer Vision, 2023, 4195–4205.
+[220] Lipman Y, Chen RT, Ben-Hamu H, Nickel M, Le M. Flow matching for generative modeling. arXiv preprint arXiv:2210.02747, 2022.
+[221] Radford A. Improving language understanding by generative pre-training, 2018. [222] Radford A, Wu J, Child R, Luan D, Amodei D, Sutskever I, et al.. Language models are unsupervised multitask learners. OpenAI blog, 2019, 1(8): 9. [223] Brown T, Mann B, Ryder N, Subbiah M, Kaplan JD, Dhariwal P, Neelakantan A, Shyam P, Sastry G, Askell A, et al.. Language models are few-shot learners. Advances in neural information processing systems, 2020, 33: 1877–1901.
+[224] Sun P, Jiang Y, Chen S, Zhang S, Peng B, Luo P, Yuan Z. Autoregressive Model Beats Diffusion: Llama for Scalable Image Generation. arXiv preprint arXiv:2406.06525, 2024. [225] Wu S, Fei H, Qu L, Ji W, Chua TS. Next-gpt: Any-to-any multimodal llm. arXiv preprint arXiv:2309.05519, 2023.
+[226] Ding M, Zheng W, Hong W, Tang J. Cogview2: Faster and better text-to-image generation via hierarchical transformers. Advances in Neural Information Processing Systems, 2022, 35: 16890–16902. [227] Yu J, Xu Y, Koh JY, Luong T, Baid G, Wang Z, Vasudevan V, Ku A, Yang Y, Ayan BK, et al.. Scaling autoregressive models for content-rich text-to-image generation. arXiv preprint arXiv:2206.10789, 2022, 2(3): 5.
+[228] Tian K, Jiang Y, Yuan Z, Peng B, Wang L. Visual autoregressive modeling: Scalable image generation via next-scale prediction. arXiv preprint arXiv:2404.02905, 2024.
+[229] Ma X, Zhou M, Liang T, Bai Y, Zhao T, Chen H, Jin Y. STAR: Scale-wise Text-to-image generation via Auto-Regressive representations. arXiv preprint arXiv:2406.10797, 2024.
+[230] Zhang Q, Dai X, Yang N, An X, Feng Z, Ren X. Var-clip: Text-to-image generator with visual auto-regressive modeling. arXiv preprint arXiv:2408.01181, 2024.
+[231] Liu M, Ding Y, Xia M, Liu X, Ding E, Zuo W, Wen S. Stgan: A unified selective transfer network for arbitrary image attribute editing. In Proceedings of the IEEE/CVF conference
+on computer vision and pattern recognition, 2019, 36733682. [232] Liu Y, Li Q, Sun Z, Tan T. Style intervention: How to achieve spatial disentanglement with style-based generators? arXiv preprint arXiv:2011.09699, 2020.
+[233] Bau D, Zhu JY, Wulff J, Peebles W, Strobelt H, Zhou B, Torralba A. Inverting layers of a large generator. In ICLR workshop, 2019, 4.
+[234] Zhu P, Abdal R, Qin Y, Femiani J, Wonka P. Improved stylegan embedding: Where are the good latents? arXiv preprint arXiv:2012.09036, 2020.
+[235] Kang K, Kim S, Cho S. Gan inversion for out-of-range images with geometric transformations. In Proceedings of the IEEE/CVF international conference on computer vision, 2021, 13941–13949. [236] Deng J, Guo J, Xue N, Zafeiriou S. Arcface: Additive angular margin loss for deep face recognition. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2019, 4690–4699.
+
+
+32 Y. Wei, Y. Zheng, Y. Zhang, et al.
+[237] He K, Fan H, Wu Y, Xie S, Girshick R. Momentum contrast for unsupervised visual representation learning. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 2020, 9729–9738.
+[238] Yu F, Seff A, Zhang Y, Song S, Funkhouser T, Xiao J. Lsun: Construction of a large-scale image dataset using deep learning with humans in the loop. arXiv preprint arXiv:1506.03365, 2015.
+[239] Zhu J, Shen Y, Zhao D, Zhou B. In-domain gan inversion for real image editing. In European conference on computer vision, 2020, 592–608.
+[240] Chai L, Zhu JY, Shechtman E, Isola P, Zhang R. Ensembling with deep generative views. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2021, 14997–15007.
+[241] Zhang H, Wu C, Cao G, Wang H, Cao W. HyperEditor: Achieving Both Authenticity and Cross-Domain Capability in Image Editing via Hypernetworks. In Proceedings of the AAAI Conference on Artificial Intelligence, 2024, 7051–7059.
+[242] Yildirim AB, Pehlivan H, Dundar A. Warping the residuals for image editing with stylegan. International Journal of Computer Vision, 2024: 1–16.
+[243] Wang B, Ponce CR. The geometry of deep generative image models and its applications. arXiv preprint arXiv:2101.06006, 2021.
+[244] Nguyen T, Ojha U, Li Y, Liu H, Lee YJ. Edit One for All: Interactive Batch Image Editing. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 8271–8280.
+[245] Pinkney JN, Li C. clip2latent: Text driven sampling of a pre-trained stylegan using denoising diffusion and clip. arXiv preprint arXiv:2210.02347, 2022.
+[246] Zhou C, Zhong F,  ̈Oztireli C. CLIP-PAE: projectionaugmentation embedding to extract relevant features for a disentangled, interpretable and controllable text-guided face manipulation. In ACM SIGGRAPH 2023 Conference
+Proceedings, 2023, 1–9.
+[247] Tzelepis C, Oldfield J, Tzimiropoulos G, Patras I. Contraclip: Interpretable gan generation driven by pairs of contrasting sentences. arXiv preprint arXiv:2206.02104, 2022.
+[248] Baykal AC, Anees AB, Ceylan D, Erdem E, Erdem A, Yuret D. CLIP-guided StyleGAN Inversion for Text-driven Real Image Editing. ACM Transactions on Graphics, 2023, 42(5): 1–18.
+[249] Huberman-Spiegelglas I, Kulikov V, Michaeli T. An edit friendly ddpm noise space: Inversion and manipulations. In Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, 2024, 12469–12478.
+[250] Ho J, Salimans T. Classifier-free diffusion guidance. arXiv preprint arXiv:2207.12598, 2022.
+[251] He X, Cao Z, Kolkin N, Yu L, Wan K, Rhodin H, Kalarot R. A data perspective on enhanced identity preservation for
+diffusion personalization. arXiv preprint arXiv:2311.04315, 2023. [252] Xu J, Liu X, Wu Y, Tong Y, Li Q, Ding M, Tang J, Dong Y. Imagereward: Learning and evaluating human preferences for text-to-image generation. Advances in Neural Information Processing Systems, 2024, 36.
+[253] Chen X, Huang L, Liu Y, Shen Y, Zhao D, Zhao H. Anydoor: Zero-shot object-level image customization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 6593–6602. [254] Huang Y, Wang Y, Tai Y, Liu X, Shen P, Li S, Li J, Huang F. Curricularface: adaptive curriculum learning loss for deep face recognition. In proceedings of the IEEE/CVF conference
+on computer vision and pattern recognition, 2020, 59015910. [255] Chen W, Hu H, Li Y, Ruiz N, Jia X, Chang MW, Cohen WW. Subject-driven text-to-image generation via apprenticeship learning. Advances in Neural Information Processing Systems, 2024, 36. [256] Aiello E, Michieli U, Valsesia D, Ozay M, Magli E. DreamCache: Finetuning-Free Lightweight Personalized Image Generation via Feature Caching. arXiv preprint arXiv:2411.17786, 2024.
+[257] Ruiz N, Li Y, Jampani V, Wei W, Hou T, Pritch Y, Wadhwa N, Rubinstein M, Aberman K. Hyperdreambooth: Hypernetworks for fast personalization of text-to-image models. In Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, 2024, 6527–6536.
+[258] Jin J, Shen Y, Fu Z, Yang J. Customized Generation Reimagined: Fidelity and Editability Harmonized. In European Conference on Computer Vision, 2025, 410–426.
+[259] Dong Z, Wei P, Lin L. Dreamartist: Towards controllable oneshot text-to-image generation via positive-negative prompttuning. arXiv preprint arXiv:2211.11337, 2022.
+[260] Park N, Kim K, Shim H. TextBoost: Towards One-Shot Personalization of Text-to-Image Models via Fine-tuning Text Encoder. arXiv preprint arXiv:2409.08248, 2024.
+[261] Hu J, Gao S, Hong L, Wang Q, Zhao Y, Wang Y, Zhang W. P3S-Diffusion: A Selective Subject-driven Generation Framework via Point Supervision. arXiv preprint arXiv:2412.19533, 2024. [262] Ham C, Fisher M, Hays J, Kolkin N, Liu Y, Zhang R, Hinz T. Personalized Residuals for Concept-Driven Text-to-Image Generation. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition, 2024, 8186–8195. [263] Zhang X, Wei XY, Wu J, Zhang T, Zhang Z, Lei Z, Li Q. Compositional inversion for stable diffusion models. In Proceedings of the AAAI Conference on Artificial Intelligence, 2024, 7350–7358. [264] Kim T, Chen W, Qiu Q. Learning to Customize Textto-Image Diffusion In Diverse Context. arXiv preprint arXiv:2410.10058, 2024.
+[265] Li W, Xu X, Liu J, Xiao X. UNIMO-G: Unified Image
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 33
+Generation through Multimodal Conditional Diffusion. arXiv preprint arXiv:2401.13388, 2024.
+[266] Patel M, Jung S, Baral C, Yang Y. λ-ECLIPSE: Multi-Concept Personalized Text-to-Image Diffusion Models by Leveraging CLIP Latent Space. arXiv preprint arXiv:2402.05195, 2024.
+[267] Rowles C, Vainer S, De Nigris D, Elizarov S, Kutsy K, Donne ́ S. IPAdapter-Instruct: Resolving Ambiguity in Imagebased Conditioning using Instruct Prompts. arXiv preprint arXiv:2408.03209, 2024.
+[268] Le DH, Pham T, Lee S, Clark C, Kembhavi A, Mandt S, Krishna R, Lu J. One Diffusion to Generate Them All, 2024.
+[269] Kapitanov A, Kvanchiani K, Kirillova S. EasyPortrait-Face Parsing and Portrait Segmentation Dataset, 2023.
+[270] Guo X, Li S, Yu J, Zhang J, Ma J, Ma L, Liu W, Ling H. PFLD: A practical facial landmark detector. arXiv preprint arXiv:1902.10859, 2019.
+[271] Li Y, Yang S, Wang W, Dong J. SeFi-IDE: Semantic-Fidelity Identity Embedding for Personalized Diffusion-Based Generation. arXiv preprint arXiv:2402.00631, 2024.
+[272] Guo X, Tran M, Cheng J, Liu X. Dense-Face: Personalized Face Generation Model via Dense Annotation Prediction. arXiv preprint arXiv:2412.18149, 2024.
+[273] Li X, Zhan J, He S, Xu Y, Dong J, Zhang H, Du Y. PersonaMagic: Stage-Regulated High-Fidelity Face Customization with Tandem Equilibrium. arXiv preprint arXiv:2412.15674, 2024.
+[274] Qian G, Wang KC, Patashnik O, Heravi N, Ostashev D, Tulyakov S, Cohen-Or D, Aberman K. Omni-ID: Holistic Identity Representation Designed for Generative Tasks. arXiv preprint arXiv:2412.09694, 2024.
+[275] Sun Z, Du F, Chen W, Wang F, Chen Y, Rong Y, Xiong S. RealisID: Scale-Robust and Fine-Controllable Identity Customization via Local and Global Complementation. arXiv preprint arXiv:2412.16832, 2024.
+[276] Hu X, Wang H, Lenssen JE, Schiele B. PersonaHOI: Effortlessly Improving Personalized Face with Human-Object Interaction Generation. arXiv preprint arXiv:2501.05823, 2025.
+[277] He J, Geng Y, Bo L. UniPortrait: A Unified Framework for Identity-Preserving Single-and Multi-Human Image Personalization. arXiv preprint arXiv:2408.05939, 2024.
+[278] Yang H, Simsar E, Anagnostidi S, Zang Y, Hofmann T, Liu Z. IC-Portrait: In-Context Matching for View-Consistent Personalized Portrait. arXiv preprint arXiv:2501.17159, 2025.
+[279] Wang Q, Li B, Li X, Cao B, Ma L, Lu H, Jia X. CharacterFactory: Sampling Consistent Characters with GANs for Diffusion Models. arXiv preprint arXiv:2404.15677, 2024.
+[280] Valevski D, Lumen D, Matias Y, Leviathan Y. Face0: Instantaneously conditioning a text-to-image model on a face. In SIGGRAPH Asia 2023 Conference Papers, 2023, 1–10.
+[281] Yan Y, Zhang C, Wang R, Zhou Y, Zhang G, Cheng P, Yu G, Fu B. Facestudio: Put your face everywhere in seconds. arXiv preprint arXiv:2312.02663, 2023.
+[282] Yu C, Xie H, Shang L, Liu Y, Dan J, Bo L, Sun B. FaceChainFACT: Face Adapter with Decoupled Training for Identitypreserved Personalization. arXiv preprint arXiv:2410.12312, 2024. [283] Hyung J, Shin J, Choo J. Magicapture: High-resolution multiconcept portrait customization. In Proceedings of the AAAI Conference on Artificial Intelligence, 2024, 2445–2453.
+[284] Chen W, Zhang J, Wu J, Wu H, Xiao X, Lin L. IDAligner: Enhancing Identity-Preserving Text-to-Image Generation with Reward Feedback Learning. arXiv preprint arXiv:2404.15449, 2024.
+[285] Cui S, Guo J, An X, Deng J, Zhao Y, Wei X, Feng Z. IDAdapter: Learning Mixed Features for Tuning-Free Personalization of Text-to-Image Models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 950–959. [286] Luo S, Tan Y, Huang L, Li J, Zhao H. Latent consistency models: Synthesizing high-resolution images with few-step inference. arXiv preprint arXiv:2310.04378, 2023.
+[287] Wang Y, Zhang W, Zheng J, Jin C. High-fidelity Personcentric Subject-to-Image Synthesis. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 7675–7684. [288] Cai Y, Jiang Z, Liu Y, Jiang C, Xue W, Luo W, Guo Y. Foundation Cures Personalization: Recovering Facial Personalized Models’ Prompt Consistency. arXiv preprint arXiv:2411.15277, 2024.
+[289] Liu R, Ma B, Zhang W, Hu Z, Fan C, Lv T, Ding Y, Cheng X. Towards a simultaneous and granular identity-expression control in personalized face generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 2114–2123. [290] Jiang L, Li R, Zhang Z, Fang S, Ma C. EmojiDiff: Advanced Facial Expression Control with High Identity Preservation in Portrait Generation. arXiv preprint arXiv:2412.01254, 2024. [291] Deng Z, Liu W, Wang F, Zhang J, Chen F, Zhang M, Zhang W, Mi Z. MagicID: Flexible ID Fidelity Generation System. arXiv preprint arXiv:2408.09248, 2024.
+[292] Xu Y, Zhai B, Zhang C, Li M, Li Y, Du S. Diff-PC: Identitypreserving and 3D-aware controllable diffusion for zero-shot portrait customization. Information Fusion, 2024: 102869. [293] Li N, Liu Q, Singh KK, Wang Y, Zhang J, Plummer BA, Lin Z. UniHuman: A Unified Model For Editing Human Images in the Wild. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition, 2024, 2039–2048. [294] Huang Z, Fan H, Wang L, Sheng L. From Parts to Whole: A Unified Reference Framework for Controllable Human Image Generation. arXiv preprint arXiv:2404.15267, 2024.
+[295] Zhang Y, Dong W, Tang F, Huang N, Huang H, Ma C, Lee TY, Deussen O, Xu C. Prospect: Prompt spectrum for attribute-aware personalization of diffusion models. ACM Transactions on Graphics (TOG), 2023, 42(6): 1–14.
+[296] Choi J, Shin C, Oh Y, Kim H, Yoon S. Style-Friendly
+
+
+34 Y. Wei, Y. Zheng, Y. Zhang, et al.
+SNR Sampler for Style-Driven Generation. arXiv preprint arXiv:2411.14793, 2024.
+[297] Vinker Y, Voynov A, Cohen-Or D, Shamir A. Concept decomposition for visual exploration and inspiration. ACM Transactions on Graphics (TOG), 2023, 42(6): 1–13.
+[298] Agarwal A, Karanam S, Shukla T, Srinivasan BV. An image is worth multiple words: Multi-attribute inversion for constrained text-to-image synthesis. arXiv preprint arXiv:2311.11919, 2023.
+[299] Xu Y, Tang F, Cao J, Zhang Y, Deussen O, Dong W, Li J, Lee TY. Break-for-make: Modular low-rank adaptations for composable content-style customization. arXiv preprint arXiv:2403.19456, 2024.
+[300] Zhuoqi M, Yixuan Z, Zejun Y, Long T, Xiyang L. Content-style disentangled representation for controllable artistic image stylization and generation. arXiv preprint arXiv:2412.14496, 2024.
+[301] Frenkel Y, Vinker Y, Shamir A, Cohen-Or D. Implicit stylecontent separation using b-lora. In European Conference on Computer Vision, 2025, 181–198.
+[302] Gallego V. Personalizing text-to-image generation via aesthetic gradients. arXiv preprint arXiv:2209.12330, 2022.
+[303] Hertz A, Voynov A, Fruchter S, Cohen-Or D. Style aligned image generation via shared attention. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 4775–4785. [304] Pan J, Yan H, Liew JH, Feng J, Tan VY. Towards accurate guided diffusion sampling through symplectic adjoint method. arXiv preprint arXiv:2312.12030, 2023.
+[305] Xu Y, Wang Z, Xiao J, Liu W, Chen L. FreeTuner: Any Subject in Any Style with Training-free Diffusion. arXiv preprint arXiv:2405.14201, 2024.
+[306] Rout L, Chen Y, Ruiz N, Kumar A, Caramanis C, Shakkottai S, Chu WS. RB-Modulation: Training-Free Personalization of Diffusion Models using Stochastic Optimal Control. arXiv preprint arXiv:2405.17401, 2024.
+[307] Shin C, Choi J, Kim H, Yoon S. Large-Scale Text-to-Image Model with Inpainting is a Zero-Shot Subject-Driven Image Generator. arXiv preprint arXiv:2411.15466, 2024.
+[308] Gu Y, Wang X, Wu JZ, Shi Y, Chen Y, Fan Z, Xiao W, Zhao R, Chang S, Wu W, et al.. Mix-of-show: Decentralized lowrank adaptation for multi-concept customization of diffusion models. Advances in Neural Information Processing Systems, 2024, 36. [309] Po R, Yang G, Aberman K, Wetzstein G. Orthogonal adaptation for modular customization of diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vi
+sion and Pattern Recognition, 2024, 7964–7973.
+[310] Shenaj D, Bohdal O, Ozay M, Zanuttigh P, Michieli U. LoRA. rar: Learning to Merge LoRAs via Hypernetworks for Subject-Style Conditioned Image Generation. arXiv preprint arXiv:2412.05148, 2024.
+[311] Li L, Zeng H, Yang C, Jia H, Xu D. Block-wise LoRA:
+Revisiting Fine-grained LoRA for Effective Personalization and Stylization in Text-to-Image Generation. arXiv preprint arXiv:2403.07500, 2024.
+[312] Jang S, Jo J, Lee K, Hwang SJ. Identity Decoupling for Multi-Subject Personalization of Text-to-Image Models. arXiv preprint arXiv:2404.04243, 2024.
+[313] He H, Wang Q, Zhou Y, Cai Y, Chao H, Yin J, Yang H. Improving Multi-Subject Consistency in Open-Domain Image Generation with Isolation and Reposition Attention. arXiv preprint arXiv:2411.19261, 2024.
+[314] Zhang Y, Yang M, Zhou Q, Wang Z. Attention Calibration for Disentangled Text-to-Image Personalization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 4764–4774. [315] Yang Y, Wang W, Peng L, Song C, Chen Y, Li H, Yang X, Lu Q, Cai D, Wu B, et al.. LoRA-Composer: Leveraging Low-Rank Adaptation for Multi-Concept Customization in Training-Free Diffusion Models. arXiv preprint arXiv:2403.11627, 2024.
+[316] Jain A, Paliwal S, Sharma M, Jamwal V, Vig L. Multi-Subject Personalization. arXiv preprint arXiv:2405.12742, 2024.
+[317] Wang W, Zhao C, Chen H, Chen Z, Zheng K, Shen C. Autostory: Generating diverse storytelling images with minimal human effort. arXiv preprint arXiv:2311.11243, 2023.
+[318] Parmar G, Patashnik O, Wang KC, Ostashev D, Narasimhan S, Zhu JY, Cohen-Or D, Aberman K. Object-level Visual Prompts for Compositional Image Generation. arXiv preprint arXiv:2501.01424, 2025.
+[319] Dalva Y, Yesiltepe H, Yanardag P. GANTASTIC: GAN-based Transfer of Interpretable Directions for Disentangled Image Editing in Text-to-Image Diffusion Models. arXiv preprint arXiv:2403.19645, 2024.
+[320] Pan X, Qin P, Li Y, Xue H, Chen W. Synthesizing coherent story with auto-regressive latent diffusion models. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision, 2024, 2920–2930.
+[321] Jin C, Tanno R, Saseendran A, Diethe T, Teare P. An image is worth multiple words: Learning object level concepts using multi-concept prompt learning. arXiv preprint arXiv:2310.12274, 2023.
+[322] Lu J, Xie C, Guo H. Object-Driven One-Shot Fine-tuning of Text-to-Image Diffusion with Prototypical Embedding. arXiv preprint arXiv:2401.15708, 2024.
+[323] Ryu H, Lim S, Shim H. Memory-Efficient Personalization using Quantized Diffusion Model. arXiv preprint arXiv:2401.04339, 2024.
+[324] Lin W, Chen J, Shi J, Zhu Y, Liang C, Miao J, Jin T, Zhao Z, Wu F, Yan S, et al.. Non-confusing Generation of Customized Concepts in Diffusion Models. arXiv preprint arXiv:2405.06914, 2024.
+[325] Baker J. BRAT: Bonus oRthogonAl Token for Architecture Agnostic Textual Inversion. arXiv preprint arXiv:2408.04785, 2024.
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 35
+[326] Yang S, Hao S, Cao Y, Wong KYK. ArtiFade: Learning to Generate High-quality Subject from Blemished Images. arXiv preprint arXiv:2409.03745, 2024.
+[327] Xu Z, Hao S, Han K. Cusconcept: Customized visual concept decomposition with diffusion models. arXiv preprint arXiv:2410.00398, 2024.
+[328] Yuan Z, Cao M, Wang X, Qi Z, Yuan C, Shan Y. Customnet: Zero-shot object customization with variableviewpoints in text-to-image diffusion models. arXiv preprint arXiv:2310.19784, 2023.
+[329] Pan Y, Mao C, Jiang Z, Han Z, Zhang J. Locate, Assign, Refine: Taming Customized Image Inpainting with TextSubject Guidance. arXiv preprint arXiv:2403.19534, 2024. [330] Huang M, Mao Z, Liu M, He Q, Zhang Y. RealCustom: Narrowing Real Text Word for Real-Time Open-Domain Textto-Image Customization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024, 7476–7485. [331] Wang KC, Ostashev D, Fang Y, Tulyakov S, Aberman K. Moa: Mixture-of-attention for subject-context disentanglement in personalized image generation. In SIGGRAPH Asia 2024 Conference Papers, 2024, 1–12.
+[332] Mao Z, Huang M, Ding F, Liu M, He Q, Chang X, Zhang Y. RealCustom++: Representing Images as Real-Word for Real-Time Customization. arXiv preprint arXiv:2408.09744, 2024. [333] Duan Z, Ding Y, Gou C, Zhou Z, Smith E, Liu L. EZIGen: Enhancing zero-shot subject-driven image generation with precise subject encoding and decoupled guidance. arXiv preprint arXiv:2409.08091, 2024.
+[334] Mohamed S, Han D, Li Y. Fusion is all you need: Face Fusion for Customized Identity-Preserving Image Synthesis. arXiv preprint arXiv:2409.19111, 2024.
+[335] Zhang Y, Zhi T, Liu J, Sang S, Jiang L, Yan Q, Liu S, Luo L. ID-Patch: Robust ID Association for Group Photo Personalization. arXiv preprint arXiv:2411.13632, 2024.
+[336] Kim G, Jeon SY, Lee S, Chun SY. PersonaCraft: Personalized Full-Body Image Synthesis for Multiple Identities from Single References Using 3D-Model-Conditioned Diffusion. arXiv preprint arXiv:2411.18068, 2024.
+[337] Zhao J, Zheng H, Wang C, Lan L, Hunag W, Tang Y. MagicNaming: Consistent Identity Generation by Finding a” Name Space” in T2I Diffusion Models. arXiv preprint arXiv:2412.14902, 2024.
+[338] Zhang J, Tang J, Zhang R, Lv T, Sun X. StoryWeaver: A Unified World Model for Knowledge-Enhanced Story Character Customization. arXiv preprint arXiv:2412.07375, 2024. [339] Peng Y, Cui Y, Tang H, Qi Z, Dong R, Bai J, Han C, Ge Z, Zhang X, Xia ST. Dreambench++: A human-aligned benchmark for personalized image generation. arXiv preprint arXiv:2406.16855, 2024.
+[340] Heusel M, Ramsauer H, Unterthiner T, Nessler B, Hochreiter
+S. Gans trained by a two time-scale update rule converge to a local nash equilibrium. Advances in neural information
+processing systems, 2017, 30.
+[341] Szegedy C, Vanhoucke V, Ioffe S, Shlens J, Wojna Z. Rethinking the inception architecture for computer vision. In Proceedings of the IEEE conference on computer vision and
+pattern recognition, 2016, 2818–2826.
+[342] Oquab M, Darcet T, Moutakanni T, Vo H, Szafraniec M, Khalidov V, Fernandez P, Haziza D, Massa F, El-Nouby A, et al.. Dinov2: Learning robust visual features without supervision. arXiv preprint arXiv:2304.07193, 2023.
+[343] She D, Liu M, Pang J, Wang J, Yang Z, He W, Zhang G, Wang Y, Huang Q, Tang H, et al.. CustomVideoX: 3D Reference Attention Driven Dynamic Adaptation for Zero-Shot Customized Video Diffusion Transformers. arXiv preprint arXiv:2502.06527, 2025.
+[344] Zhang Y, Xing Z, Zeng Y, Fang Y, Chen K. Pia: Your personalized image animator via plug-and-play modules in text-to-image models. In Proceedings of the IEEE/CVF Con
+ference on Computer Vision and Pattern Recognition, 2024, 7747–7756. [345] Liang F, Ma H, He Z, Hou T, Hou J, Li K, Dai X, Juefei-Xu F, Azadi S, Sinha A, et al.. Movie Weaver: Tuning-Free MultiConcept Video Personalization with Anchored Prompts. arXiv preprint arXiv:2502.07802, 2025.
+[346] Li X, Jia X, Wang Q, Diao H, Ge M, Li P, He Y, Lu H. Motrans: Customized motion transfer with text-driven video diffusion models. In Proceedings of the 32nd ACM Interna
+tional Conference on Multimedia, 2024, 3421–3430.
+[347] Li H, Qiu H, Zhang S, Wang X, Wei Y, Li Z, Zhang Y, Wu B, Cai D. PersonalVideo: High ID-Fidelity Video Customization without Dynamic and Semantic Degradation. arXiv preprint arXiv:2411.17048, 2024.
+[348] Wang Z, Li A, Zhu L, Guo Y, Dou Q, Li Z. Customvideo: Customizing text-to-video generation with multiple subjects. arXiv preprint arXiv:2401.09962, 2024.
+[349] Jiang Y, Wu T, Yang S, Si C, Lin D, Qiao Y, Loy CC, Liu Z. Videobooth: Diffusion-based video generation with image prompts. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition, 2024, 6689–6700. [350] Raj A, Kaza S, Poole B, Niemeyer M, Ruiz N, Mildenhall B, Zada S, Aberman K, Rubinstein M, Barron J, et al.. Dreambooth3d: Subject-driven text-to-3d generation. In Proceedings of the IEEE/CVF international conference on computer vision, 2023, 2349–2359. [351] Ouyang Y, Chai W, Ye J, Tao D, Zhan Y, Wang G. Chasing consistency in text-to-3d generation from a single image. arXiv preprint arXiv:2309.03599, 2023.
+
+
+36 Y. Wei, Y. Zheng, Y. Zhang, et al.
+Table 1 Summary of optimization-based personalized image generation methods with diffusion models.
+Method Category Inversion Space Backbone Dreambooth [15] Subject Parameter Imagen / SD TI [14] Subject Textual (Word) LDM / SD Aesthetic Gradients [302] Style Parameter SD ARLDM [320] Character Parameter SD DreamArtist [259] Subject Textual (Word) SD 1.4 InST [156] Style Textual (Word) SD Custom Diffusion [18] Multiple Subjects Textual (Word) + Parameter SD 1.4 Cones [83] Subject Parameter SD 1.4 HiPer [78] Subject Textual (Output) SD 1.4 P+ [79] Subject Textual (P+) SD Reversion [168] Relation Textual (Word) SD 1.4 SVDiff [173] Multiple Subjects Parameter SD Fei et al. [130] Subject Textual (Word) SD 1.4 Break-A-Scene [104] Subject Textual (Word) + Parameter SD 1.4 Cones2 [174] Multiple Subjects Textual (Output) SD 1.4 Disenbooth [101] Subject Textual (Word) SD 1.4 Inspirationtree [297] Subject + Style Textual (Word) SD 1.4 Mix-of-show [308] Multiple Subjects Parameter SD NeTI [80] Subject Textual (P*) SD 1.4 Perfusion [84] Subject Parameter SD 1.5 ProFusion [90] Face Textual (Word) SD 2.0 Prospect [295] Style + Subject Textual (Word) SD 1.4 CelebBasis [81] Face Textual (Celeb Space) SD 1.4 OFT [99] Subject Parameter SD 1.5 ViCo [96] Subject Textual (Word) + Feature SD 1.4 Hyperdreambooth [257] Face Parameter SD 1.5 MagiCapture [283] Face + Style Textual (Word) SD 1.5 MCPL [321] Multiple Subjects Textual (Word) LDM SingleInsert [107] Subject Textual (Word) + Parameter SD 1.5 StyleBoost [158] Style Parameter SD 1.5 ADI [170] Action Textual (Word) SD 2.1 Autostory [317] Multiple Subjects Parameter SD BOFT [100] Subject Parameter SD 1.4 CatVersion [77] Subject Textual (Layer) SD 1.5 He et al. [251] Subject Parameter SD / SDXL HiFiTuner [97] Subject Parameter SD 1.4 Lego [169] General Concepts (Adjectives/Verbs) Textual (Word) SD MATTE [298] Subject + Style Textual (Word) SD ZipLoRA [162] Subject + Style Parameter SD Compositional Inversion [263] Subject Textual (Word) SD 1.4 DETEX [102] Subject Textual (Word) + Parameter SD 1.4 DreamTuner [103] Subject Parameter+ Feature SD 1.4 InstructBooth [109] Subject Parameter SD 1.5 Po et al. [309] Multiple Subjects Parameter ChilloutMix Lu et al. [322] Subject Textual (Word) + Parameter SD 1.4 PALP [125] Subject Textual (Word) + Parameter SD 1.4 Ryu [323] Subject Parameter Quantized SD SeFi-IDE [271] Face Textual (Word) SD 1.4 Stableidentity [133] Face Textual (Word) SD 2.1 ComFusion [106] Subject Textual (Word) + Parameter SD 1.5 DCO [108] Subject Parameter SDXL Block-wise LoRA [311] Face + Style Parameter SD 1.4 B-LoRA [301] Style Parameter SDXL Break-for-make [299] Subject + Style Parameter SDXL DisenDiff [314] Multiple Subjects Textual (Word) + Parameter SD 1.4 FaceChain-SuDe [111] Subject Textual (Word) + Parameter SD LoRAComposer [315] Multiple Concepts Parameter SD 1.4 PRISM [131] Subject Text SD 2.1 / DALLE2 / DALLE3 U-VAP [161] Style Textual (Word) SD 1.5 ConceptWeaver [177] Multiple Subjects Textual (Word) + Parameter SD 2.1 ID-Aligner [284] Face Parameter SD 1.5 / SDXL MC2 [175] Multiple Subjects Parameter SD 1.5 MuDI [312] Multiple Subjects Parameter SDXL StyleForge [159] Style Parameter SD 1.5 CLIF [324] Subject Parameter SD MCP [316] Multiple Subjects Parameter SD PairCustomization [160] Style + Subject Parameter SDXL Personalized Residuals [262] Subject Parameter SD 1.4 SAG [118] Subject Textual (Word) LDM Cross Initialization [136] Face Textual (Word) SD 2.1 BRAT [325] Subject Textual (Word) SD 1.4 ConceptConductor [180] Multiple Subjects Textual (P+) + Parameter SD 1.5 CoRe [112] Subject Textual (Word) SD 1.4 ArtiFade [326] Subject Textual (Word) + Parameter LDM ID-Booth [134] Face Parameter SD 2.1 / SDXL ImPoster [171] Subject + Action Parameter SD 2.1 TextBoost [260] Subject Textual (Output) SD 1.5 CIDM [178] Multiple Subjects Parameter SD 1.5 / SDXL Cusconcept [327] Subject + Attribute Textual (Word) SD 2.1 Kim et al. [264] Subject - SD MagicTailor [181] Subject + Part Parameter SD 2.1 DreamBlend [113] Subject Parameter SD Style-friendly [296] Style Parameter FLUX / SD 3.5 DCI-ICO [258] Subject Textual (Word) + Parameter SD 1.4 LoRA.rar [310] Style + Subject Parameter SDXL UnZipLoRA [163] Style + Subject Parameter SDXL TokenVerse [185] Multiple Subjects Parameter FLUX
+
+
+Personalized Image Generation with Deep Generative Models: A Decade Survey 37
+Table 2 Summary of learning-based personalized image generation methods with diffusion models.
+Method Category Inversion Space Encoder Adapter Backbone E4T [24] Face / Cat Textual (Word) CLIP + SD Unet - SD 1.4 ELITE [16] Subject Textual (Word) + Feature CLIP DCA SD 1.4 UMM [114] Subject Textual (Word) CLIP - SD 1.5 InstantBooth [82] Face / Cat Textual (Output) + Feature CLIP SA SD 1.4 SUTI [255] Subject Feature Imagen Encoder CA Imagen Taming [116] Subject Feature CLIP CA Imagen BLIP-Diffusion [94] Subject Textual (Word) BLIP-2 Encoder - SD 1.5 FastComposer [93] Face Textual (Word) CLIP - SD 1.5 Face0 [280] Face Textual (Word) Inception Resnet V1 - SD 1.4 AnyDoor [253] Subject Textual + Feature DINO Concat SD 2.1 Domain Agnostic [25] Subject Textual (Word) + Parameter CLIP + SD Unet - SD 1.4 DreamIdentity [132] Face Textual (Word) ID Encoder - SD 2.1 HyperDreambooth [257] Face Parameter ViT - SD 1.5 SubjectDiffusion [92] Multiple Subjects Textual (Word) + Feature CLIP SA SD 2 IP-Adapter [17] Subject Feature CLIP DCA SD 1.5 PhotoVerse [139] Face Textual (Word) + Feature CLIP DCA SD StyleAdapter [164] Style Feature CLIP DCA SD 1.5 CustomNet [328] Subject Feature CLIP DCA SD 1.5 Face-diffuser [287] Face Textual (Word) CLIP - SD 1.5 W+ Adapter [143] Face Feature StyleGAN Encoder RCA SD 1.5 ArtAdapter [165] Style Textual (Word) + Feature VGG + StyleEncoder CA SD 1.5 CustomizationAssistant [117] Subject Feature Llama2 + DINO CA SD 2 FaceStudio [281] Face + Style Textual (Word) CLIP + Arcface - SD PhotoMaker [12] Face Textual (Word) CLIP+InsightFace - SDXL PortraitBooth [141] Face Textual (Word) TFace - SD 1.5 RETRIBOORU [153] Character Feature CLIP + Retrieval Encoder CA SD 1.5 SSREncoder [124] Subject Feature SSREncoder DCA SD 1.5 BootPIG [115] Subject Feature SD Unet RSA SD 2.1 Liu et al. [289] Face Feature DLN+Face Model CA LDM InstantID [137] Face Feature SD Unet + CLIP + Face Model DCA SDXL InstructImagen [127] Subject Feature - CA Imagen UNIMO-G [265] Subject Feature MLLM CA SD CapHuman [150] Face Feature CLIP + Face Model DCA SD 1.5 λ-ECLIPSE [266] Multiple Subjects Textual (Output) OpenCLIP - Kandinsky Face2Diffusion [138] Face Textual (Word) ViT + Face Model - SD 1.4 FlashFace [145] Face Feature SD Unet SA SD 1.5 IDAdapter [285] Face Textual (Word) + Feature CLIP + Arcface SA SD 2.1 Infinite-ID [146] Face Feature CLIP + Arcface DCA + MixA SDXL LARGEN [329] Subject Feature CLIP + SD Unet CA + SA SD 1.5 RealCustom [330] Subject Feature CLIP DCA SD Song et al. [122] Subject - - - ELITE / BLIP-Diffusion ConsistentID [149] Face Feature CLIP + InsightFace DCA SD 1.5 ID-Aligner [284] Face Feature CLIP DCA SD 1.5 / SDXL InstantStyle [13] Style Feature CLIP DCA SDXL LCM-Lookahead [142] Face Feature SD Unet+CLIP SA + DCA SDXL MoA [331] Face Textual (Word) + Feature CLIP SA + DCA SD 1.5 MoMA [91] Subject Feature + Textual (Word) LLaVA + SD Unet CA SD 1.5 Pulid [140] Face Feature CLIP + Antelopev2 DCA SDXL MasterWeaver [147] Face Feature CLIP DCA SD 1.5 SAG [118] Subject Textual (Word) + Feature CLIP DCA SD 1.4 SEGuidance [179] Multiple Subjects CLIP DCA SD 1.5 Character-Adapter [152] Character Feature CLIP CA SD 1.5 JeDi [123] Subject Image - - SD 1.4 LPGen [167] Style Feature CLIP DCA SD PreciseControl [144] Face Textual (Word) StyleGAN Encoder - SD 2.1 DiffLoRA [135] Face Parameter CLIP + InsightFace - SDXL IPAdapter-Instruct [267] Style + Subject + Face Feature CLIP DCA SD 1.5 MagicID [291] Face Feature CLIP + ArcFace - SD 1.5 RealCustom++ [332] Subject Feature CLIP DCA SD 1.5 / SDXL UniPortrait [277] Face Feature CLIP + Face Model DCA SD 1.5 CSGO [157] Style + Subject Feature ViT-H DCA SDXL CustomContrast [119] Subject Feature MFI Encoder CA SD 1.5 / SDXL EZIGen [333] Subject Feature SD Unet Adapter SA SD 2.1 FineStyle [166] Style Feature SigLip - SD 1.5 Mohamed et al. [334] Face - - - SD 1.5 GroundingBooth [182] Multiple Subjects Feature Dino CA SD 1.4 Imagine-Yourself [148] Face Feature CLIP CA LDM MS-Diffusion [183] Multiple Subjects Feature CLIP DCA SDXL Omnigen [129] Subject Textual (Word) VAE - Phi-3 StoryMaker [151] Character Feature CLIP + ArcFace DCA SDXL DisEnvisioner [121] Subject Feature CLIP + Image Tokenizer DCA SD 1.5 FACT [282] Face Feature TransFace SA SD 1.5 HybridBooth [95] Subject + Face Textual (Word) DINO - SD 1.5 RelationBooth [184] Multiple Subjects Feature CLIP DCA SDXL Cai et al. [126] Subject Image Token FLUX Encoder - FLUX DreamCache [256] Subject Feature SD Unet CA SD 1.5 / SD 2.1 ID-Patch [335] Face Textual (Output) + Feature ArcFace CA SDXL OneDiffusion [268] Subject - VAE - Next-DiT OminiControl [128] Subject - VAE - FLUX PersonaCraft [336] Character Feature MultiHMR + Insightface - SDXL AnyDressing [120] Subject Feature GFE Dressing Attention SD 1.5 Diff-PC [292] Face Feature CLIP+Arcface+SMIRK - SDXL EmojiDiff [290] Face Feature CLIP CA SD 1.5 / SDXL LoRA.rar [310] Style + Subject Parameter - - SDXL MagicNaming [337] Face Textual (Word) CLIP - SDXL P3S-Diffusion [261] Subject Feature VAE + CLIP + SD Unet SA SD 1.5 PersonaMagic [273] Face Textual (Word) CLIP - SD 1.4 RealisID [275] Face Feature CLIP + SD Unet - SDXL SerialGen [154] Character Feature CLIP - SDXL StoryWeaver [338] Character - - - SD 1.5 Ma et al. [300] Style Parameter CLIP CA SD 1.5 AnyStory [155] Character Feature SD Unet + CLIP DCA SDXL NestedAttention [98] Subject Feature CLIP CA SDXL Parmar et al. [318] Multiple Subjects Feature CLIP DCA SD 1.5 / SDXL
+
+
+38 Y. Wei, Y. Zheng, Y. Zhang, et al.
+Table 3 Summary of training datasets among learning-based methods. Paired Images denotes the concept image and target image are collected from same image. Unpaired Images denotes concept image and target image are collected from different images. BBOX denotes the bounding box.
+Method Category Data Source Data Format Data Scale ELITE [16] Subject OpenImages (Paired Images, Text) 13K UMM [114] Subject LAION-400M (Paired Images, Text, Mask) ∼ 1.8M InstantBooth [82] Face Self Collected (Paired Images, Text, Mask) 1.43M InstantBooth [82] Cat Self Collected (Paired Images, Text, Mask) 0.37M SUTI [255] Subject Generated (Unpaired Images, Text) 2M Taming [116] Subject Internal Data + CelebA + LSUN Dog (Paired Images, Text, Mask) BLIP-Diffusion [94] Subject OpenImages (Paired Images, Text) 292K FastComposer [93] Face FFHQ (Paired Images, Text, Mask) 70K Face0 [280] Face Laion (Paired Images, Text, Face Embedding) 10M AnyDoor [253] Subject Video Datasets + Multi-View Image Datasets + Single Image Datasets (Unpaired Images, Paired Images, BBOX) 400k Domain Agnostic [25] Subject ImageNet-1K + Open-Images (Paired Images, Text) 3M DreamIdentity [132] Face FFHQ (Unpaired Images, Paired Images, Text) 70K Hyperdreambooth [257] Face CelebA-HQ (Paired Images, Text, Model Weights) 15K SubjectDiffusion [92] Multiple Subjects Laion-5B (Paired Images, Text, Bbox, Mask) 76M IP-Adapter [17] Subject Laion-2B + COYO-700M (Paired Images, Text) 10M PhotoVerse [139] Face Fairface + CelebA-HQ + FFHQ (Paired Images, Text) 108k + 30k + 70k StyleAdapter [164] Style LAION-AESTHETICS (Unpaired Images, Text) 600k CustomNet [328] Subject Objaverse + OpenImages (Unpaired Images, Camera, Text, Mask) 250K+500K Face-diffuser [287] Face FFHQ (Paired Images, Text) 70k W+ Adapter [143] Face FFHQ + SHHQ (Paired Images, Text, Mask) 70K + 40K ArtAdapter [165] Style LAION AESTHETICS + WikiArt (Paired Images, Text) CustomizationAssistant [117] Subject Generated (Unpaired Images, Text) 1M FaceStudio [281] Face + Style FFHQ + LAION (Paired Images, Text) PhotoMaker [12] Face Self Collected (Unpaired Images, Text) 112k PortraitBooth [141] Face CelebV-T (Unpaired Images, Text) 70k RETRIBOORU [153] Character Danbooru 2019 Figures (Unpaired Images, Text) 116K SSREncoder [124] Subject Laion5B (Paired Images, Mask, Text) 10M BootPIG [115] Subject Generated (Unpaired Images, Text) 200K Identity-Expression Control [289] Face CelebA-HQ + FFHQ (Unpaired Images, Scene Text, Expression Text) 30k + 70k InstantID [137] Face LAION-Face + Self Collected (Paired Images, Text) 50M + 10M InstructImagen [127] Subject SUTI Dataset (Unpaired Images, Text) UNIMO-G [265] Subject LAION-2B + COYO-700M + Self Collected (Paired Images, Text) 1M CapHuman [150] Face CelebA (Paired Images, Text) 200K λ-ECLIPSE [266] Multiple Subjects LAION-5B (Paired Images, Text) 2M Face2Diffusion [138] Face FFHQ (Paired Images, Text) 70k FlashFace [145] Face Self Collected (Unpaired Images, Text) 1.8M IDAdapter [285] Face CelebA-HQ (Unpaired Images, Text) 30K Infinite-ID [146] Face LAION-2B + LAION-Face + Self Collected (Unpaired Images) 10M + 50M + LARGEN [329] Subject Generated (Paired Images, Text, Mask) RealCustom [330] Subject Laion 5B (Paired Image, Text) ConsistentID [149] Face FFHQ + CelebA + SFHQ (Paired Images, Text) 500K ID-Aligner [284] Face LAION (Paired Images, Text) 200K InstantStyle [13] Style - (Paired Images, Text) 4M LCM-Lookahead [142] Face Generated (Unpaired Images, Text) 500K MoA [331] Face FFHQ (Paired Images, Text) 60K MoMA [91] Subject OpenImage V7 (Paired Images, Text, Mask) 282k PuLID [140] Face Self Collected (Paired Images, Text) 1.5M MasterWeaver [147] Face Generated (Unpaired Images, Text, Mask) 160K SAG [118] Subject Generated (Paired Images, Text) SEGuidance [179] Multiple Subjects LAION-2B + COYO-700M (Paired Images, Text) 10M Character-Adapter [152] Character - (Paired Images, Prompt Text, Image Description Text) JeDi [123] Subject Generated + WebVid10M + LAION Aesthetic (Unpaired + Paired Images, Text) 1.6M + X LPGen [167] Style Self Collected (Paired Images, Text) 2K PreciseControl [144] Face Generated + FFHQ (Paired Images, Text) X + 70K DiffLoRA [135] Face Generated (Unpaired Images, Text, LoRA) IPAdapter-Instruct [267] Style + Subject + Face JourneyDB + Generated + COCO+CelebA (Paired Images, Unpaired Images, Instruction) 42K + 35K + 40k MagicID [291] Face CeleB-A + FFHQ + LAION-Face + Self Collected (Paired Images, Text, Mask) 1M RealCustom++ [332] Multiple Subjects Laion 5B + MVImageNet (Paired + Unpaired Image, Text) UniPortrait [277] Face LAION + CelebA + Self Collected (Paired Images, Text) 240K+100K+160K+120K CSGO [157] Style + Subject Generated (Unpaired Images, Text) 210K CustomContrast [119] MVImageNet + OpenImages (Paired Images, Text) EZIGen [333] Subject COCO2014 + Youtube VIS (Paired + Unpaired Images, Text) 200K FineStyle [166] Style Generated (Unpaired Images, Text) 35k Fusion is all you need [334] Face LAION-Face (Paired Images, Text) 80K GroundingBooth [182] Multiple Subjects MVImgNet + LVIS (Unpaired + Paired Images, BBOX, Text) 6.6 M Imagine yourself [148] Face Generated (Unpaired Images, Text) 9M MS-Diffusion [183] Multiple Subjects Video dataset (Paired + Unpaired Images, BbOX, Text) 3.6 M Omnigen [129] Subject GRIT + Self Collected (Paired + Unpaired Images, Text) 6M + 533K StoryMaker [151] Character Self Collected (Paired Images, Text) 500K DisEnvisioner [121] Subject OpenImages V6 (Paired Images, Text) 6.82 M FACT [282] Face - (Paired Images, Text) HybridBooth [95] Subject + Face FFHQ (Paired Images, Text) 70K RelationBooth [184] Multiple Subjects Generated (Paired + Unpaired Images, BBOX, Text) Diffusion Self-Distillation [126] Subject Generated (Unpaired Images, Text) 400k DreamCache [256] Subject Generated (Unpaired Images, Text) ID-Patch [335] Face - (Paired Images, Landmarks, Text) 17M + 1.95 M OneDiffusion [268] Subject Self Collected (Unpaired Images, Text) 130K OminiControl [128] Subject Generated (Unpaired Images, Text) 200K PersonaCraft [336] Character MPII (Paired Images, Text, SMPLx) 6K AnyDressing [120] Subject Generated (Paired Images, Text) 26K + 37K Diff-PC [292] Face Self Collected (Unpaired Images, Text) 650K EmojiDiff [290] Face Self Collected + Generated (Paired + UnpairedImages, Text) 10K + 100K LoRA.rar [310] Style + Subject Generated (LoRA Pairs, Text) 360 MagicNaming [337] Face Laion 5B (Unpaired Images, Text, Name Embeddings) 810K RealisID [275] Face CosmicMan (Paired Images, Text) 2M SerialGen [154] Character Generated + Self Collected (Unpaired Images, Text) 1M + 300K StoryWeaver [338] Character Self Collected (Unpaired Images, Text) Ma et al. [300] Style Self Collected (Paired Images, Text) 146K AnyStory [155] Character Self Collected + LAION (Paired + Unpaired Images, Text) 6.5M + 300K NestedAttention [98] Subject FFHQ + Generated + AFHQ (Paired Images, Text) 70K + 50K + 15K + 1K Parmar et al. [318] Multiple Subjects Coyo-700m + Generated (Unpaired Images, Text)

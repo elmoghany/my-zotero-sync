@@ -1,0 +1,60 @@
+Skip to main content
+Computer Science > Graphics
+arXiv:2412.10255 (cs)
+[Submitted on 13 Dec 2024 (v1), last revised 19 Dec 2024 (this version, v3)]
+AniSora: Exploring the Frontiers of Animation Video Generation in the Sora Era
+Yudong Jiang, Baohan Xu, Siqian Yang, Mingyu Yin, Jing Liu, Chao Xu, Siqi Wang, Yidi Wu, Bingwen Zhu, Xinwen Zhang, Xingyu Zheng, Jixuan Xu, Yue Zhang, Jinlong Hou, Huyang Sun
+View PDF
+HTML (experimental)
+Animation has gained significant interest in the recent film and TV industry. Despite the success of advanced video generation models like Sora, Kling, and CogVideoX in generating natural videos, they lack the same effectiveness in handling animation videos. Evaluating animation video generation is also a great challenge due to its unique artist styles, violating the laws of physics and exaggerated motions. In this paper, we present a comprehensive system, AniSora, designed for animation video generation, which includes a data processing pipeline, a controllable generation model, and an evaluation dataset. Supported by the data processing pipeline with over 10M high-quality data, the generation model incorporates a spatiotemporal mask module to facilitate key animation production functions such as image-to-video generation, frame interpolation, and localized image-guided animation. We also collect an evaluation benchmark of 948 various animation videos, the evaluation on VBench and human double-blind test demonstrates consistency in character and motion, achieving state-of-the-art results in animation video generation. Our evaluation benchmark will be publicly available at this https URL.
+Subjects:	Graphics (cs.GR); Artificial Intelligence (cs.AI)
+Cite as:	arXiv:2412.10255 [cs.GR]
+ 	(or arXiv:2412.10255v3 [cs.GR] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2412.10255
+Focus to learn more
+Submission history
+From: Baohan Xu [view email]
+[v1] Fri, 13 Dec 2024 16:24:58 UTC (28,200 KB)
+[v2] Wed, 18 Dec 2024 06:53:33 UTC (28,200 KB)
+[v3] Thu, 19 Dec 2024 04:31:44 UTC (28,200 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.GR
+< prev next >
+
+newrecent2024-12
+Change to browse by: cs cs.AI
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

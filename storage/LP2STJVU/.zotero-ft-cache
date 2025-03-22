@@ -1,0 +1,59 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2412.05355 (cs)
+[Submitted on 6 Dec 2024]
+MotionShop: Zero-Shot Motion Transfer in Video Diffusion Models with Mixture of Score Guidance
+Hidir Yesiltepe, Tuna Han Salih Meral, Connor Dunlop, Pinar Yanardag
+View PDF
+HTML (experimental)
+In this work, we propose the first motion transfer approach in diffusion transformer through Mixture of Score Guidance (MSG), a theoretically-grounded framework for motion transfer in diffusion models. Our key theoretical contribution lies in reformulating conditional score to decompose motion score and content score in diffusion models. By formulating motion transfer as a mixture of potential energies, MSG naturally preserves scene composition and enables creative scene transformations while maintaining the integrity of transferred motion patterns. This novel sampling operates directly on pre-trained video diffusion models without additional training or fine-tuning. Through extensive experiments, MSG demonstrates successful handling of diverse scenarios including single object, multiple objects, and cross-object motion transfer as well as complex camera motion transfer. Additionally, we introduce MotionBench, the first motion transfer dataset consisting of 200 source videos and 1000 transferred motions, covering single/multi-object transfers, and complex camera motions.
+Comments:	Project page: this https URL
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI)
+Cite as:	arXiv:2412.05355 [cs.CV]
+ 	(or arXiv:2412.05355v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2412.05355
+Focus to learn more
+Submission history
+From: Tuna Han Salih Meral [view email]
+[v1] Fri, 6 Dec 2024 18:59:17 UTC (10,966 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2024-12
+Change to browse by: cs cs.AI
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

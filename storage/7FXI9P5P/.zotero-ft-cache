@@ -1,0 +1,223 @@
+MotionFlow: Attention-Driven Motion Transfer in Video Diffusion Models
+Tuna Han Salih Meral Hidir Yesiltepe Connor Dunlop Pinar Yanardag
+Virginia Tech
+https://motionflow-diffusion.github.io
+A rickshaw rides through a cherry blossom forest
+A fox walking under a full moon
+A rabbit jumping into a river surrounded by blooming flowers A ship riding on a waterway road
+Edit Original Edit Original
+Figure 1. MotionFlow is a training-free method that leverages attention for motion transfer. Our method can successfully transfer a wide variety of motion types, ranging from simple to complex motion patterns.
+Abstract
+Text-to-video models have demonstrated impressive capabilities in producing diverse and captivating video content, showcasing a notable advancement in generative AI. However, these models generally lack fine-grained control over motion patterns, limiting their practical applicability. We introduce MotionFlow, a novel framework designed for motion transfer in video diffusion models. Our method utilizes cross-attention maps to accurately capture and manipulate spatial and temporal dynamics, enabling seamless motion transfers across various contexts. Our approach does not require training and works on test-time by leveraging the inherent capabilities of pre-trained video diffusion models. In contrast to traditional approaches, which struggle with comprehensive scene changes while maintaining consistent motion, MotionFlow successfully handles such complex transformations through its attention-based mechanism. Our qualitative and quantitative experiments demonstrate that MotionFlow significantly outperforms ex
+isting models in both fidelity and versatility even during drastic scene alterations.
+1. Introduction
+Recent advances in diffusion models demonstrated significant capabilities in generating high-quality images and videos. The emergence of text-to-video (T2V) generation [6, 8, 10, 20, 27, 31, 36, 39, 44] models has opened new possibilities in creative content creation, enabling the synthesis of complex video sequences from user-provided text prompts. These models have shown a remarkable ability to generate diverse and visually compelling video content, marking a significant milestone in generative AI. Despite their success, current T2V models offer limited controllability, particularly in manipulating motion patterns. The ability to control motion in video generation is an important task for various creative applications. Imagine a filmmaker in the early stages of planning a new movie
+1
+arXiv:2412.05275v1 [cs.CV] 6 Dec 2024
+
+
+scene, eager to explore various motion styles before committing to the labor-intensive process of shooting or animating the actual footage. Using MotionFlow, this filmmaker can repurpose video clips—such as a scene of a dog jumping into the lake (see Fig. 1)—and transfer these motions directly into the settings they envision. This capability allows the filmmaker to quickly prototype various motion effects and see how they might look with different characters or within different narrative contexts. For example, using the same motion from the dog video, they could experiment with a rabbit jumping into the river surrounded by blooming flowers (see Fig. 1). By enabling rapid experimentation with different motion dynamics, MotionFlow helps the filmmaker brainstorm, iterate on creative ideas, and overcome traditional time and resource constraints. However, existing motion transfer methods face several limitations. They often struggle to balance motion fidelity and diversity, leading to issues like unwanted transfer of appearance and scene layout from the source video [37, 43]. Additionally, many approaches require extensive training [13, 32, 35] or fine-tuning on specific motion patterns [24, 33, 41, 43], making them impractical for real-world applications where flexibility and efficiency are important. These limitations highlight the need for more sophisticated and practical solutions to motion transfer in video generation. To address these challenges, we propose MotionFlow, a novel test-time approach that leverages the inherent capabilities of pre-trained video diffusion models without requiring additional training. While other approaches primarily rely on temporal attention features [1, 24, 33], our method primarily leverages cross-attention features from existing videos to guide motion transfer. This approach enables the effective capture and transfer of motion information while remaining independent of the source video’s appearance and scene composition. By visualizing crossattention maps during both inversion and generation, we illustrate how linguistic elements influence object generation and motion (see Fig. 2). These visualizations demonstrate how MotionFlow transfers motion dynamics by aligning the attention maps of the generated subject with those of the original, preserving motion patterns while adhering to the new edit prompt. Our contributions include:
+• We introduce the first test-time motion transfer method that leverages cross-attention maps from pre-trained video diffusion models, eliminating the need for additional training, fine-tuning, or extra conditions. • We provide comprehensive experimental results showing the effectiveness of our method across various scenarios and motion types. Our approach achieves a balance between motion fidelity and diversity, generating the intended appearance and scene layout of the target video while accurately transferring motion patterns.
+A cheetah walking along a riverbank in the savannah
+Original Video Ours
+A bear walking on the rocks
+Figure 2. Motivation. Visualization of cross-attention maps for the subject tokens, showing how MotionFlow captures and transfers motion dynamics from the original video, ensuring accurate subject motion while adhering to new edit prompts.
+• We make our source code publicly available to enable further research and applications in this domain.
+2. Related Work
+2.1. Text-to-Video Diffusion Models
+Building on the success of diffusion-based Text-to-Image (T2I) models [19, 23, 25, 26], Text-to-Video (T2V) generation models have made remarkable progress [6, 8, 27, 31, 39, 44]. These models extend 2D diffusion frameworks by incorporating a temporal dimension, enabling the modeling of cross-frame dependencies and thus facilitating coherent video generation from text prompts. Commonly, T2V models augment 2D diffusion architectures with temporal layers to explicitly model the relationships between video frames. For instance, AnimateDiff [8] and ModelScope [31] enhance pre-trained diffusion models by adding temporal layers and fine-tuning them for video generation. InstructVideo [40] takes a different approach by leveraging human feedback to refine video quality. Additionally, several works [5, 14, 15, 38, 42] introduce conditioning inputs—such as depth maps, bounding boxes, and motion trajectories—to allow for more precise control over object shapes and movements within generated videos.
+2.2. Attention-Based Guidance
+Attention-based guidance has emerged as a key technique for improving the quality and controllability of T2I generation. Methods such as Attend-and-Excite [4], and CONFORM [17] apply attention constraints to optimize latent features during inference, addressing issues like subject omission and incorrect attribute binding, while methods like CLoRA [18] and Bounded Attention [7] further enhance multi-subject generation by managing cross-attention in complex compositions. These advances in attentionbased guidance for T2I generation provide a foundation for more sophisticated control in T2V models, where temporal consistency is crucial.
+2.3. Video Motion Editing
+While Text-to-Video (T2V) models are designed to control motion through text prompts, they often struggle with com
+2
+
+
+plex or nuanced motions. To address this, recent methods have introduced bounding boxes for more precise control, either during training [13, 32] or at inference time [11, 16]. Another line of work focuses on transferring motion from a reference video. Fine-tuning approaches store motion in the model’s weights, while inversion-based methods store motion in model features. For example, Tune-a-Video [35] adapts text-to-image models by adding spatiotemporal attention layers, training only the motion-specific components. Similarly, MotionDirector [43] separates motion and appearance using a dual-path LoRA architecture. Other methods, such as DreamVideo [34] and CustomizeA-Video [24], use separate branches for appearance and motion learning. Wang et al. [33] learn motion embeddings by training over the original video using temporal attention layers. Inversion-based editing methods, initially developed for image editing [9, 30], have also been adapted for video. DDIM inversion [28] enables reconstruction through backward diffusion, as used in methods like DMT [37], UniEdit [1] and VMC [12]. DMT uses a space-time feature loss that leverages DDIM inversion and UNet activations. UniEdit and VMC blend fine-tuning with inversion to adjust temporal layers while maintaining content fidelity. However, a common limitation is the assumption that the features of the reference and target videos are identical, which can pose challenges when generating videos with different geometries. In contrast, our proposed method, MotionFlow, introduces a novel test-time approach that leverages crossattention features from pre-trained video diffusion models. This allows for effective motion transfer without additional training or fine-tuning, overcoming the limitations of existing methods. By capturing and transferring motion independently of the source video’s appearance and scene composition, MotionFlow achieves a balance between motion fidelity and diversity, offering enhanced flexibility and control in video motion transfer tasks.
+3. Methodology
+3.1. Diffusion Models
+Diffusion models iteratively transform input noise xT ∼ N (0, I) into a meaningful sample x0 through a structured denoising process. Denoising Diffusion Implicit Models (DDIM) [28] enable this process deterministically, converting xT into a clear sample x0. The reverse process, known as inversion, reconstructs the initial noise xT responsible for generating x0 and the entire sequence of noisy latents {xt}tT=1.
+Latent diffusion models, like Stable Diffusion [25], operate within the latent space of an autoencoder. The input image x is compressed into a lower-dimensional latent repre
+sentation z = E(x) via an encoder E, and then reconstructed by a decoder D. For instance, Stable Diffusion encodes an image x ∈ RH×W ×C into a latent space z ∈ Rh×w×d, where H ≫ h, W ≫ w, and d is the latent dimension, typically d = 4. Extending this approach to video data, latent video diffusion models encode video input x ∈ RF ×H×W ×C into a latent space z ∈ Rf×h×w×d, where f ≤ F . These models enhance existing T2I frameworks by incorporating temporal layers, which integrate convolution and attention mechanisms, and are fine-tuned on video datasets [2, 31]. In our study, we use the publicly available ZeroScope T2V model [3], which extends Stable Diffusion by integrating temporal convolution and attention layers.
+3.2. Attention Mechanisms
+The backbone of our method, ZeroScope, built on a UNet architecture, integrates two key components for influencing video motion: temporal attention layers in the temporal module and cross-attention layers in the spatial module. Cross-attention layers incorporate text-based information, allowing the text prompt to guide the content and structure of the generated video. This ensures that linguistic elements, such as nouns and verbs, are accurately translated into visual features, guiding object generation and their associated motions. Temporal attention layers establish interframe connections, ensuring smooth and coherent motion across frames, while self-attention within spatial blocks preserves spatial consistency. The query features, Q ∈ RF ×N×D, represent the latent features of the model, where N = h × w (with h ≪ H and w ≪ W ) is the spatial resolution in the latent space, and D is the feature dimension. The key features, K ∈ RL×D, are derived from the text encoder (e.g. CLIP [22]), where L represents the number of tokens in the input text prompt. Consequently, the cross-attention map has dimensions F × N × L, where F is the number of frames, N = h × w denotes the spatial resolution, and L is the number of tokens from the text prompt. The attention map
+at time t is calculated as At = Softmax(QK⊺/√d) where t is the timestep and d is the dimension of the keys.
+3.3. Our Method
+We propose a framework for generating a new video Vˆ by transferring the motion dynamics of a specific subject from an original video V , while ensuring compliance with a target text prompt P . Our method leverages ZeroScope, a pretrained latent text-to-video (T2V) diffusion model, and involves two key steps: (1) DDIM inversion of the original video to extract latent representations and cross-attentionbased extraction of subject-specific motion, and (2) guided video generation using the extracted motion and the target text prompt.
+3
+
+
+Figure 3. Overview of MotionFlow framework. Our invert-then-generate method operates in two main stages: (1) Inversion, where DDIM inversion is used to extract latent representations and cross-attention maps from the original video, generating target masks that capture the subject’s motion and spatial details; (2) Generation, where these masks and a text prompt guide the creation of a new video, aligning with the original video’s motion dynamics and spatial layout while adhering to the semantic content of the prompt.
+Inversion. We begin by encoding the original video V ∈ RF ×H×W ×C , where F is the number of frames, H is the height, W is the width, and C is the number of channels, into a lower-dimensional latent space using the encoder. The Variational Autoencoder E takes each frame vf ∈ RH×W ×C and encodes it into a latent representation zf ∈ Rh×w×d, where h ≪ H, w ≪ W , and d is the latent dimension. The noisy latents from DDIM inversion are then used to extract cross-attention maps, which provide crucial spatial and temporal information for guiding the new video generation. Specifically, the DDIM inversion process generates a sequence of noisy latents {zf
+t }tT=1 for each frame, where T is the total number of timesteps in the diffusion process.
+Attention Extraction. To capture subject-specific motion, we extract cross-attention maps from the noisy latent representations. Given a text prompt P = {p1, p2, . . . , pL}, we define key token sets as S∗ = {s0, s1, . . . , sl}, l ≤ L, which describe the subject and action.
+During DDIM inversion of the original video, crossattention maps At
+s,f for token s at timestep t and frame f are extracted for key tokens across frames, providing crucial spatial and temporal insights into the subject’s position and motion dynamics, as shown in Fig. 2 and Fig. 3.
+In our experiments with MotionFlow, we focus on leveraging specific attention layers from the UNet architecture to optimize motion transfer. We extract attention from the middle block, the last block of the down-sampling layers, and the first block of the up-sampling layers. Previous studies [9, 17] have suggested that bottleneck layers are more expressive in terms of spatial information. However, relying solely on the bottleneck layer restricts the resolution of the cross-attention maps to {9 × 5} for generating videos with a resolution of {576 × 320}. To address this, we incorporate the last down-sampling block and the first upsampling block, both of which provide a higher resolution of {18 × 10}, ensuring more detailed spatial information.
+The cross-attention maps, along with the initial noisy latent representations, guide the generation of the new video Vˆ . To implement this guidance, we convert the attention maps At
+s,f into binary masks M t
+s,f , using an adaptive thresholding formula [29] for each cross-attention map corresponding to the key tokens at each frame:
+Mt
+s,f [x, y] = I At
+s,f [x, y] > τ mi,ajx At
+s,f [i, j] (1)
+Here, I is the indicator function, and τ is a threshold parameter that determines the significance of the attention values based on the maximum attention weight. These binary masks ensure that the motion and actions in the generated video align with the original cross-attention maps. By controlling the spatial position and trajectory of cross-attention maps, our method offers fine-grained control over object motion and behavior, ensuring precise alignment between the text prompt and the generated video. Guided Generation. To align the generated video with the original video’s motion dynamics and spatial-temporal characteristics V , we optimize the noisy latent representations through backpropagation. This is achieved by applying a series of loss functions to the cross-attention, selfattention, and temporal attention layers, guiding the latent signal toward the desired motion and behavior. The cross-attention loss ensures that the attention maps for the key tokens (e.g. subject and action) in the generated video Vˆ align with those from the original video V , preserving the subject’s motion and behavior by maximizing the attention within the binary mask M t
+s,f :
+Ls,f = 1 − Ms,f · As,f
+As,f
+(2)
+The self-attention loss operates similarly to the crossattention loss but targets the self-attention layers, which capture relationships between different spatial locations within the same frame. This loss ensures spatial consistency for the subject within the frames of the generated video.
+4
+
+
+The temporal attention loss preserves the temporal dynamics of the subject and action tokens are preserved across frames. Temporal attention layers capture relationships between frames, ensuring smooth and coherent motion. This loss aligns the temporal attention maps in the generated video with those from the original. All three losses—cross-attention, self-attention, and temporal attention—work together to guide the generation process. The total loss function is a weighted combination of these three components:
+Ltotal = λcrossLcross + λselfLself + λtemporalLtemporal (3)
+Here, λcross, λself, λtemporal are the weights for each corresponding loss. We optimize this total loss using gradient descent, updating the latent representations at each timestep t as follows: z′
+t = zt − αt∇zt Ltotal (4)
+Here, αt is the learning rate, and ∇zt Ltotal represents the gradient of the total loss with respect to the latent representation at timestep t. Through iterative backpropagation, we refine the latent representations to ensure that the generated video Vˆ respects the desired motion dynamics and behavior while maintaining the spatio-temporal characteristics of the original video V . Our framework is summarized in Alg. 1 and Fig. 3.
+Algorithm 1: MotionFlow: Attention-Driven Motion Transfer in Video Diffusion Models Input: Original video V , text prompt P , pre-trained T2V model, total timesteps T Output: Generated video Vˆ
+Step 1: Encode Original Video foreach frame vf ∈ V do
+Encode vf into latent representation zf Step 2: Apply DDIM Inversion foreach timestep t do
+Generate noisy latents zt using DDIM inversion Step 3: Extract Cross-Attention Maps
+foreach timestep t and frame f and token s do Extract cross-attention maps At
+s,f
+Step 4: Convert to Binary Masks foreach attention map At
+s,f do
+Convert At
+s,f to binary mask M t
+s,f
+Step 5: Guided Video Generation
+foreach timestep t and frame f and token s do Denoise zˆt guided by M t
+s,f
+Compute attention-based losses Update latent zˆt using gradient descent Step 6: Output Generated Video return Vˆ
+4. Experiments
+Experimental Setup. For the inversion of the original video, we use DDIM inversion to obtain the initial noise latent. During the generation process, we set the threshold parameter τ = 0.4 in Eq. 1 to determine the significance of attention values. For optimization, we utilize a learning rate α = 5.0 in Eq. 4, and assign equal weights to the loss functions, with λcross = λself = λtemporal = 1.0. The generation process involves performing latent updates for 20 steps out of a total of 50 backward diffusion steps, similar to [37], with 20 iterations per update. To mitigate the introduction of unwanted artifacts in the output, we halt optimization after the 20th step, allowing the remaining steps to proceed without further updates. For our experiments, we selected a range of videos from the DAVIS [21] dataset, which is widely used in video editing and motion transfer research. This dataset provides a robust foundation for evaluating the effectiveness of MotionFlow in diverse motion transfer scenarios.
+Baselines and Metrics. We evaluate MotionFlow against state-of-the-art video motion transfer methods: DMT [37], VMC [12], Motion Director [43], and Motion Inversion [33], using 100 randomly selected video-prompt pairs for each method. To assess performance, we employ three metrics: Motion Fidelity Score [37], which measures how well the generated video preserves the motion patterns from the source video, evaluating the accuracy of motion dynamics such as speed, direction, and style; Temporal Consistency, which assesses the smoothness and coherence of motion across frames by calculating the average cosine similarity between CLIP image features of consecutive frames, ensuring stable transitions and natural motion flow; and Text Similarity, which evaluates how accurately the generated video aligns with the input text prompt by computing the cosine similarity between CLIP embeddings of the video frames and the prompt, ensuring that the visual content reflects the intended modifications.
+4.1. Qualitative Experiments
+As shown in Fig. 4, MotionFlow demonstrates remarkable flexibility in motion transfer across diverse scenarios while offering control over scene composition. In Fig. 4 (a), our method successfully transfers motion between significantly different animals and objects, mapping a bear’s movement to both a robot and a tiger. This highlights MotionFlow’s ability to generate entirely new scene layouts with different subjects, overcoming the common limitation of being constrained by the source video’s background. Conversely, our method can also preserve the original scene layout, as seen in Fig. 4 (e), where we transfer motion from an elephant to a moose and a gorilla while maintaining the original background composition. Moreover, our method excels
+5
+
+
+A yacht rides near a coastal forest
+A motorcycle rides in a forest
+A moose crossing a road in a snowy landscape
+A gorilla crossing a road in a rainforest
+A penguin swimming in a pond
+A koi swimming in a Japanese garden pond
+A panda jumping into a river in a bamboo forest
+A horse jumping into a river
+A tractor riding on a farm road
+A camel riding on a desert road
+A robot walking across ancient stone
+A tiger walking through tall grass in a misty jungle
+Original
+Edits
+Original
+Edits
+Original
+Edits
+a)
+c)
+e) f)
+d)
+b)
+Figure 4. Qualitative Results. MotionFlow can successfully transfer a wide variety of motion types, ranging from single to multiple motions and from simple to complex motion patterns. Additionally, it can either maintain the original scene layout or significantly alter it based on the user-provided text prompt. Please refer to the supplementary material where the actual videos are provided.
+at transferring motion between fundamentally different object categories, as shown in Fig. 4 (f) where we successfully map the motion of a train to a motorbike while preserving the distinctive movement patterns. These results underscore MotionFlow’s versatility in handling diverse motion transfer scenarios and its ability to either maintain or alter scene layouts as needed, offering high flexibility in video motion transfer applications. Full videos are available in the Supplementary Material.
+Qualitative Comparison. In Fig. 5, MotionFlow’s motion transfer capabilities are compared across different videos
+against benchmark methods. In Fig. 5 (a), MotionFlow successfully transfers motion from the subject of the original video and generates a background aligned with the prompt, unlike DMT and Motion Inversion. While both MotionDirector and VMC generate videos aligned with the edit prompt, MotionDirector’s output suffers from poor quality, and VMC produces a video with low motion fidelity to the original. In Fig. 5 (c), all methods except VMC, which generally exhibits low motion fidelity, were able to transfer motion. However, only our method successfully generates a scene aligned with the edit ‘river of lava’.
+6
+
+
+a lion walking through a field of sunflowers A dragon jumping into a river of lava
+Ours DMT
+VMC Motion
+Inversion Motion
+Director Original
+A tank driving on a battlefield road
+a) b) c)
+Figure 5. Comparison. Qualitative comparison of our method, MotionFlow, with DMT [37], MotionDirector [43], Motion Inversion [33] and VMC [12]
+0.305 0.310 0.315 0.320 0.325 Text Similarity
+0.70
+0.75
+0.80
+0.85
+0.90
+0.95
+1.00
+Motion Fidelity
+DMT
+VMC
+MD MI Ours
+DMT VMC MD MI Ours
+Figure 6. Evaluation. CLIP text similarity versus Motion Fidelity scores for each baseline. Our method exhibits a better balance between these two metrics.
+4.2. Quantitative Experiments
+Table 1 and Fig. 6 present the performance of our approach across key metrics, highlighting its advantages over existing methods. Our method consistently outperforms baselines in text similarity, demonstrating better alignment with target prompts while retaining strong motion fidelity and temporal consistency. This improved performance can be attributed to three key factors: (1) By leveraging cross-attention maps, our framework achieves precise motion transfer, preserving the integrity of original motion patterns without requiring finetuning. This sets it apart from training-intensive methods like DMT and MotionDirector. (2) As shown in Fig. 6, our method balances text similarity and motion fidelity, enabling accurate motion adaptation to prompt specifications. High motion fidelity alone can sometimes penalize necessary edits, but our method strikes an effective compromise, maintaining fidelity to the original while allowing flexibility for editing tasks. (3) Our approach closely aligns with the target prompt, resulting in higher text similarity scores and improved semantic coherence in generated videos. This
+alignment surpasses methods such as VMC, which struggles with motion fidelity, and Motion Inversion, although it uses an alternative diffusion model backbone (MotionCraftV2 [41]).
+In summary, our framework achieves a strong balance across metrics. It provides competitive motion fidelity and temporal consistency while maintaining superior adherence to user-defined prompts, as evidenced by its higher text similarity scores.
+User Study. To evaluate the perceptual quality of our motion transfer results, we conducted a user study on Amazon Mechanical Turk with 50 participants. Each participant viewed 30 sets of videos, each set containing five generated videos: one from our method, four from baseline methods (Motion Inversion, DMT, VMC, and Motion Director), along with the original video and the corresponding edit prompt. Participants were asked to select the best video based on three key criteria: Motion Fidelity (how well the original motion was preserved), Visual Quality (overall appearance and coherence), and Prompt Alignment (how accurately the video matched the edit prompt). As shown in Table 1, our method consistently ranked higher across all criteria according to user preferences.
+Processing Times. We compared the processing times for each method using Nvidia L40 GPUs. Each method involves an initial setup phase (training, fine-tuning, or inversion) followed by video generation, requiring 49 seconds for inversion and 376 seconds for generation, totaling 425 seconds. DMT takes 258 seconds for inversion and 332 seconds for generation (590 seconds total), Motion Director requires 410 seconds for fine-tuning and 67 seconds for generation (477 seconds total), VMC takes 227 seconds for training and 503 seconds for generation (730 seconds total),
+7
+
+
+Methods Quantitative Results User Study
+Text Similarity
+Motion Fidelity
+Temporal Consistency
+Text Alignment
+Motion Alignment
+Motion Smoothness DMT [37] 0.3063 0.960 0.934 0.20 0.17 0.19 MD [43] 0.3068 0.963 0.928 0.10 0.12 0.11 VMC [12] 0.306 0.763 0.961 0.15 0.15 0.16 MI [33] 0.317 0.930 0.941 0.13 0.13 0.15 Ours 0.322 0.940 0.941 0.42 0.43 0.39
+Table 1. Quantitative Comparisons and User Study Quantitative comparisons for Text Similarity, Motion Fidelity, and Temporal Consistency Scores. User preferences for text alignment to edit prompt, motion alignment to the original video, and motion smoothness of the generated video for DMT, MotionDirector, VMC, Motion Inversion, and MotionFlow.
+Original Video
+A dragon walking across a bridge made of clouds in a fantasy realm
+A robot walking across ancient stone ruins
+With Latent Update W/o Latent Update With Latent Update W/o Latent Update
+Figure 7. Ablation study on latent updates. Without latent updates guided by cross-attention, inverted latents may fail to preserve motion or generate the intended subject. Please see Supplementary Material for full videos.
+and Motion Inversion requires 195 seconds for training and 30 seconds for generation, totaling 225 seconds.
+Ablation Study. To evaluate the importance of latent updates in motion transfer, we conducted an ablation study (Fig. 7) by omitting the latent update step and using only the initial noise latent from DDIM inversion. The results show that while DDIM inversion provides a high-level structure and preserves camera motion, it often fails to capture detailed subject motion. For example, in the prompt ‘A dragon walking across a bridge made of clouds in a fantasy realm’, The results show that while DDIM inversion provides a high-level structure and preserves camera motion, it often fails to capture detailed subject motion. For example, in the prompt ‘A robot walking across ancient stone ruins’, the model struggles to generate the intended subject. In contrast, our method, which incorporates cross-attention
+guided latent updates, accurately captures both the subject and its motion, ensuring correct spatial placement. This ablation study demonstrates the critical role of latent updates in achieving precise motion transfer and subject generation. Please see Supplementary Material for full videos.
+5. Limitation and Societal Impact
+While MotionFlow demonstrates strong performance in motion transfer tasks, we acknowledge some limitations that present opportunities for future research. Our method’s fundamental reliance on attention maps from pre-trained video diffusion models makes it sensitive to the quality of these underlying models. When attention maps are noisy or improperly focused due to the pre-trained model’s limitations, our motion transfer quality may degrade accordingly. While MotionFlow has the potential to significantly impact creative industries, it is essential to consider ethical implications, such as the misuse of the technology for creating deceptive content. Ensuring responsible use through clear guidelines and safeguards will help maximize its positive societal contributions while minimizing potential risks.
+6. Conclusion
+In this paper, we introduced MotionFlow, a novel approach to video motion transfer that leverages cross-attention maps from pre-trained video diffusion models without requiring additional training. Our method addresses a significant challenge in video generation by enabling precise control over motion patterns while maintaining the flexibility to either preserve or modify scene compositions as desired. Through comprehensive experiments, we demonstrated that MotionFlow achieves state-of-theart performance across various metrics, successfully handling diverse scenarios from simple object transformations to complex cross-category motion transfers. The method’s ability to work with drastically different objects (e.g., train to motorbike) and animals (e.g., bear to elephant) while offering control over scene preservation demonstrates its versatility and practical utility. By making our code public, we hope to facilitate further research in this direction and enable practical applications in content creation, animation, and video editing.
+8
+
+
+References
+[1] Jianhong Bai, Tianyu He, Yuchi Wang, Junliang Guo, Haoji Hu, Zuozhu Liu, and Jiang Bian. Uniedit: A unified tuningfree framework for video motion and appearance editing. arXiv preprint arXiv:2402.13185, 2024. 2, 3
+[2] Andreas Blattmann, Robin Rombach, Huan Ling, Tim Dockhorn, Seung Wook Kim, Sanja Fidler, and Karsten Kreis. Align your latents: High-resolution video synthesis with latent diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 22563–22575, 2023. 3 [3] cerspense. zeroscope v2. https://huggingface.co/ cerspense/zeroscope_v2_576w, 2023. Accessed: 2024-11-14. 3 [4] Hila Chefer, Yuval Alaluf, Yael Vinker, Lior Wolf, and Daniel Cohen-Or. Attend-and-excite: Attention-based semantic guidance for text-to-image diffusion models. ACM Transactions on Graphics (TOG), 42(4):1–10, 2023. 2
+[5] Tsai-Shien Chen, Chieh Hubert Lin, Hung-Yu Tseng, TsungYi Lin, and Ming-Hsuan Yang. Motion-conditioned diffusion model for controllable video synthesis. arXiv preprint arXiv:2304.14404, 2023. 2
+[6] Weifeng Chen, Yatai Ji, Jie Wu, Hefeng Wu, Pan Xie, Jiashi Li, Xin Xia, Xuefeng Xiao, and Liang Lin. Control-a-video: Controllable text-to-video generation with diffusion models. arXiv preprint arXiv:2305.13840, 2023. 1, 2
+[7] Omer Dahary, Or Patashnik, Kfir Aberman, and Daniel Cohen-Or. Be yourself: Bounded attention for multi-subject text-to-image generation. arXiv preprint arXiv:2403.16990, 2(5), 2024. 2 [8] Yuwei Guo, Ceyuan Yang, Anyi Rao, Yaohui Wang, Yu Qiao, Dahua Lin, and Bo Dai. Animatediff: Animate your personalized text-to-image diffusion models without specific tuning. arXiv preprint arXiv:2307.04725, 2023. 1, 2
+[9] Amir Hertz, Ron Mokady, Jay Tenenbaum, Kfir Aberman, Yael Pritch, and Daniel Cohen-Or. Prompt-to-prompt image editing with cross attention control. arXiv preprint arXiv:2208.01626, 2022. 3, 4
+[10] Wenyi Hong, Ming Ding, Wendi Zheng, Xinghan Liu, and Jie Tang. Cogvideo: Large-scale pretraining for text-to-video generation via transformers. arXiv preprint arXiv:2205.15868, 2022. 1
+[11] Yash Jain, Anshul Nasery, Vibhav Vineet, and Harkirat Behl. Peekaboo: Interactive video generation via maskeddiffusion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 80798088, 2024. 3 [12] Hyeonho Jeong, Geon Yeong Park, and Jong Chul Ye. Vmc: Video motion customization using temporal attention adaption for text-to-video diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9212–9221, 2024. 3, 5, 7, 8, 11 [13] Mingxiao Li, Bo Wan, Marie-Francine Moens, and Tinne Tuytelaars. Animate your motion: Turning still images into dynamic videos. arXiv preprint arXiv:2403.10179, 2024. 2, 3
+[14] Long Lian, Baifeng Shi, Adam Yala, Trevor Darrell, and Boyi Li. Llm-grounded video diffusion models. arXiv preprint arXiv:2309.17444, 2023. 2
+[15] Han Lin, Abhay Zala, Jaemin Cho, and Mohit Bansal. Videodirectorgpt: Consistent multi-scene video generation via llm-guided planning. arXiv preprint arXiv:2309.15091, 2023. 2 [16] Wan-Duo Kurt Ma, John P Lewis, and W Bastiaan Kleijn. Trailblazer: Trajectory control for diffusion-based video generation. arXiv preprint arXiv:2401.00896, 2023. 3
+[17] Tuna Han Salih Meral, Enis Simsar, Federico Tombari, and Pinar Yanardag. Conform: Contrast is all you need for high-fidelity text-to-image diffusion models. arXiv preprint arXiv:2312.06059, 2023. 2, 4
+[18] Tuna Han Salih Meral, Enis Simsar, Federico Tombari, and Pinar Yanardag. Clora: A contrastive approach to compose multiple lora models. arXiv preprint arXiv:2403.19776, 2024. 2 [19] Alex Nichol, Prafulla Dhariwal, Aditya Ramesh, Pranav Shyam, Pamela Mishkin, Bob McGrew, Ilya Sutskever, and Mark Chen. Glide: Towards photorealistic image generation and editing with text-guided diffusion models. arXiv preprint arXiv:2112.10741, 2021. 2
+[20] OpenAI. Video generation models as world simulators. https : / / openai . com / index / video generation - models - as - world - simulators/, 2024. [Accessed 11-11-2024]. 1 [21] Jordi Pont-Tuset, Federico Perazzi, Sergi Caelles, Pablo Arbel ́aez, Alexander Sorkine-Hornung, and Luc Van Gool. The 2017 davis challenge on video object segmentation. arXiv: Computer Vision and Pattern Recognition, 2017. 5
+[22] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In International conference on machine learning, pages 8748–8763. PMLR, 2021. 3 [23] Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen. Hierarchical text-conditional image generation with clip latents. arXiv preprint arXiv:2204.06125, 2022. 2 [24] Yixuan Ren, Yang Zhou, Jimei Yang, Jing Shi, Difan Liu, Feng Liu, Mingi Kwon, and Abhinav Shrivastava. Customize-a-video: One-shot motion customization of textto-video diffusion models. arXiv preprint arXiv:2402.14780, 2024. 2, 3 [25] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bjo ̈rn Ommer. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 10684–10695, 2022. 2, 3 [26] Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily Denton, Seyed Kamyar Seyed Ghasemipour, Burcu Karagol Ayan, S Sara Mahdavi, Rapha Gontijo Lopes, et al. Photorealistic text-to-image diffusion models with deep language understanding. arXiv preprint arXiv:2205.11487, 2022. 2
+9
+
+
+[27] Uriel Singer, Adam Polyak, Thomas Hayes, Xi Yin, Jie An, Songyang Zhang, Qiyuan Hu, Harry Yang, Oron Ashual, Oran Gafni, et al. Make-a-video: Text-to-video generation without text-video data. arXiv preprint arXiv:2209.14792, 2022. 1, 2 [28] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. arXiv preprint arXiv:2010.02502, 2020. 3
+[29] Raphael Tang, Akshat Pandey, Zhiying Jiang, Gefei Yang, Karun Kumar, Jimmy Lin, and Ferhan Ture. What the daam: Interpreting stable diffusion using cross attention. arXiv preprint arXiv:2210.04885, 2022. 4
+[30] Narek Tumanyan, Michal Geyer, Shai Bagon, and Tali Dekel. Plug-and-play diffusion features for text-driven image-to-image translation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 1921–1930, 2023. 3 [31] Jiuniu Wang, Hangjie Yuan, Dayou Chen, Yingya Zhang, Xiang Wang, and Shiwei Zhang. Modelscope text-to-video technical report. arXiv preprint arXiv:2308.06571, 2023. 1, 2, 3 [32] Jiawei Wang, Yuchen Zhang, Jiaxin Zou, Yan Zeng, Guoqiang Wei, Liping Yuan, and Hang Li. Boximator: Generating rich and controllable motions for video synthesis. arXiv preprint arXiv:2402.01566, 2024. 2, 3
+[33] Luozhou Wang, Ziyang Mai, Guibao Shen, Yixun Liang, Xin Tao, Pengfei Wan, Di Zhang, Yijun Li, and Yingcong Chen. Motion inversion for video customization. arXiv preprint arXiv:2403.20193, 2024. 2, 3, 5, 7, 8, 11 [34] Yujie Wei, Shiwei Zhang, Zhiwu Qing, Hangjie Yuan, Zhiheng Liu, Yu Liu, Yingya Zhang, Jingren Zhou, and Hongming Shan. Dreamvideo: Composing your dream videos with customized subject and motion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6537–6549, 2024. 3 [35] Jay Zhangjie Wu, Yixiao Ge, Xintao Wang, Stan Weixian Lei, Yuchao Gu, Wynne Hsu, Ying Shan, Xiaohu Qie, and Mike Zheng Shou. Tune-a-video: One-shot tuning of image diffusion models for text-to-video generation. arXiv preprint arXiv:2212.11565, 2022. 2, 3
+[36] Zhuoyi Yang, Jiayan Teng, Wendi Zheng, Ming Ding, Shiyu Huang, Jiazheng Xu, Yuanming Yang, Wenyi Hong, Xiaohan Zhang, Guanyu Feng, et al. Cogvideox: Text-to-video diffusion models with an expert transformer. arXiv preprint arXiv:2408.06072, 2024. 1
+[37] Danah Yatim, Rafail Fridman, Omer Bar-Tal, Yoni Kasten, and Tali Dekel. Space-time diffusion features for zero-shot text-driven motion transfer. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8466–8476, 2024. 2, 3, 5, 7, 8, 11 [38] Shengming Yin, Chenfei Wu, Jian Liang, Jie Shi, Houqiang Li, Gong Ming, and Nan Duan. Dragnuwa: Fine-grained control in video generation by integrating text, image, and trajectory. arXiv preprint arXiv:2308.08089, 2023. 2
+[39] Sihyun Yu, Weili Nie, De-An Huang, Boyi Li, Jinwoo Shin, and Anima Anandkumar. Efficient video diffusion models via content-frame motion-latent decomposition. arXiv preprint arXiv:2403.14148, 2024. 1, 2
+[40] Hangjie Yuan, Shiwei Zhang, Xiang Wang, Yujie Wei, Tao Feng, Yining Pan, Yingya Zhang, Ziwei Liu, Samuel Albanie, and Dong Ni. Instructvideo: instructing video diffusion models with human feedback. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6463–6474, 2024. 2 [41] Yuxin Zhang, Fan Tang, Nisha Huang, Haibin Huang, Chongyang Ma, Weiming Dong, and Changsheng Xu. Motioncrafter: One-shot motion customization of diffusion models. arXiv preprint arXiv:2312.05288, 2023. 2, 7
+[42] Yabo Zhang, Yuxiang Wei, Dongsheng Jiang, Xiaopeng Zhang, Wangmeng Zuo, and Qi Tian. Controlvideo: Training-free controllable text-to-video generation. arXiv preprint arXiv:2305.13077, 2023. 2
+[43] Rui Zhao, Yuchao Gu, Jay Zhangjie Wu, David Junhao Zhang, Jia-Wei Liu, Weijia Wu, Jussi Keppo, and Mike Zheng Shou. Motiondirector: Motion customization of text-to-video diffusion models. In European Conference on Computer Vision, pages 273–290. Springer, 2025. 2, 3, 5, 7, 8, 11 [44] Daquan Zhou, Weimin Wang, Hanshu Yan, Weiwei Lv, Yizhe Zhu, and Jiashi Feng. Magicvideo: Efficient video generation with latent diffusion models. arXiv preprint arXiv:2211.11018, 2022. 1, 2
+10
+
+
+MotionFlow: Attention-Driven Motion Transfer in Video Diffusion Models
+Supplementary Material
+A. User Study
+An example question from our User Study is shown in Fig. 8. Participants were asked to evaluate three aspects of the generated videos across 10 different edits. Each edit included 5 generated videos from our method and competitors [12, 33, 37, 43] alongside the original input video. The questions focus on:
+• Motion Fidelity: Regarding the input video, which specific edits would you consider to be the most successful regarding preserving original motion? • Motion Smoothness: Regarding the input video, which specific edit would you consider to be most successful regarding the smoothest motion? • Text Fidelity: Regarding the input video, which specific edit would you consider to the top video that aligns with prompt?
+Participants were required to select the most suitable video for each question based on their subjective judgment. The aggregated results, detailed in Section A, provide insights into MotionFlow’s performance relative to competing methods.
+Figure 8. An example question used in the user study. Participants were asked to evaluate multiple videos based on motion fidelity, motion smoothness, and text fidelity.
+11

@@ -1,0 +1,62 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2411.15098 (cs)
+[Submitted on 22 Nov 2024 (v1), last revised 11 Mar 2025 (this version, v5)]
+OminiControl: Minimal and Universal Control for Diffusion Transformer
+Zhenxiong Tan, Songhua Liu, Xingyi Yang, Qiaochu Xue, Xinchao Wang
+View PDF
+HTML (experimental)
+We present OminiControl, a novel approach that rethinks how image conditions are integrated into Diffusion Transformer (DiT) architectures. Current image conditioning methods either introduce substantial parameter overhead or handle only specific control tasks effectively, limiting their practical versatility. OminiControl addresses these limitations through three key innovations: (1) a minimal architectural design that leverages the DiT's own VAE encoder and transformer blocks, requiring just 0.1% additional parameters; (2) a unified sequence processing strategy that combines condition tokens with image tokens for flexible token interactions; and (3) a dynamic position encoding mechanism that adapts to both spatially-aligned and non-aligned control tasks. Our extensive experiments show that this streamlined approach not only matches but surpasses the performance of specialized methods across multiple conditioning tasks. To overcome data limitations in subject-driven generation, we also introduce Subjects200K, a large-scale dataset of identity-consistent image pairs synthesized using DiT models themselves. This work demonstrates that effective image control can be achieved without architectural complexity, opening new possibilities for efficient and versatile image generation systems.
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI); Machine Learning (cs.LG)
+Cite as:	arXiv:2411.15098 [cs.CV]
+ 	(or arXiv:2411.15098v5 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2411.15098
+Focus to learn more
+Submission history
+From: Zhenxiong Tan [view email]
+[v1] Fri, 22 Nov 2024 17:55:15 UTC (35,113 KB)
+[v2] Mon, 25 Nov 2024 17:46:35 UTC (35,104 KB)
+[v3] Mon, 2 Dec 2024 17:59:40 UTC (35,104 KB)
+[v4] Wed, 15 Jan 2025 07:30:29 UTC (35,105 KB)
+[v5] Tue, 11 Mar 2025 10:41:44 UTC (42,177 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2024-11
+Change to browse by: cs cs.AI cs.LG
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

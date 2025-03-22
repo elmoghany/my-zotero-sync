@@ -1,0 +1,60 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2503.08280 (cs)
+[Submitted on 11 Mar 2025]
+OminiControl2: Efficient Conditioning for Diffusion Transformers
+Zhenxiong Tan, Qiaochu Xue, Xingyi Yang, Songhua Liu, Xinchao Wang
+View PDF
+HTML (experimental)
+Fine-grained control of text-to-image diffusion transformer models (DiT) remains a critical challenge for practical deployment. While recent advances such as OminiControl and others have enabled a controllable generation of diverse control signals, these methods face significant computational inefficiency when handling long conditional inputs. We present OminiControl2, an efficient framework that achieves efficient image-conditional image generation. OminiControl2 introduces two key innovations: (1) a dynamic compression strategy that streamlines conditional inputs by preserving only the most semantically relevant tokens during generation, and (2) a conditional feature reuse mechanism that computes condition token features only once and reuses them across denoising steps. These architectural improvements preserve the original framework's parameter efficiency and multi-modal versatility while dramatically reducing computational costs. Our experiments demonstrate that OminiControl2 reduces conditional processing overhead by over 90% compared to its predecessor, achieving an overall 5.9
+×
+ speedup in multi-conditional generation scenarios. This efficiency enables the practical implementation of complex, multi-modal control for high-quality image synthesis with DiT models.
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI)
+Cite as:	arXiv:2503.08280 [cs.CV]
+ 	(or arXiv:2503.08280v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2503.08280
+Focus to learn more
+Submission history
+From: Zhenxiong Tan [view email]
+[v1] Tue, 11 Mar 2025 10:50:14 UTC (30,904 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2025-03
+Change to browse by: cs cs.AI
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

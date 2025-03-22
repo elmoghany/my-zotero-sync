@@ -1,0 +1,59 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2501.07563 (cs)
+[Submitted on 13 Jan 2025]
+Training-Free Motion-Guided Video Generation with Enhanced Temporal Consistency Using Motion Consistency Loss
+Xinyu Zhang, Zicheng Duan, Dong Gong, Lingqiao Liu
+View PDF
+HTML (experimental)
+In this paper, we address the challenge of generating temporally consistent videos with motion guidance. While many existing methods depend on additional control modules or inference-time fine-tuning, recent studies suggest that effective motion guidance is achievable without altering the model architecture or requiring extra training. Such approaches offer promising compatibility with various video generation foundation models. However, existing training-free methods often struggle to maintain consistent temporal coherence across frames or to follow guided motion accurately. In this work, we propose a simple yet effective solution that combines an initial-noise-based approach with a novel motion consistency loss, the latter being our key innovation. Specifically, we capture the inter-frame feature correlation patterns of intermediate features from a video diffusion model to represent the motion pattern of the reference video. We then design a motion consistency loss to maintain similar feature correlation patterns in the generated video, using the gradient of this loss in the latent space to guide the generation process for precise motion control. This approach improves temporal consistency across various motion control tasks while preserving the benefits of a training-free setup. Extensive experiments show that our method sets a new standard for efficient, temporally coherent video generation.
+Comments:	Project page: this https URL
+Subjects:	Computer Vision and Pattern Recognition (cs.CV)
+Cite as:	arXiv:2501.07563 [cs.CV]
+ 	(or arXiv:2501.07563v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2501.07563
+Focus to learn more
+Submission history
+From: Xinyu Zhang [view email]
+[v1] Mon, 13 Jan 2025 18:53:08 UTC (14,594 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2025-01
+Change to browse by: cs
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

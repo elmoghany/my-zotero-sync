@@ -1,0 +1,61 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2408.03632 (cs)
+[Submitted on 7 Aug 2024 (v1), last revised 9 Sep 2024 (this version, v3)]
+Concept Conductor: Orchestrating Multiple Personalized Concepts in Text-to-Image Synthesis
+Zebin Yao, Fangxiang Feng, Ruifan Li, Xiaojie Wang
+View PDF
+HTML (experimental)
+The customization of text-to-image models has seen significant advancements, yet generating multiple personalized concepts remains a challenging task. Current methods struggle with attribute leakage and layout confusion when handling multiple concepts, leading to reduced concept fidelity and semantic consistency. In this work, we introduce a novel training-free framework, Concept Conductor, designed to ensure visual fidelity and correct layout in multi-concept customization. Concept Conductor isolates the sampling processes of multiple custom models to prevent attribute leakage between different concepts and corrects erroneous layouts through self-attention-based spatial guidance. Additionally, we present a concept injection technique that employs shape-aware masks to specify the generation area for each concept. This technique injects the structure and appearance of personalized concepts through feature fusion in the attention layers, ensuring harmony in the final image. Extensive qualitative and quantitative experiments demonstrate that Concept Conductor can consistently generate composite images with accurate layouts while preserving the visual details of each concept. Compared to existing baselines, Concept Conductor shows significant performance improvements. Our method supports the combination of any number of concepts and maintains high fidelity even when dealing with visually similar concepts. The code and models are available at this https URL.
+Comments:	Github Page: this https URL
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI); Multimedia (cs.MM)
+Cite as:	arXiv:2408.03632 [cs.CV]
+ 	(or arXiv:2408.03632v3 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2408.03632
+Focus to learn more
+Submission history
+From: Zebin Yao [view email]
+[v1] Wed, 7 Aug 2024 08:43:58 UTC (3,831 KB)
+[v2] Thu, 22 Aug 2024 04:19:34 UTC (20,184 KB)
+[v3] Mon, 9 Sep 2024 12:26:04 UTC (20,184 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2024-08
+Change to browse by: cs cs.AI cs.MM
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

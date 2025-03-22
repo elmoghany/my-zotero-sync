@@ -1,0 +1,388 @@
+Improving Multi-Subject Consistency in Open-Domain Image Generation
+with Isolation and Reposition Attention
+Huiguo He1,2,* Qiuyue Wang2, Yuan Zhou2, Yuxuan Cai2, Hongyang Chao1, Jian Yin1†, Huan Yang2† 1Sun Yat-Sun University, 201.AI
+Abstract
+Training-free diffusion models have achieved remarkable progress in generating multi-subject consistent images within open-domain scenarios. The key idea of these methods is to incorporate reference subject information within the attention layer. However, existing methods still obtain suboptimal performance when handling numerous subjects. This paper reveals two primary issues contributing to this deficiency. Firstly, the undesired internal attraction between different subjects within the target image can lead to the convergence of multiple subjects into a single entity. Secondly, tokens tend to reference nearby tokens, which reduces the effectiveness of the attention mechanism when there is a significant positional difference between subjects in reference and target images. To address these issues, we propose a training-free diffusion model with Isolation and Reposition Attention, named IR-Diffusion. Specifically, Isolation Attention ensures that multiple subjects in the target image do not reference each other, effectively eliminating the subject convergence. On the other hand, Reposition Attention involves scaling and repositioning subjects in both reference and target images to the same position within the images. This ensures that subjects in the target image can better reference those in the reference image, thereby maintaining better consistency. Extensive experiments demonstrate that IR-Diffusion significantly enhances multi-subject consistency, outperforming all existing methods in open-domain scenarios.
+1. Introduction
+Multi-subject consistent image generation aims to produce visually engaging sequences that maintain consistency across multiple subjects, each based on its specific description. This is crucial for applications such as story visualization [62] and game generation [51]. Recently, training-free diffusion models [16, 61, 73] have gained substantial attention for their
+*This work was performed when Huiguo He (hehg3@mail2.sysu.edu.cn) was visiting 01.AI as a research intern. †Huan Yang (hyang@fastmail.com) and Jian Yin are corresponding authors.
+Reposition Attention
+Isolation Attention
+DreamStory (SOTA) (a)Illustration of multi-subject internal attraction and proposed Isolation Attention
+Multi-Subject Internal Attraction:
+multi subject converge into one single entity
+Isolation Attention (IA):
+isolated generation of multi-subject
+DreamStory + IA + RA (Ours) (b)Illustration of positional influence and proposed Reposition Attention
+Reference Subject Misaligned
+DreamStory + IA
+DreamStory + IA
+Reference Images
+Repositon Feature
+Reposition Attention (RA): Aligning Reference Subject
+Figure 1. Illustration of our idea. (a) Internal attraction among subjects in the target image leads to the convergence of multiple subjects into a single entity. Our Isolation Attention (IA) effectively mitigates this problem, ensuring each subject can be independently generated. (b) Misalignment between subjects in the reference and target images results in the ineffective utilization of reference image features. Our Reposition Attention (RA) aligns the subjects in the reference and target images, thereby enabling the better utilization of the reference image and preserving fine-grained consistency.
+ability to generate visually coherent frames. These models are especially suited to open-domain scenarios since they avoid the need for additional tuning or costly, high-quality, large-scale datasets.
+Training-free approaches for achieving subject consistency typically modify the attention mechanism to incorporate essential features from reference images and text. For instance, previous studies have primarily focused on incorporating features from reference images by substituting [4] or concatenating [61] the K and V in the self-attention layer with those from the reference images. To address multi
+arXiv:2411.19261v2 [cs.CV] 9 Mar 2025
+
+
+subject consistency, DreamStory [16] introduces an innovative approach by using reference images and text as multimodal anchors (guidance). This method incorporates reference images into self-attention and text into cross-attention. A masking mechanism ensures that each subject aligns only with its external respective anchor, mitigating subject fusion (blending). This approach achieves SOTA multi-subject consistency in training-free diffusion models. Nevertheless, these methods still fall short of optimal performance as they overlook inherent aspects of the attention mechanism within diffusion models, namely, multi-subject internal attraction and position influences. First, we observed there are undesired internal attraction occurs among multiple subjects. This issue likely arises because diffusion models are typically trained on datasets containing a limited number of subjects, usually between 0 and 2. As a result, the model tends to generate fewer subjects, leading to possible subject convergence. As illustrated on the left of Fig. 1(a), the SOTA method DreamStory employs a masking mechanism to ensure that each subject can only reference its external corresponding reference. However, the internal attraction between subjects within the target image still results in a half-and-half merge, forming a composite character where the man constitutes the right half and the pirate the left half. Second, tokens in the attention mechanism are inclined to focus on spatially proximate tokens. This tendency stems from a property learned by the diffusion model during pretraining, where it captures strong correlations between adjacent image pixels. As a result, the model assigns higher attention responses to nearby tokens, reducing the effectiveness of reference image features and leading to performance degradation when the subject positions in the reference and target images are misaligned. For example, on the left of Fig. 1(b), the man’s clothing color is incorrect due to feature misalignment in the reference image. To address these issues, we propose IR-Diffusion, a plugand-play solution that incorporates Isolation and Reposition Attention. First, Isolation Attention (IA) minimizes internal attraction among multiple subjects by enforcing that each subject does not reference others within the target image during self-attention, preventing subject convergence, as shown on the right of Fig. 1(a). Secondly, Reposition Attention (RA) enhances subject alignment by rescaling and shifting reference images to match their positions in the target images. This can enable more effective use of reference images. As shown on the right of Fig. 1(b), our IR-Diffusion (with both IA and RA) not only mitigates multi-subject convergence but also maintains detailed appearance consistency, leading to better multi-subject consistency in open-domain image generation. The main contributions of this paper are as follows:
+1. To the best of our knowledge, we are the first to reveal and analyze the issues of multi-subject internal attraction
+and positional influence in the attention mechanism of diffusion models.
+2. We propose Isolation Attention, which prevents subject convergence and maintains the independence of each subject by minimizing internal attraction between them.
+3. We propose Reposition Attention, which ensures the use of reference information by aligning subjects to their corresponding positions.
+4. Extensive experiments demonstrate the advantages of our approach, IR-Diffusion. This training-free, plugand-play solution is simple yet effective, and well-suited for open-domain scenarios. Compared to the baseline DreamStory, IR-Diffusuion improved D&C-DS metric by 0.19 (+75.4%) on the DS-500 3-Subject benchmark.
+2. Related Works
+Initially, Variational AutoEncoders (VAEs) [25] and Generative Adversarial Networks (GANs) [33, 40, 58] are predominant in the field of image generation, but they inevitably face optimization challenges [2, 13]. Subsequently, diffusionbased generative models [15, 19, 44, 56, 57, 64, 76] dominate this field. Notably, Stable Diffusion (SD) [52] applies diffusion techniques within latent space and is trained on the largest LAION-5B [55] dataset, achieving impressive results and diversity in open-domain image generation. Despite these methods yielding promising results, they still struggle to guarantee subject consistency.
+2.1. Few-shot Finetuning Consistent Generation
+Few-shot finetuning methods [3, 23, 26, 28, 46, 54, 59, 63, 75] finetune the model with a limited number of subject images to learn their unique textual expressions. For example, DreamBooth [54] introduces the concept of fine-tuning SD with LORA [20] on several images to remember specific subject tokens. Kong et al. [26] further train DreamBooth LoRA for every subject, then apply concept noise blending after a specific denoise timestep for multi-subject personalization. Jang et al. [23] propose using a segmentation model to separate subjects for training and inference, thus addressing the issue of multi-subject fusion. This method has achieved SOTA performance in few-shot finetuning for multi-subject consistent generation. However, these approaches require finetuning for each individual story or subject, which incurs additional computational costs. Furthermore, this methodology inherently risks overfitting, potentially diminishing the aesthetic quality and diversity of the generated images [16, 61].
+2.2. Encoder-Based Consistent Generation
+In foundational T2I models like SD [52] and SDXL [47], cross-attention is crucial due to various conditions (e.g., text, semantic map) guiding the process through cross
+
+
+Key / Value
+Target Features Query Target Features
+Reference Features
+Key / Value
+GroundedSAM
+Isolation
+Isolation
+Query
+Reposition
+Reposition
+Compute Attention
+Ignore Attention
+Target Subject Region
+Reference Subject Region
+Isolation Operation
+Reposition Operation
+(a) Isolation Self-Attention in IR-Diffusion (b) Reposition Self-Attention in IR-Diffusion
+Reposition
+Reposition
+Figure 2. Illustration of our IR-Diffusion: (a) Isolation Attention (IA): IA isolates internal attraction between different subjects by ensuring that subjects do not receive responses from the Key and Value of other subjects. (b) Reposition Attention (RA): RA repositions the image features of the reference subjects to align with the positions of the corresponding subjects in the target image, enabling the model to more effectively utilize information from the reference image.
+Visual Tokens
+Query
+Key & Value
+Visual Tokens
+Query
+Key & Value
+(a) Self-Attention in DreamStory (b) Self-Attention in Ours
+Isolation Self-Attention Reposition Self-Attention Figure 3. Comparison of the overall Self-Attention mechanism between DreamStory and our IR-Diffusion. This figure summarizes how the Queries, Keys, and Values are computed for different regions (subjects and background). The differences compared to the baseline (DreamStory [16]) are marked by colored dashed boxes: blue represents IA, and orange represents RA.
+attention [70]. Previous methods [1, 7, 10, 24, 30, 34, 39, 6567, 69, 71, 72] train image encoders for customized generation under image conditions. Specifically, some studies [10, 24, 34, 66] train face encoders to maintain ID consistency by encoding subjects into image features and combining them with text features in cross-attention. Wang et al. propose MS-Diffusion [65], which encodes images through a grounding resampler composed of several attention layers. MS-Diffusion then integrates multiple subjects in the cross-attention using a masking mechanism. They generate high-quality multi-subject datasets using their innovative data processing pipeline, achieving SOTA performance.
+However, these methods are constrained by the scope of their datasets. They either support only human faces [10, 24,
+34, 66], a limited range of domain [7, 65, 71], or a limited number of subjects, such as single-subject [30, 67, 69] or two-subject [39, 74]. Consequently, they are unsuitable for open-domain scenarios, where subjects can include humans, animals, and any number of subjects with various styles.
+2.3. Training-free Consistent Generation
+Training-free methods [4, 8, 9, 16, 37, 61, 73] have garnered much attention because they do not require additional datasets or finetuning costs. The key idea of these methods is to enable the target image to reference the reference information within the attention layer. For instance, MasaCtrl [4] introduced mutual self-attention, which substitutes the key and value in self-attention with those from the reference image. Later, ConsiStory [61] and StoryDiffusion [73] allow each frame to reference all subjects from multiple reference images within a batch. He et al. [16] propose the DreamStory framework, which uses LLM to parse story text and generate the necessary scene and subject information for consequent consistent scene generation. They introduce the innovative Masked Mutual Self-Attention (MMSA) and Masked Mutual Cross-Attention (MMCA), which enable the target image to leverage the corresponding reference subject’s image and text, respectively. This multimodal referencing approach has achieved state-of-the-art results in open-domain multi-subject consistent generation. However, such methods still yield sub-optimal performance because they overlook the intrinsic properties of the attention mechanism inherent to the diffusion model, i.e., the multi-subject internal attraction and influence of position.
+3. Our Approach
+The proposed IR-Diffusion is designed to generate multisubject consistent images by leveraging reference subjects’ texts and images, followed by the SOTA method DreamStory [16]. The process begins with generating individual
+
+
+Table 1. Average response from other subjects and background (higher values are marked in bold). The responses from other subjects are greater than those from the background, indicating internal attraction among subjects during the generation process.
+Average (×10−3) Other Subjects Background 2-Subject 0.1168 0.1018 3-Subject 0.1360 0.1001
+subject images based on their textual descriptions. Subsequently, these generated images and their associated reference texts are utilized to produce a final composite image that maintains consistency across multiple subjects.
+3.1. Existing Attention Mechanism
+In popular diffusion models (e.g., SD [52], and SD-XL [47]), the attention mechanism within the U-Net network typically consists of a self-attention layer followed by a cross-attention layer. The similarity between each token of image features is computed in self-attention to represent how one token responds to another, which is known as the attention map. All the responses are then normalized to [0, 1] by a softmax operation. The attention layer can be formulated as follows,
+Attn(Q, K, V ) = sof tmax(QK) · V, (1)
+Here, Attn() represents the function of the attention layer, and Q, K, and V represent the Query, Key, and Value features, respectively. These features are obtained by projecting the spatial features in the self-attention layers. For clarity, we use the subscript ‘TGT’ to denote the features of the target image, and the subscript ‘REF’ to represent the features from the reference image. The superscript ‘i’ indicates the i-th subject. Additionally, in the target image, the region outside all subjects is defined as the background, denoted by the superscript ‘BG’. Thus, the features of the target image can be defined as follows:
+Q
+TGT = [Q1
+TGT, . . . , QN
+TGT, QBG
+TGT], (2)
+K
+TGT = [K1
+TGT, . . . , KN
+TGT, K BG
+TGT], (3)
+V
+TGT = [V 1
+TGT, . . . , V N
+TGT, V BG
+TGT], (4)
+where ’N’ is the number of the subjects and [· · · ] is the concatenation function. Recent studies [16, 61, 73] have shown that appearance information can be incorporated into the self-attention layer by cascading the key (K) and value (V ) features from the reference images. Based on these definitions, the output for the i-th subject, Oi, can be calculated as follows,
+Oi = Attn(Qi
+TGT, [Ki
+REF, KTGT], [V i
+REF, VTGT]), (5)
+where the Key and Value of the i-th reference subject are denoted as Ki
+REF, and V i
+REF respectively. In this way, the visual information of the reference subject is incorporated into the generation process to maintain consistent appearances. The
+(a) Relationship between Distance and Response (Scale 1)
+(b) Relationship between Distance and Response (Scale 2) Figure 4. Average response values between tokens at varying distances in the self-attention layer. As the distance increases, the mean response values generally decrease, suggesting that tokens tend to reference nearby tokens more strongly.
+background region does not require reference information from the reference subject. Thus, the output of the background, OBG, can be expressed as the vanilla calculation:
+O
+BG = Attn(QBG
+TGT, KTGT, VTGT), (6)
+3.2. Isolation Attention
+3.2.1. Internal Attraction in Self-Attention
+Diffusion pre-trained models [29, 47, 52] are primarily designed for scenarios with a limited number of subjects, typically including only 1 or 2 target characters in their training samples. As a result, these models tend to generate a restricted number of characters. When generating multiple subjects, the self-attention mechanism computes the similarity between all pairs of patches. This can lead to the undesired convergence of multiple similar characters into a single composite entity, as illustrated by the hybrid character of the pirate and the man in Fig. 1(a). To investigate the attractions between multiple subjects in self-attention, we first generate an image with a fixed seed and use the GroundedSAM [50] to mark the positions of the subjects. All areas outside the subjects are defined as the background. We then regenerate the image using the same seed and calculate the response values. Specifically, we compute the average per-token response for each subject by dividing the total response from other subjects and the background by the number of tokens. The statistical results from the DS-500 [16] benchmark are presented in Tab. 1. As observed, the response from other subjects (0.1168) in the 2-subject scenario is higher than that of the background (0.1037). In the 3-subject scenario, this phenomenon is even more pronounced, with responses from other subjects at 0.1360 and background at 0.1001. These results all provide strong evidence of internal attraction among multiple subjects during the generation process.
+
+
+Table 2. Quantitative comparison with other SOTA methods on the benchmark: Our RI-Diffusion demonstrates comparable performance on the aesthetic score (AES) and CLIP-T metrics while outperforming other methods on consistency metrics DC and D&C-DS (with the best performance marked in bold).
+2-Subject 3-Subject
+AES↑ CLIP-T↑ DS↑ D&C-DS↑ AES↑ CLIP-T↑ DS↑ D&C-DS↑
+MuDI [23] 6.47 0.3652 0.6578 0.4410 6.54 0.3664 0.5924 0.1988
+MS-Diffusion [65] 6.12 0.3470 0.7386 0.6251 6.08 0.3502 0.6641 0.3617
+ConsiStory [61] 6.62 0.3757 0.5988 0.4251 6.73 0.3770 0.5564 0.2038
+StoryDiffusion [73] 6.56 0.3702 0.6258 0.4364 6.57 0.3707 0.5723 0.2095
+DreamStory [16] 6.72 0.3779 0.6714 0.5444 6.81 0.3791 0.5965 0.2335
+IR-Diffusion (Ours) 6.64 0.3679 0.7518 0.6458 6.68 0.3736 0.6742 0.4095
+3.2.2. Isolation Self-Attention
+As discussed in Sec. 3.2.1, different subjects may be attracted to each other in the self-attention layer. This internal attraction can lead to subject convergence, where multiple subjects merge into a single entity, that simultaneously exhibits half characteristics of both original subjects. To mitigate this internal attraction, each subject should not affect the others during the vanilla forward process of the target image. For example, in Fig. 2, the subjects ’man’ and ’pirate’ should not attracted to each other. We achieve this by ensuring that each subject does not receive responses from the Key and Value of other subjects. By excluding other subjects’ K and V from the original KTGT and VTGT, the Eq. (5) can be modified as:
+Oi = Attn(Qi
+TGT, [Ki
+REF, K i
+TGT, K BG
+TGT], [V i
+REF, V i
+TGT, V BG
+TGT]). (7)
+Compared to existing methods like DreamStory [16] (Eq. (5)), the key distinction of the proposed IA is that the Q of subject i in the target image does not reference the KV of other subjects in the same image. This IA, highlighted by the blue dashed box in Fig. 3, ensures that each subject is less attracted by other subjects, thereby preventing internal attraction from other subject regions in the target image. As a result, each subject can be generated relatively independently, effectively avoiding the issue of subjects convergence. We apply Isolation Self-Attention in all decoder layers of the U-Net. This unconventional attention mechanism is implemented using a masking strategy, which zeroes out the undesired attention map responses between different subjects. More details on implementation can be found in the supplementary material.
+3.3. Reposition Attention
+3.3.1. Positional Influence in Self-Attention
+Adjacent pixels generally exhibit strong correlations in typical images. Pre-trained on large image datasets, the diffusion model inherits this characteristic, prioritizing information from neighboring tokens. Additionally, the scale and crop conditions in the diffusion model [29, 47] might also con
+tribute to this phenomenon, with these positional relationships being learned within the timestep embeddings. Given a feature map of resolution H × W (comprising HW tokens), the attention layer generates a corresponding HW ×HW response matrix, referred to as the attention map. For any two tokens, let ∆X and ∆Y denote the respective horizontal and vertical positional offsets, We define the intertoken distance as the sum of these positional differences, i.e., D = |∆X| + |∆Y |. Since the U-Net architecture employs features across two distinct scales, we computed the mean responses from attention maps over varying resolutions and distances, which were aggregated across all steps and layers. We exclude tokens within a 5% margin along the edges of the image, as these tokens carry substantial positional information and are prone to noise [21, 22, 35]. We present the response curves for the two different scales under the DS500 [16] benchmark in Fig. 4. As shown in Fig. 4, the mean response values between tokens progressively decrease as the distance increases, indicating that tokens tend to reference nearby tokens more strongly within self-attention.
+3.3.2. Reposition Self-Attention
+As discussed above, self-attention tends to prioritize tokens in neighboring positions. This reduces the utilization of information from the reference image when there is a substantial distance between the subjects in the reference image and their corresponding subjects in the target image. One straightforward approach is to align the subjects to their corresponding positions in the self-attention layer. As shown in Fig. 2, the reference features (K and V) of the subject ’man’ and ’pirate’ will be rescaled and shifted to the position of the corresponding subject in the target image. This repositioned feature will be denoted with a hat, i.e., KˆREF and VˆREF. These features are rescaled and shifted before the projection to prevent disrupting the self-attention calculation process. Regions outside the repositioned reference subject will be filled with zeros to avoid introducing unnecessary noise. After applying Reposition Attention, the final attention operation in Eq. (7) can be formulated as follows:
+Oi = Attn(Qi
+TGT, [Kˆ i
+REF, K i
+TGT, K BG
+TGT], [Vˆ i
+REF, V i
+TGT, V BG
+TGT]). (8)
+
+
+Ours
+A dapper man with a beard and pocket watch converses animatedly with an ancient wizard holding a wand, in a dimly lit, book-lined study filled with magical artifacts and glowing potions.
+StoryDiffusion MS-Diffusion MuDI ConsiStory DreamStory
+A futuristic astronaut with their visor up stands beside an ancient wizard holding a wand, both gazing at a hovering, glowing orb between them.
+A golden dog with a frisbee in its mouth, a young boy with glasses reading a book, and a white cat with a blue collar sitting nearby in a sunny park.
+A distinguished man with a monocle and an elegant woman in a red evening gown observe a bearded pirate with a wooden leg at a grand, opulent masquerade ball.
+A jolly plump chef, a bearded pirate with a wooden leg, and a golden dog in a red superhero cape gather around a rustic wooden table, sharing a hearty meal under the warm glow of lantern light.
+Figure 5. Comparisons of multi-subject consistency generation between our IR-Diffusion and other SOTA methods. The superior performance of our approach is evident from the more visually appealing and consistent results. Except for StoryDiffusion, which uses the portraits above it for reference, all other methods use the top portraits as a reference. Different subjects are indicated with different colors.
+This strategy aligns the reference with the position of the target subject, thereby improving the efficiency of information utilization and preserving the fine-grained appearance consistency of the subjects. This design is similar to Positional Embeddings (PE) methods [17, 68], which enhance nearby token interactions by encoding spatial relationships. By enforcing positional alignment, RA similarly leverages spatial relationships to enhance information propagation.
+Similar to IA, RA is implemented using the same masking strategy to eliminate undesired attention map responses between different components. For more details, please refer to the supplementary material.
+4. Experiments
+4.1. Implementation Details
+The Playground 1 is adopted as our T2I backbone due to its superior performance in open-domain multi-subject consistent generation, which is also be used by DreamStory [16]. To obtain the subject mask for the target image, we follow DreamStory by performing a rehearsal generation with the original backbone to identify subject masks. More details can be found in the Supplementary.
+4.2. Evaluation Benchmark
+We adopt the DS-500 benchmark to evaluate the performance of our approach, following DreamStory [16]. This
+1playground-v2.5-1024px-aesthetic
+
+
+Table 3. Quantitative results of the ablation study on the benchmark: Reposition Attention (RA) and Isolation Attention (IA) are individually incorporated into the baseline. The aesthetic score (AES) and CLIP-T metrics show minimal change, while a significant improvement is observed in the consistency metrics DC and D&C-DS (with the best performance marked in bold).
+2-Subject 3-Subject
+AES↑ CLIP-T↑ DS↑ D&C-DS↑ AES↑ CLIP-T↑ DS↑ D&C-DS↑
+Baseline (DreamStory [16]) 6.61 0.3681 0.6819 0.5592 6.77 0.3655 0.6042 0.2378
+w/ RA 6.69 0.3668 0.7282 0.5978 6.80 0.3613 0.6323 0.2405
+w/ IA 6.67 0.3679 0.7453 0.6364 6.76 0.3729 0.6695 0.3636
+w/ RA+IA (Ours) 6.64 0.3679 0.7518 0.6458 6.68 0.3736 0.6742 0.4095
+benchmark provides a comprehensive validation for multisubject scenarios in open-domain multi-subject consistent image generation. Specifically, each subject’s portrait is generated from its prompt using the same diffusion model, i.e., Playground [29] in our experiments. These portraits and prompts then serve as multimodal references for consistent multi-subject scene generation.
+4.3. Evaluation Metrics
+We follow the evaluation metrics in DreamStory [16] to assess the performance of our method. Specifically, we evaluate generated results based on three main criteria: aesthetics, image-text alignment, and subject consistency. For objective evaluation, we adopt the predictor 2 for the aesthetic score (AES), CLIP 3 score for text-image alignment (CLIP-T), DreamSim [11] for single subject consistency (DS), and D&C-DS [23] to evaluate the multi-subject consistency. To further validate the results, we conduct a user study using an A/B test. For each evaluation, we randomly display two sets of images accompanied by their respective texts. Each set is generated using a different method. Participants judge each metric by selecting whether Image A is superior, Image B is superior, or both are comparable. We collect 2000 votes for each comparison. The final results are aggregated and presented as percentages.
+4.4. Comparison with SOTA Methods
+We conduct exhaustive experiments to compare our method with other SOTA methods, including the finetuning-based MuDi [23], the encoder-based MS-Diffusion [65], and several training-free methods, i.e., StoryDiffusion [73], ConsiStory [61], and DreamStory [16]. For a fair comparison, MS-Diffusion also uses the same mask with proportional positioning for layout-to-image generation.
+4.4.1. Objective Comparison
+The quantitative comparison results with existing SOTA methods are presented in Tab. 2. Our IR-Diffusion approach achieves performance comparable to the best existing methods in terms of aesthetic score (AES) and image-text similarity (CLIP-T), and surpasses them in consistency metrics,
+2improved-aesthetic-predictor 3clip-vit-base-patch16
+w/ RA Baseline
+A young boy with glasses reads a book under a tree, a white cat with a blue collar naps beside him, and a dapper bearded man with a pocket watch strolls past, tipping his hat in greeting.
+A jolly plump chef, a white cat with a monocle, and a golden dog in a red cape gather in a sunny kitchen, the chef laughing as he shares a freshly baked pie with his unusual, aristocratic companions.
+Ours w/ IA
+A distinguished man with a monocle reading a map, a Siamese cat lounging on an open book beside him, and a pirate captain with an eye patch and a hook standing by, all aboard an old wooden ship deck.
+Figure 6. Ablation studies of different generation results. All methods use the top portraits as a reference. Different subjects are indicated with different colors. More ablation studies can be found in the supplementary materials.
+specifically DC and D&C-DS. Notably, compared to the current training-free SOTA method (DreamStory [16]), IRDiffusion improves the D&C-DS metric by approximately 0.10 (18.6%) on the 2-Subject benchmark and 0.19 (75.4%) on the 3-Subject benchmark. Compared to the 2-subject scenario, the 3-subject scenario shows a more significant improvement. This is due to the higher likelihood of subject misalignment and internal attraction in the 3-subject scenario. Our method effectively addresses these challenges, leading to a more substantial performance enhancement. Our approach also outperforms both MuDI [23] and MSDiffusion [65] across all four metrics. MS-Diffusion yields the lowest AES score (around 6.1), possibly due to the lower quality of images in their dataset, mainly from general videos. Additionally, our method avoids the tuning costs and overfitting risks associated with MuDI, as well as MS-Diffusion’s limitations in supporting certain subject types due to constraints in their training dataset. Overall, these results demonstrate the advancement of our method.
+
+
+Table 4. User study on aesthetic scores (AES), text-image relevance (T-I Align), and multi-subject consistency. Values are presented as percentages (with the % symbol omitted). The winning dimension in the consistency is highlighted in bold. 2-Subject 3-Subject Dimensions AES T-I Align Consistency AES T-I Align Consistency
+Win Lose Win Lose Win Lose Win Lose Win Lose Win Lose DreamStory [16] 11.9 4.7 21.4 25.8 51.3 6.9 36.7 6.4 63.1 13.3 66.6 4.9 ConsiStory [61] 18.3 7.3 43.7 15.0 80.7 2.3 10.3 7.3 27.0 10.6 77.7 1.6 StoryDiffusion [73] 10.0 3.6 28.3 14.0 82.0 3.3 7.5 6.0 23.5 15.0 79.0 5.0 MuDI [23] 8.0 5.0 29.0 3.0 65.0 1.7 19.5 3.5 27.0 1.0 73.0 2.5 MS-Diffusion [65] 43.3 3.7 34.7 4.3 51.7 15.7 44.8 8.5 43.5 2.5 46.8 17.7
+Table 5. User study on aesthetic scores (AES), text-image relevance (T-I Align), and multi-subject consistency. Values are presented as percentages (with the % symbol omitted). The winning dimension in the consistency is highlighted in bold. 2-Subject 3-Subject Dimensions AES T-I Align Consistency AES T-I Align Consistency
+Win Lose Win Lose Win Lose Win Lose Win Lose Win Lose Baseline (DreamStory [16]) 9.4 3.6 23.0 32.0 52.2 5.4 33.5 11.5 54.0 5.8 66.0 5.5 w/ RA 1.7 1.0 8.0 7.7 31.3 6.7 6.0 11.0 43.0 7.2 40.0 8.6 w/ IA 6.7 3.3 6.7 3.3 7.7 1.3 23.3 13.3 5.0 3.0 17.3 6.0
+4.4.2. Subjective Comparison
+Tab. 4 presents the results of our user study compared with SOTA methods. This table demonstrates that our approach surpasses all methods in open-domain scenarios regarding consistency. Notably, it demonstrates a greater advantage over MS-Diffusion in the user study compared to objective metrics. This discrepancy arises from the composition of MS-Diffusion’s dataset, which predominantly features clothing items rather than facial features. As a result, the model performs better on clothing, while users are more sensitive to the accuracy of facial features. More experimental results and discussions can be found in the supplementary material. We also show the generated images of IR-Diffusion and other SOTA methods in Fig. 5. As shown in Fig. 5, our IR-Diffusion preserves multi-subject consistency, e.g., wizard and astronaut in the first and second columns, respectively. Specifically, MS-Diffusion struggles with certain subjects (e.g., wizards and astronauts) and often produces a red tint, possibly due to their limited dataset and the leaking of ground tokens. These results highlight our method’s superiority in generating multi-subject consistent images in open-domain scenarios, surpassing all previous methods.
+4.5. Ablation Studies
+We also conduct an ablation study to validate the effectiveness of each component in our method. Specifically, we add the Reposition Attention (RA) and the Isolation Attention (IA) modules individually. We evaluate DreamStory [16] under the same settings as our baseline.
+4.5.1. Objective Comparison
+The quantitative results of the ablation study on the benchmark are presented in Tab. 3. As shown in Tab 3, significant improvements in the consistency metrics (DC and D&CDS) are observed after individually adding RA and IA. The best performance is achieved when incorporating both com
+ponents. In the 3-subject scenario, the improvement from adding RA alone is minimal, but it becomes more significant when combined with IA. This is likely due to the stronger internal attraction between multiple subjects in the 3-subject case. Without isolating these attractions, repositioned features cannot be fully utilized. These results demonstrate the effectiveness of our proposed modules.
+4.5.2. Subjective Comparison
+Tab. 5 presents the results from our user study conducted for the ablation study. The results demonstrate that our method surpasses all ablation models in consistency metrics, which is our primary objective. Fig. 6 shows images generated by incrementally incorporating individual components (RA and IA). When only IA is applied, our method effectively prevents the merging of multiple subjects, as observed in the comparison of the dog in the third row with that in the second row, first column. Adding RA further enhances detail consistency (e.g., the dog in the first column) by more effectively leveraging repositioned reference features. These results confirm the effectiveness of our proposed modules.
+5. Conclusion
+In this paper, we propose IR-Diffusion, a training-free diffusion model to enhance multi-subject consistency. We first identify two key issues in existing diffusion models: the positional impact of the attention mechanism and the undesired internal attraction among multiple subjects. To address these challenges, we introduce Isolation Attention, which prevents subject convergence caused by internal mutual attraction, and Reposition Attention, which aligns subjects in reference and target images to the same positions. Our method demonstrates significant performance improvements in consistency metrics, surpassing all existing methods in open-domain scenarios. Additionally, these findings contribute to advancing the field by revealing the underlying mechanisms of diffu
+
+
+sion models. We believe these findings also hold broader potential for applications such as attribute-binding and video generation. In future work, we will extend our approach to the DiT architecture, e.g., FLUX [27], and PixArt-Σ [6].
+References
+[1] Moab Arar, Rinon Gal, Yuval Atzmon, Gal Chechik, Daniel Cohen-Or, Ariel Shamir, and Amit H. Bermano. Domainagnostic tuning-encoder for fast personalization of text-toimage models. In SIGGRAPH Asia, pages 1–10, 2023. 3 [2] Martin Arjovsky, Soumith Chintala, and Léon Bottou. Wasserstein generative adversarial networks. In ICML, pages 214223, 2017. 2 [3] Omri Avrahami, Amir Hertz, Yael Vinker, Moab Arar, Shlomi Fruchter, Ohad Fried, Daniel Cohen-Or, and Dani Lischinski. The chosen one: Consistent characters in text-to-image diffusion models. In SIGGRAPH, pages 1–12, 2024. 2 [4] Mingdeng Cao, Xintao Wang, Zhongang Qi, Ying Shan, Xiaohu Qie, and Yinqiang Zheng. MasaCtrl: Tuning-free mutual self-attention control for consistent image synthesis and editing. In ICCV, pages 22560–22570, 2023. 1, 3, 12 [5] Hong Chen, Rujun Han, Te-Lin Wu, Hideki Nakayama, and Nanyun Peng. Character-centric story visualization via visual planning and token alignment. In EMNLP, pages 8259–8272, 2022. 12 [6] Junsong Chen, Jincheng Yu, Chongjian Ge, Lewei Yao, Enze Xie, Yue Wu, Zhongdao Wang, James Kwok, Ping Luo, Huchuan Lu, et al. PixArt-α: Fast training of diffusion transformer for photorealistic text-to-image synthesis. arXiv preprint arXiv:2310.00426, 2023. 9 [7] Xi Chen, Lianghua Huang, Yu Liu, Yujun Shen, Deli Zhao, and Hengshuang Zhao. AnyDoor: Zero-shot object-level image customization. In CVPR, pages 6593–6602, 2024. 3 [8] Junhao Cheng, Xi Lu, Hanhui Li, Khun Loun Zai, Baiqiao Yin, Yuhao Cheng, Yiqiang Yan, and Xiaodan Liang. AutoStudio: Crafting consistent subjects in multi-turn interactive image generation. arXiv preprint arXiv:2406.01388, 2024. 3 [9] Junhao Cheng, Baiqiao Yin, Kaixin Cai, Minbin Huang, Hanhui Li, Yuxin He, Xi Lu, Yue Li, Yifei Li, Yuhao Cheng, et al. TheaterGen: Character management with llm for consistent multi-turn image generation. arXiv preprint arXiv:2404.18919, 2024. 3 [10] Siying Cui, Jia Guo, Xiang An, Jiankang Deng, Yongle Zhao, Xinyu Wei, and Ziyong Feng. IDAdapter: Learning mixed features for tuning-free personalization of text-to-image models. In CVPR Workshops, pages 950–959, 2024. 3 [11] Stephanie Fu, Netanel Tamir, Shobhita Sundaram, Lucy Chai, Richard Zhang, Tali Dekel, and Phillip Isola. DreamSim: Learning new dimensions of human visual similarity using synthetic data. NeurIPS, 36, 2024. 7 [12] Xu Gu, Yuchong Sun, Feiyue Ni, Shizhe Chen, Xihua Wang, Ruihua Song, Boyuan Li, and Xiang Cao. TeViS: Translating text synopses to video storyboards. In ACM MM, pages 4968–4979, 2023. 12 [13] Ishaan Gulrajani, Faruk Ahmed, Martin Arjovsky, Vincent Dumoulin, and Aaron C Courville. Improved training of Wasserstein GANs. NeurIPS, 30, 2017. 2
+[14] Tanmay Gupta, Dustin Schwenk, Ali Farhadi, Derek Hoiem, and Aniruddha Kembhavi. Imagine this! scripts to compositions to videos. In ECCV, pages 598–613, 2018. 12 [15] Huiguo He, Tianfu Wang, Huan Yang, Jianlong Fu, Nicholas Jing Yuan, Jian Yin, Hongyang Chao, and Qi Zhang. Learning profitable NFT image diffusions via multiple visualpolicy guided reinforcement learning. In ACM MM, pages 6831–6840, 2023. 2 [16] Huiguo He, Huan Yang, Zixi Tuo, Yuan Zhou, Qiuyue Wang, Yuhang Zhang, Zeyu Liu, Wenhao Huang, Hongyang Chao, and Jian Yin. DreamStory: Open-domain story visualization by LLM-guided multi-subject consistent diffusion, 2024. 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14 [17] Byeongho Heo, Song Park, Dongyoon Han, and Sangdoo Yun. Rotary position embedding for vision transformer. In European Conference on Computer Vision, pages 289–305. Springer, 2024. 6 [18] Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance. In NeurIPS Workshop, 2021. 13 [19] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. NeurIPS, 33:6840–6851, 2020. 2
+[20] Edward J Hu, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, Weizhu Chen, et al. LoRA: Low-rank adaptation of large language models. In ICLR, 2021. 2 [21] Md Amirul Islam, Sen Jia, and Neil DB Bruce. How much position information do convolutional neural networks encode? In ICLR, 2020. 5 [22] Md Amirul Islam, Matthew Kowal, Sen Jia, Konstantinos G Derpanis, and Neil DB Bruce. Position, padding and predictions: A deeper look at position information in cnns. IJCV, pages 1–22, 2024. 5 [23] Sangwon Jang, Jaehyeong Jo, Kimin Lee, and Sung Ju Hwang. Identity decoupling for multi-subject personalization of textto-image models, 2024. 2, 5, 7, 8, 14 [24] Chanran Kim, Jeongin Lee, Shichang Joung, Bongmo Kim, and Yeul-Min Baek. InstantFamily: Masked attention for zero-shot multi-id image generation. arXiv preprint arXiv:2404.19427, 2024. 3 [25] Diederik P Kingma and Max Welling. Auto-encoding variational bayes. arXiv preprint arXiv:1312.6114, 2013. 2, 14 [26] Zhe Kong, Yong Zhang, Tianyu Yang, Tao Wang, Kaihao Zhang, Bizhu Wu, Guanying Chen, Wei Liu, and Wenhan Luo. OMG: Occlusion-friendly personalized multi-concept generation in diffusion models. In ECCV, pages 253–270. Springer, Springer, 2024. 2 [27] Black Forest Labs. FLUX. https://github.com/ black-forest-labs/flux, 2023. 9
+[28] Kyungmin Lee, Sangkyung Kwak, Kihyuk Sohn, and Jinwoo Shin. Direct consistency optimization for compositional textto-image personalization. arXiv preprint arXiv:2402.12004, 2024. 2 [29] Daiqing Li, Aleks Kamko, Ehsan Akhgari, Ali Sabet, Linmiao Xu, and Suhail Doshi. Playground v2.5: Three insights towards enhancing aesthetic quality in text-to-image generation, 2024. 4, 5, 7, 13
+
+
+[30] Dongxu Li, Junnan Li, and Steven Hoi. BLIP-diffusion: Pretrained subject representation for controllable text-to-image generation and editing. NeurIPS, 36, 2024. 3 [31] Junnan Li, Dongxu Li, Caiming Xiong, and Steven Hoi. BLIP: bootstrapping language-image pre-training for unified visionlanguage understanding and generation. In ICML, pages 12888–12900. PMLR, 2022. 12 [32] Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. BLIP2: bootstrapping language-image pre-training with frozen image encoders and large language models. In ICML, pages 19730–19742. PMLR, 2023. 12 [33] Yitong Li, Zhe Gan, Yelong Shen, Jingjing Liu, Yu Cheng, Yuexin Wu, Lawrence Carin, David Carlson, and Jianfeng Gao. StoryGAN: A sequential conditional gan for story visualization. In CVPR, 2019. 2, 12 [34] Zhen Li, Mingdeng Cao, Xintao Wang, Zhongang Qi, MingMing Cheng, and Ying Shan. PhotoMaker: Customizing realistic human photos via stacked id embedding. In CVPR, pages 8640–8650, 2024. 3 [35] Chieh Hubert Lin, Hung-Yu Tseng, Hsin-Ying Lee, Maneesh Kumar Singh, and Ming-Hsuan Yang. Unveiling the mask of position-information pattern through the mist of image features. In ICML. JMLR.org, 2023. 5 [36] Chang Liu, Haoning Wu, Yujie Zhong, Xiaoyun Zhang, Yanfeng Wang, and Weidi Xie. Intelligent grimm-open-ended visual storytelling via latent diffusion models. In CVPR, pages 6190–6200, 2024. 12 [37] Tao Liu, Kai Wang, Senmao Li, Joost van de Weijer, Fahad Shahbaz Khan, Shiqi Yang, Yaxing Wang, Jian Yang, and Ming-Ming Cheng. One-Prompt-One-Story: Free-lunch consistent text-to-image generation using a single prompt. In ICLR, 2025. 3 [38] Cheng Lu, Yuhao Zhou, Fan Bao, Jianfei Chen, Chongxuan Li, and Jun Zhu. DPM-solver++: Fast solver for guided sampling of diffusion probabilistic models. arXiv preprint arXiv:2211.01095, 2022. 13 [39] Jian Ma, Junhao Liang, Chen Chen, and Haonan Lu. SubjectDiffusion: Open domain personalized text-to-image generation without test-time fine-tuning. In SIGGRAPH, pages 1–12, 2024. 3 [40] Yiyang Ma, Huan Yang, Bei Liu, Jianlong Fu, and Jiaying Liu. AI illustrator: Translating raw descriptions into images by prompt-based cross-modal generation. In ACM MM, pages 4282–4290, 2022. 2 [41] Adyasha Maharana and Mohit Bansal. Integrating visuospatial, linguistic, and commonsense structure into story visualization. In EMNLP, pages 6772–6786, 2021. 12 [42] Adyasha Maharana, Darryl Hannan, and Mohit Bansal. Improving generation and evaluation of visual stories via semantic consistency. In NAACL HLT, pages 2427–2442, 2021. [43] Adyasha Maharana, Darryl Hannan, and Mohit Bansal. StoryDALL-E: Adapting pretrained text-to-image transformers for story continuation. In ECCV, pages 70–87. Springer, 2022. 12 [44] Alexander Quinn Nichol and Prafulla Dhariwal. Improved denoising diffusion probabilistic models. In ICML, pages 8162–8171, 2021. 2
+[45] Xichen Pan, Pengda Qin, Yuhong Li, Hui Xue, and Wenhu Chen. Synthesizing coherent story with auto-regressive latent diffusion models. In WACV, pages 2920–2930, 2024. 12 [46] Xu Peng, Junwei Zhu, Boyuan Jiang, Ying Tai, Donghao Luo, Jiangning Zhang, Wei Lin, Taisong Jin, Chengjie Wang, and Rongrong Ji. PortraitBooth: A versatile portrait model for fast identity-preserved personalization. In CVPR, pages 27080–27090, 2024. 2 [47] Dustin Podell, Zion English, Kyle Lacey, Andreas Blattmann, Tim Dockhorn, Jonas Müller, Joe Penna, and Robin Rombach. SDXL: Improving latent diffusion models for high-resolution image synthesis. arXiv preprint arXiv:2307.01952, 2023. 2, 4, 5, 12, 13 [48] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In ICML, pages 8748–8763, 2021. 12 [49] Tanzila Rahman, Hsin-Ying Lee, Jian Ren, Sergey Tulyakov, Shweta Mahajan, and Leonid Sigal. Make-a-Story: Visual memory conditioned consistent story generation. In CVPR, pages 2493–2502, 2023. 12 [50] Tianhe Ren, Shilong Liu, Ailing Zeng, Jing Lin, Kunchang Li, He Cao, Jiayu Chen, Xinyu Huang, Yukang Chen, Feng Yan, et al. Grounded SAM: Assembling open-world models for diverse visual tasks. arXiv preprint arXiv:2401.14159, 2024. 4
+[51] Rafael Ribeiro, Alexandre Valle de Carvalho, and Nelson Bilber Rodrigues. Image-based video game asset generation and evaluation using deep learning: a systematic review of methods and applications. IEEE Transactions on Games, 2024. 1
+[52] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer. High-resolution image synthesis with latent diffusion models. In CVPR, pages 1068410695, 2022. 2, 4, 12 [53] Olaf Ronneberger, Philipp Fischer, and Thomas Brox. U-net: Convolutional networks for biomedical image segmentation. In MICCAI, pages 234–241. Springer, 2015. 14 [54] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman. DreamBooth: Fine tuning text-to-image diffusion models for subject-driven generation. In CVPR, pages 22500–22510, 2023. 2 [55] Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Wortsman, et al. LAION-5B: An open large-scale dataset for training next generation image-text models. arXiv preprint arXiv:2210.08402, 2022. 2, 12 [56] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. In ICLR, 2020. 2 [57] Yang Song, Jascha Sohl-Dickstein, Diederik P Kingma, Abhishek Kumar, Stefano Ermon, and Ben Poole. Score-based generative modeling through stochastic differential equations. In ICLR, 2020. 2 [58] Yun-Zhu Song, Zhi Rui Tam, Hung-Jen Chen, Huiao-Han Lu, and Hong-Han Shuai. Character-preserving coherent story visualization. In ECCV, pages 18–33. Springer, 2020. 2
+
+
+[59] Gan Sun, Wenqi Liang, Jiahua Dong, Jun Li, Zhengming Ding, and Yang Cong. Create your world: Lifelong text-toimage diffusion. IEEE Transactions on Pattern Analysis and Machine Intelligence, 2024. 2 [60] Kolors Team. Kolors: Effective training of diffusion model for photorealistic text-to-image synthesis. arXiv preprint, 2024. 13 [61] Yoad Tewel, Omri Kaduri, Rinon Gal, Yoni Kasten, Lior Wolf, Gal Chechik, and Yuval Atzmon. Training-free consistent text-to-image generation. TOG, 43(4):1–18, 2024. 1, 2, 3, 4, 5, 7, 8, 12, 13, 14 [62] Chao Tong, Richard Roberts, Rita Borgo, Sean Walton, Robert S Laramee, Kodzo Wegba, Aidong Lu, Yun Wang, Huamin Qu, Qiong Luo, et al. Storytelling and visualization: An extended survey. Information, 9(3):65, 2018. 1 [63] Jiahao Wang, Caixia Yan, Haonan Lin, Weizhan Zhang, Mengmeng Wang, Tieliang Gong, Guang Dai, and Hao Sun. OneActor: Consistent subject generation via clusterconditioned guidance. NeurIPS, 37:21502–21536, 2025. 2 [64] Wenjing Wang, Huan Yang, Zixi Tuo, Huiguo He, Junchen Zhu, Jianlong Fu, and Jiaying Liu. Videofactory: Swap attention in spatiotemporal diffusions for text-to-video generation. arXiv preprint arXiv:2305.10874, 2023. 2 [65] Xierui Wang, Siming Fu, Qihan Huang, Wanggui He, and Hao Jiang. MS-Diffusion: Multi-subject zero-shot image personalization with layout guidance. In ICLR, 2025. 3, 5, 7, 8, 13, 14, 17, 18 [66] Yibin Wang, Weizhong Zhang, Jianwei Zheng, and Cheng Jin. High-fidelity person-centric subject-to-image synthesis. In CVPR, pages 7675–7684, 2024. 3 [67] Hu Ye, Jun Zhang, Sibo Liu, Xiao Han, and Wei Yang. IPAdapter: Text compatible image prompt adapter for text-toimage diffusion models. arXiv preprint arXiv:2308.06721, 2023. 3 [68] Runyi Yu, Zhennan Wang, Yinhuai Wang, Kehan Li, Chang Liu, Haoyi Duan, Xiangyang Ji, and Jie Chen. LaPE: Layeradaptive position embedding for vision transformers with independent layer normalization. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 5886–5896, 2023. 6 [69] Yu Zeng, Vishal M Patel, Haochen Wang, Xun Huang, TingChun Wang, Ming-Yu Liu, and Yogesh Balaji. Jedi: Jointimage diffusion models for finetuning-free personalized textto-image generation. In CVPR, pages 6786–6795, 2024. 3 [70] Lvmin Zhang, Anyi Rao, and Maneesh Agrawala. Adding conditional control to text-to-image diffusion models. In ICCV, pages 3836–3847, 2023. 3 [71] Yuxuan Zhang, Yiren Song, Jiaming Liu, Rui Wang, Jinpeng Yu, Hao Tang, Huaxia Li, Xu Tang, Yao Hu, Han Pan, et al. SSR-Encoder: Encoding selective subject representation for subject-driven generation. In CVPR, pages 8069–8078, 2024. 3
+[72] Yiming Zhang, Zhening Xing, Yanhong Zeng, Youqing Fang, and Kai Chen. Pia: Your personalized image animator via plug-and-play modules in text-to-image models. In CVPR, pages 7747–7756, 2024. 3 [73] Yupeng Zhou, Daquan Zhou, Ming-Ming Cheng, Jiashi Feng, and Qibin Hou. StoryDiffusion: Consistent self-attention
+for long-range image and video generation. NeurIPS, 37: 110315–110340, 2025. 1, 3, 4, 5, 7, 8, 12, 13, 14 [74] Zhengguang Zhou, Jing Li, Huaxia Li, Nemo Chen, and Xu Tang. StoryMaker: Towards holistic consistent characters in text-to-image generation. arXiv preprint arXiv:2409.12576, 2024. 3, 13, 18 [75] Chenyang Zhu, Kai Li, Yue Ma, Chunming He, and Li Xiu. MultiBooth: Towards generating all your concepts in an image from text. arXiv preprint arXiv:2404.14239, 2024. 2 [76] Junchen Zhu, Huan Yang, Huiguo He, Wenjing Wang, Zixi Tuo, Wen-Huang Cheng, Lianli Gao, Jingkuan Song, and Jianlong Fu. Moviefactory: Automatic movie creation from text using large generative models for language and images. In ACM MM, pages 9313–9319, 2023. 2
+
+
+Supplementary Material
+This supplementary material provides an extensive review of related works on story visualization, which leverages large story image datasets to enable models to generate sequential images, as detailed in Sec. A. The Isolation Attention and Reposition Attention mechanisms in our method are implemented using a masking mechanism, followed by previous works [4, 16, 61, 73]. Detailed implementation can be found in Sec. B. Finally, additional results and discussions are presented in Sec. C.
+A. Related Works of Story Visualization
+Early story visualization methods [5, 12, 41–43, 45, 49] initially relied on curated datasets, such as PororoSV [33] and FlintstonesSV [14]. For instance, Rahman et al. [49] proposed an innovative autoregressive diffusion-based framework, including a visual memory module that implicitly captures actor and background context across the generated frames. Similarly, Pan et al. [45] proposed an autoregressive diffusion model conditioned on historical captions and generated images, utilizing multimodal guidance from a CLIP [48] text encoder and a BLIP [31, 32] multimodal encoder to ensure coherent and relevant image generation. Further, Liu et al. [36] introduced the StorySalon dataset and achieved state-of-the-art results. However, these methods are significantly constrained by the limitations of existing datasets in terms of size and quality, which hampers their performance in open-domain tasks. In contrast, our training-free approach does not require additional datasets. By leveraging foundation models trained on extensive datasets (e.g., LAION-5B [55]), it is particularly well-suited for open-domain scenarios.
+B. Implementation Details
+B.1. Existing Attention Mechanism
+In popular diffusion models (e.g., SD [52], and SD-XL [47]), the attention mechanism within the U-Net network typically consists of a self-attention layer followed by a cross-attention layer. For clarity, the residual connections and layer count are omitted, and a standard attention layer can be formulated as follows,
+Oi = softmax (QiKi) · Vi, (9)
+where Ai represents the attention weights, and Oi denotes the output of the attention layer for the i-th image. Here, Q refers to the query features derived from spatial features, while K and V represent the Key and Value features. These K and V are obtained from spatial features in self-attention layers with specific projection matrices.
+Recent studies have shown that appearance information can be incorporated into the generation process by cascading [16, 61, 73] the K and V features from those references. We use the subscript ‘TGT’ to denote the features of the target image and the subscript ‘REF’ to represent the features from the reference image. Therefore, their attention can be calculated as follows,
+K+ = [K1
+REF ⊕ K 2
+REF ⊕ . . . ⊕ KN
+REF ⊕ KTGT], (10)
+V + = [V 1
+REF ⊕ V 2
+REF ⊕ . . . ⊕ V N
+REF ⊕ VTGT], (11)
+M + = [M 1 ⊕ M 2 ⊕ . . . ⊕ M N ⊕ 1], (12)
+O
+TGT = softmax QTGTK+ + log M + · V +, (13)
+where Mi is the subject mask for i-th subject, and ⊕ indicates the concatenation operation. However, these approaches failed to consider the intrinsic properties of the attention mechanism inherent to the diffusion model, i.e., multi-subject internal attraction and influence of position. To this end, we proposed Reposition Attention and Isolation Attention. Specifically, Isolation Attention focuses on eliminating internal attraction between different subjects. On the other hand, Reposition Attention aims to rescale and relocate the features to the optimal positions, ensuring the information in the attention mechanism can be effectively utilized.
+B.2. Isolation Attention
+Vanilla self-attention computes responses between every pair of tokens within the same image, resulting in the attention map. However, as discussed in the main paper, different subjects are attracted to each other in the self-attention layer. This attration may lead to subject fusion, where multiple subjects merge into a single entity, simultaneously exhibiting characteristics of both original subjects. To mitigate this attraction, each subject should not affect others during the vanilla forward process of the target image. We achieve this by masking mechanisms to ensure that each subject does not receive responses from the other subjects’ kv. Specifically, we apply masks to zero out the undesired attention map responses between different subjects. Assuming the masks for i-th subjects in the target image are mi, the final isolation attention mask for the target image (MTGT) can be obtained by iteratively multiplying the complement of the j-th mask with the i-th mask. Therefore, the M
+TGT can be calculated as follows,
+M
+TGT =
+Y
+F (mi) × F (1 − mj)T , i ̸= j. (14)
+The F (·) is a flattened operation, and the symbol Q indicates multiplication. Followed by previous works [4, 16, 61], the standard attention masking is adopted, which nullifies
+
+
+Table 6. Quantitative results of different backbone for our DreamStory on the DS-500 benchmark. In each backbone, the best consistency metrics (DC and D&C-DS) are highlighted in bold. Our IR-Diffusion method has achieved significant improvements in consistency across various backbones, demonstrating its generalizability and robustness.
+2-Subject 3-Subject
+AES↑ CLIP-T↑ DS↑ D&C-DS↑ AES↑ CLIP-T↑ DS↑ D&C-DS↑
+SDXL [47] 6.53 0.3823 0.4949 0.3116 6.56 0.3994 0.4548 0.1506
+SDXL [47] + Ours 6.58 0.3729 0.6224 0.4322 6.65 0.3816 0.5925 0.3210
+Playground [29] 6.66 0.3782 0.5773 0.4195 6.80 0.3884 0.5022 0.2026
+Playground [29] + Ours 6.64 0.3679 0.7518 0.6458 6.68 0.3736 0.6742 0.4095
+Kolors [60] 6.49 0.3744 0.5280 0.3776 6.55 0.3794 0.4966 0.1918
+Kolors [60] + Ours 6.45 0.3612 0.6834 0.5293 6.48 0.3681 0.6389 0.3147
+softmax’s logits by assigning corresponding scores to −∞. By replacing the all-ones mask (1) in Eq. (12) with the above M
+TGT, we can prevent internal attraction between different subjects by ensuring that each subject’s Q does not receive responses from the KV in other subject’ regions. So the final M + in the Eq. (12) can be re-formulated as follows,
+M + = [M1 ⊕ M2 ⊕ . . . ⊕ MN ⊕ MTGT], (15)
+It is essential to highlight that the key distinction between our proposed IA and the existing DreamStory method is the substitution of the all-ones matrix in Eq. (12) with our novel isolation matrix, MTGT in Eq. (14). This isolation matrix isolates internal multi-subject attractions, enabling independent subject generation and preventing the convergence of multiple subjects into one single entity. This adjustment ensures that each subject’s unique attributes are preserved, leading to more accurate and coherent results in the overall process.
+B.3. Reposition Attention
+As demonstrated in the main paper, self-attention tends to reference tokens in neighboring positions. Our Reposition Attention (RA) is designed to rescale and reposition the features of the reference subject to match the positions of the corresponding subjects in the target image. Assuming the repositioned KV features are denoted with a hat (Kˆ Vˆ ), the formulation of our Reposition Self-Attention is as follows,
+Kˆ + = [Kˆ 1
+REF ⊕ Kˆ 2
+REF ⊕ . . . ⊕ Kˆ N
+REF ⊕ KTGT], (16)
+Vˆ + = [Vˆ 1
+REF ⊕ Vˆ 2
+REF ⊕ . . . ⊕ Vˆ N
+REF ⊕ VTGT], (17)
+O
+TGT = softmax QTGTKˆ + + log M + · Vˆ +, (18)
+The Kˆi and Vˆi features will be rescaled and relocated before projection. Thus, the visual features from the reference images are relocated to corresponding subjects’ positions in target images, enhancing the utilization of these features.
+B.4. More Implementation Details
+A guidance scale of 7.0 [18] and the default scheduler with 50 inference steps [38] are used. All methods are evaluated
+on their respective generated images with a resolution of 1280 × 768 pixels. We also applied Masked Mutual SelfAttention (MMSA) and Masked Mutual Cross-Attention (MMCA) from DreamStory [16] for multi-subject consistent generation. Additionally, a 0.5 token dropout rate was used to increase the diversity of generated subject poses, followed by previous works [16, 61, 73]. To prevent inaccuracies in the number of generated masks, we set a maximum of 20 attempts for retry. This engineering trick averages 4.97 attempts for the 3-subject benchmark, accounting for approximately 15 seconds (22% of the total time). It is simple yet effective, ensuring accurate initial subject mask generation for fairer comparisons.
+C. Experiments
+C.1. Consistency Across Various Backbones
+To validate the generalizability and robustness of our method, we integrated it into three popular backbones, i.e., SDXL [47], Playground [29], and Kolors [60]. All the results are presented in Tab. 6. As shown in Tab. 6, significant improvements were observed across different backbones after incorporating our method. Among the tested backbones, Playground exhibited the highest performance, surpassing the others in both aesthetic and consistency metrics.
+C.2. More Generation Results
+C.2.1. More Results vs. SOTA Methods
+In this subsection, we provide additional results of IRDiffusion and other SOTA methods in Fig. 8 and Fig. 9. These results demonstrate that our IR-Diffusion achieves superior multi-subject consistency performance compared to other SOTA methods in open-domain scenarios. In Fig. 10, we present a comparison of 3-subject anime style generation between our IR-Diffusion and MSDiffusion [65]. Additionally, Fig. 11 presents comparisons involving both MS-Diffusion and StoryMaker [74] in 2subject scenarios. StoryMaker is excluded from the 3-subject comparisons in Fig. 10 due to its dataset limitation, which supports only the synthesis of one or two human faces.
+
+
+Our method demonstrates superior performance, producing more visually appealing and consistent results. Unlike MS-Diffusion and StoryMaker, which are constrained by their limited datasets (primarily featuring general subject photos), our approach excels in open-domain scenarios and consistently generates high-quality anime-style outputs. We also present more visual results of our IR-Diffusion with different styles in Fig. 12. These results show that our approach can consistently generate high-quality images in open-domain scenarios.
+C.2.2. More Results for Ablation Study
+More visual results of our ablation study are presented in Fig. 13 and Fig. 14. Fig. 13 illustrates generation results from different ablation configurations. The incorporation of Reposition Attention (RA) and Isolation Attention (IA) individually led to notable improvements in the consistency of the generated outputs. When both mechanisms were applied, our IR-Diffusion achieved superior multi-subject consistency, demonstrating the effectiveness of these attention mechanisms. Fig. 14 provides mutual attention heatmap visualizations, revealing significantly higher attention values for reference image features with IR-Diffusion. This highlights the improved utilization of reference image information and demonstrates how the RA mechanism enhances consistency by aligning subjects in the reference and target images. These results all prove the effectiveness of RA and IA in achieving superior consistency and quality in open-domain image generation.
+C.2.3. Efficiency Analysis
+We studied the runtime overhead and conducted our tests using an H800 GPU. The runtime cost of our IR-Diffusion and other methods are presented in Tab. 7. Compared to the baseline (DreamStory), IA and RA all introduce approximately 5s and 8s of additional computation time for 2Subject and 3-Subject scenarios, respectively. When applied together, the overhead increases to approximately 10s (45%) and 16s (57%), yet the total processing time remains within 1 minute, which is acceptable. In contrast, finetuning-based approaches such as MuDI require approximately 1.5 hours and 2 hours of finetuning per case for 2-Subject and 3-Subject scenarios, respectively. This highlights the efficiency advantage of our method.
+C.3. Limitations and Failure Cases
+Our method may experience performance degradation when the given mask is very small. This common limitation in masked-based methods is mainly due to the downsampling process in VAE [25] (↓ ×8) and U-Net [53] (↓ ×4), where small regions are compressed into just a few tokens, limiting the model’s ability to generate fine-grained details (cat in the
+Table 7. Average time Consumption on different methods. It includes the time for generating reference subjects and the final scene. Additionally, MUDI requires extra fine-tuning time for each case.
+2-Subject 3-Subject
+MuDI [23] 5400s 7200s
+MS-Diffusion [65] 10s 13s
+ConsiStory [61] 30s 38s
+StoryDiffusion [73] 21s 25s
+DreamStory [16] 22s 28s
+IR-Diffusion (Ours) 32s 44s
+Subject Mask
+A jolly plump chef, a futuristic astronaut with visor up, and an aristocratic white cat with monocle and bow tie gather around a steaming pot in a cozy, dimly-lit kitchen, sharing a curious glance.
+Ours
+A mischievous boy with a slingshot teams up with a golden dog holding a frisbee, both eagerly facing a portly chef in a white hat, who's playfully poised as if about to toss a pancake mid-air in a sunny park.
+Figure 7. Failure cases in scenarios with small subject masks.
+first row of Fig. 7), or even leading to target missing (boy in the second row of Fig. 7).
+
+
+Ours
+A futuristic astronaut, visor up, consults a holographic map alongside a distinguished man with a monocle and an aristocratic white cat, also wearing a monocle and bow tie, in a grand Victorian library filled with cosmic artefacts.
+StoryDiffusion MS-Diffusion MuDI ConsiStory DreamStory
+A distinguished man with a monocle stands in a lavish library, holding a book, while beside him a white cat with a blue collar lounges on a velvet cushion. Nearby, a bearded pirate with a wooden leg examines a globe.
+An elegant woman in a red evening gown stands beside a golden dog wearing a red superhero cape, while a pirate captain with an eye patch and a hook looms mysteriously in the background.
+A jolly plump chef with a stained apron is cooking, a Siamese cat lounges on a cookbook nearby, and a dapper bearded man checks his pocket watch, all in a cozy, sunlit kitchen.
+Figure 8. Comparisons of multi-subject consistency generation between our IR-Diffusion and other SOTA methods. The superior performance of our approach is evident from the more visually appealing and consistent results. Except for StoryDiffusion, which uses the portraits above it for reference, all other methods use the top portraits as a reference. Different subjects are indicated with different colors.
+
+
+Ours
+A young boy with glasses, an elegant woman in a red evening gown, and a bearded pirate with a wooden leg stand together on a vintage wooden ship deck overlooking a sunset sea.
+StoryDiffusion MS-Diffusion MuDI ConsiStory DreamStory
+A Siamese cat lounges on an open book, next to a bearded pirate with a wooden leg, while a golden dog in a red superhero cape sits proudly beside them, all positioned on a wooden ship deck under clear blue skies.
+A mischievous boy with a slingshot, a distinguished man with a monocle, and a bearded pirate with a wooden leg, gather around an old treasure map spread on a wooden table under a flickering lantern light.
+A jolly plump chef, a bearded pirate with a wooden leg, and an aristocratic white cat with a monocle and bow tie gather around a rustic wooden table, sharing a map and plotting a treasure hunt.
+Figure 9. Comparisons of multi-subject consistency generation between our IR-Diffusion and other SOTA methods. The superior performance of our approach is evident from the more visually appealing and consistent results. Except for StoryDiffusion, which uses the portraits above it for reference, all other methods use the top portraits as a reference. Different subjects are indicated with different colors.
+
+
+Ours MS-Diffusion
+A distinguished man with a monocle and a bearded pirate with a wooden leg play chess, while an aristocratic white cat wearing a monocle and bow tie watches intently from atop the richly decorated game table.
+A jovial plump chef, a dapper bearded man with a pocket watch, and a pirate captain with an eye patch and hook, all stand around a rustic wooden table merrily planning a treasure hunt map.
+A Siamese cat lounges atop an open book, beside an elegant woman in a flowing red evening gown. Nearby, a golden dog wearing a red superhero cape looks on, its tail wagging.
+A jolly plump chef, a futuristic astronaut with visor up, and an aristocratic white cat with monocle and bow tie gather around a steaming pot in a cozy, dimly-lit kitchen, sharing a curious glance.
+Reference images
+Figure 10. Comparisons of anime style generation between our IR-Diffusion and MS-Diffusion [65]. The superior performance of our approach is evident from the more visually appealing and consistent results in the anime-style generation. While MS-Diffusion is limited by its dataset and unsuitable for open-domain applications, our method excels in generating consistent and high-quality anime styles. Different subjects are indicated with different colors.
+
+
+Ours MS-Diffusion
+Reference images StoryMaker
+A jolly plump chef and a bearded pirate with a wooden leg sharing a hearty meal on the deck of a ship.
+A distinguished man with a monocle and a pirate captain with an eye patch and a hook stand facing each other on a wooden ship deck, tension palpable in the salty sea air.
+A dapper man with a beard and pocket watch converses animatedly with an ancient wizard holding a wand, in a dimly lit, book-lined study filled with magical artifacts and glowing potions.
+A futuristic astronaut with their visor up stands beside a pirate captain with an eye patch and a hook, both gazing at a starry sky.
+A young boy with glasses eagerly watches a portly chef with a white hat decorate a towering chocolate cake in a brightly lit, cozy kitchen.
+Figure 11. Comparisons of anime style generation between our IR-Diffusion, MS-Diffusion [65] and StoryMaker [74]. The superior performance of our approach is evident from the more visually appealing and consistent results in the anime-style generation. While MS-Diffusion and StoryMaker are limited by their datasets and unsuitable for open-domain applications, our method excels in generating consistent and high-quality anime styles. Different subjects are indicated with different colors.
+
+
+Ours
+Reference images Ours
+Reference images
+Figure 12. Generated images from our IR-Diffusion. Real-style images are displayed on the left, and anime-style images on the right. Each row corresponds to the same case across different styles. The results demonstrate the superior performance and versatility of our approach in generating high-quality images in open-domain scenarios.
+
+
+Ours w/ IA w/ RA Baseline
+A jolly plump chef, a distinguished man with a monocle, and an elegant woman in a red evening gown clink glasses over a gourmet meal in a lavish dining room.
+A mischievous boy with a slingshot teams up with a one-legged bearded pirate, plotting their next prank. Nearby, a Siamese cat lounges atop a dusty treasure map, indifferent to the chaos around it.
+In a bustling kitchen, a jolly plump chef laughs as a mischievous boy with a slingshot playfully aims at an aristocratic white cat wearing a monocle and bow tie, who sits elegantly on a polished countertop.
+A young boy with glasses reads a comic book in a sunlit park, beside him an aristocratic white cat with a monocle and bow tie, and a golden dog wearing a red superhero cape, both attentively looking at the book.
+Figure 13. Ablation studies of different generation results. All methods use the top portraits as a reference. Different subjects are indicated with different colors. The consistency of the generated outputs improved significantly with the individual incorporation of Reposition Attention (RA) and Isolation Attention (IA). When both RA and IA were applied, our IR-Diffusion achieved superior multi-subject consistency, demonstrating the effectiveness of IA and RA.
+
+
+A dapper man with a beard and pocket watch converses animatedly with an ancient wizard holding a wand, in a dimly lit, book-lined study filled with magical artifacts and glowing potions.
+Baseline
+Ours
+Baseline
+Ours
+A mischievous boy with a slingshot teams up with a golden dog wearing a red superhero cape, both poised for action in a lush, sunlit meadow.
+(a)
+(b)
+Generated Image Attention Heatmap Attention Heatmap
+Generated Image Attention Heatmap Attention Heatmap
+Figure 14. Mutual attention heatmap visualization for the ablation study. With the integration of our IR-Diffusion, reference image features exhibit significantly higher attention values, demonstrating enhanced utilization of reference image information. These results highlight the effectiveness of the Reposition Attention (RA) mechanism in improving consistency by aligning subjects between reference and target images.

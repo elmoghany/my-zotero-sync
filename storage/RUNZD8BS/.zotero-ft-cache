@@ -1,0 +1,279 @@
+ToonCrafter: Generative Cartoon Interpolation
+JINBO XING, The Chinese University of Hong Kong, China HANYUAN LIU, City University of Hong Kong, China MENGHAN XIA∗, Tencent AI Lab, China YONG ZHANG, Tencent AI Lab, China XINTAO WANG, Tencent AI Lab, China YING SHAN, Tencent AI Lab, China TIEN-TSIN WONG∗, The Chinese University of Hong Kong, China and Monash University, Australia
+Input Traditional synthesis interpolation (EISAI) Our generative interpolation
+Fig. 1. Given an input pair of cartoon keyframes, our method generates interpolated frames with intricate motions, e.g., walking (top) and blinking (middle), and lifelike physical phenomena, e.g., moving flame and its corresponding reflections (bottom). The input images are from ATD-12K dataset.
+We introduce ToonCrafter, a novel approach that transcends traditional correspondence-based cartoon video interpolation, paving the way for generative interpolation. Traditional methods, that implicitly assume linear motion and the absence of complicated phenomena like dis-occlusion, often
+∗Co-corresponding authors: Menghan Xia and Tien-Tsin Wong.
+Authors’ Contact Information: Jinbo Xing, jbxing@cse.cuhk.edu.hk, The Chinese University of Hong Kong, Hong Kong, China; Hanyuan Liu, hy.liu@cityu.edu.hk, City University of Hong Kong, Hong Kong, China; Menghan Xia, Tencent AI Lab, Shenzhen, China, menghanxyz@gmail.com; Yong Zhang, Tencent AI Lab, Shenzhen, China, zhangyong201303@gmail.com; Xintao Wang, Tencent AI Lab, Shenzhen, China, xintao.alpha@gmail.com; Ying Shan, Tencent AI Lab, Shenzhen, China, yingsshan@tencent.com; Tien-Tsin Wong, The Chinese University of Hong Kong, China and Monash University, Melbourne, Australia, TT.Wong@monash.edu.
+Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. © 2024 Copyright held by the owner/author(s). Publication rights licensed to ACM. ACM 1557-7368/2024/12-ART245 https://doi.org/10.1145/3687761
+struggle with the exaggerated non-linear and large motions with occlusion commonly found in cartoons, resulting in implausible or even failed interpolation results. To overcome these limitations, we explore the potential of adapting live-action video priors to better suit cartoon interpolation within a generative framework. ToonCrafter effectively addresses the challenges faced when applying live-action video motion priors to generative cartoon interpolation. First, we design a toon rectification learning strategy that seamlessly adapts live-action video priors to the cartoon domain, resolving the domain gap and content leakage issues. Next, we introduce a dual-reference-based 3D decoder to compensate for lost details due to the highly compressed latent prior spaces, ensuring the preservation of fine details in interpolation results. Finally, we design a flexible sketch encoder that empowers users with interactive control over the interpolation results. Experimental results demonstrate that our proposed method not only produces visually convincing and more natural dynamics, but also effectively handles dis-occlusion. The comparative evaluation demonstrates the notable superiority of our approach over existing competitors. Code and model weights are available at https://doubiiu.github.io/projects/ToonCrafter
+CCS Concepts: • Computing methodologies → Computer vision;
+Additional Key Words and Phrases: Cartoon interpolation, generative models
+ACM Trans. Graph., Vol. 43, No. 6, Article 245. Publication date: December 2024.
+
+
+245:2 • Jinbo Xing, Hanyuan Liu, Menghan Xia, Yong Zhang, Xintao Wang, Ying Shan, and Tien-Tsin Wong
+ACM Reference Format:
+Jinbo Xing, Hanyuan Liu, Menghan Xia, Yong Zhang, Xintao Wang, Ying Shan, and Tien-Tsin Wong. 2024. ToonCrafter: Generative Cartoon Interpolation. ACM Trans. Graph. 43, 6, Article 245 (December 2024), 11 pages. https://doi.org/10.1145/3687761
+1 Introduction
+While cartoon animation is a popular medium and art form, its production remains labor-intensive due to its frame-by-frame manual drawing nature. Recent live-action video frame interpolation methods [Bao et al. 2019; Reda et al. 2022] can automate the production to certain degrees, but they are far from satisfactory for cartoon frame interpolation. The differences between cartoon animation and live-action video lie in two aspects, the frame “sparsity” and the texture richness. While live-action video frames can be densely acquired by camera, cartoon frames are temporally sparse (hence, large motion) due to the high drawing cost. Cartoons also feature large textureless color regions more frequently than live-action video. Both characteristics make cartoon frame interpolation much more challenging. Over the past few years, cartoon video interpolation [Chen and Zwicker 2022; Li et al. 2021b] has been significantly advanced by deep neural networks. However, these developments have primarily focused on linear interpolation by assuming the underlying motion is straightforward. Their general idea is first to identify correspondences between two frames, e.g. optical flow [Teed and Deng 2020], and then linearly interpolate the frames. Fig. 1(top) shows an example featuring a walking person, apparently linear interpolation can only generate a “drifting” person, instead of a correct walking sequence. Things get even more complicated in a dis-occlusion example in Fig. 1(middle). In other words, linear motion assumption is largely insufficient for interpolating obvious motions observed in our daily life. In this paper, we point out the importance of generative cartoon interpolation to synthesize frames of complex non-linear motions or phenomena, instead of purely relying on the information from the given frames. Recent advances in image-conditioned diffusion-based text-tovideo models [Chen et al. 2024; Xing et al. 2023] suggesting that these large-scale data trained models are capable to synthesize diverse and plausible videos from images. This motivates us to investigate the feasibility of leveraging the rich motion priors learned in these video models for our generative cartoon interpolation purposes Unfortunately, directly applying existing models to cartoon interpolation is unsatisfactory due to three factors. Firstly, there exists a domain gap as the models are mostly trained on live-action video content. Non-cartoon content may be accidentally synthesized. The model may also misunderstand the animation-domain content and fails to generate the appropriate motion. Secondly, to reduce the computational cost, current video diffusion models are based on highly compressed latent spaces [Chen et al. 2024; Rombach et al. 2022; Xing et al. 2023], resulting in significant loss of details and quality degradation. Such degradations are more apparent due to the high-contrast regions, the fine structural outline, and the lack of motion blur in cartoon animations. Lastly, the generative models can be somewhat random and lack of control. An effective control over the generated motion is necessary for cartoon interpolation.
+In this paper, we propose an effective and controllable generative framework, ToonCrafter, to adapt the pre-trained video diffusion model, and address the three challenges above. ToonCrafter consists of three functional techniques: toon rectification learning, detail injection and propagation in decoding, and sketch-based controllable generation. Specifically, the toon rectification learning strategy involves the meticulous fine-tuning of the spatial-related context understanding and content generation layers of the underlying image-conditioned video generation model on collected cartoon data. This approach offers an accurate context understanding and preserves the rich motion prior while adapting them to the cartoon animation domain. To tackle the detail loss and quality degradation issue, we introduce a dual-reference-based 3D decoder, i.e., a 3D VAEdecoder in latent diffusion model [Rombach et al. 2022] conditioned on two input frames, featuring a hybrid-attention-residual-learning mechanism, to convert lossy frame latents back to pixel space. It injects the detail information from two input images into the generated frame latents using a cross-attention mechanism in shallow decoding layers and residual learning in deeper layers, considering computational cost burden. Furthermore, beyond the conventional 2D convolutional layers, the decoder is equipped with 1D temporal convolutions to form pseudo-3D convolutions [Qiu et al. 2017]. This design facilitates propagation and improves temporal coherence. Lastly, we propose a frame-independent sketch encoder that enables users to flexibly and interactively create or modify interpolation results using temporally sparse or dense motion structure guidance, i.e., varying numbers of sketch images as input. As demonstrated in Fig. 1, our ToonCrafter can generate high-quality intermediate frames even in extremely challenging cases with large non-linear motions and dis-occlusions. It also allows users to effectively control the generated motion via sparse sketch input. We conducted extensive experiments to evaluate the proposed ToonCrafter, which demonstrated considerable superiority over existing competitors. Our contributions are summarized below:
+• We point out the notion of generative cartoon interpolation and introduce an innovative solution by leveraging live-action video prior. It significantly outperforms existing competitors. • We present a toon rectification learning strategy that effectively adapts live-action motion prior to the animation domain. • We propose a dual-reference-based 3D decoder to compensate for the lost details resulting from compressed latent space. • Our system enables users to interactively create or modify interpolation results in a flexible and controllable fashion.
+2 Related Work 2.1 Video Frame Interpolation
+Video frame interpolation aims at synthesizing multiple frames in between two adjacent frames of the original video, which has been widely studied in recent years. Existing works using deep learning fall into three categories, including phase-based [Meyer et al. 2018, 2015], kernel-based [Danier et al. 2024; Jain et al. 2024; Niklaus et al. 2017a,b; Zhang et al. 2023c], and optical/feature flow-based methods [Bao et al. 2019; Huang et al. 2022; Jiang et al. 2018; Niklaus and Liu 2020; Reda et al. 2022; Wu et al. 2024; Xing et al. 2021; Xu
+ACM Trans. Graph., Vol. 43, No. 6, Article 245. Publication date: December 2024.
+
+
+ToonCrafter: Generative Cartoon Interpolation • 245:3
+et al. 2019]. The most recent state-of-the-art has seen more optical flow-based methods, benefited from the latest advancements in flow estimation [Luo et al. 2024; Teed and Deng 2020]. The typical approach first identifies the correspondence between two frames using flow, and then performs warping [Glasbey and Mardia 1998] and fusion. Readers are recommended to refer to [Dong et al. 2023] for a comprehensive survey. Although these methods achieve great success in interpolating live-action videos, they usually fail to handle the large non-linear motion and textureless regions of cartoons. Existing works tackle part of the above challenges. Zhu et al. [2016] formulate the cartoon region correspondence as a network flow optimization problem. AnimeInterp [Li et al. 2021b] introduces a segment-guided matching module based on color piece matching, boosting correspondence identification. Furthermore, EISAI [Chen and Zwicker 2022] is presented to improve perceptual quality by removing aberrations from solid-color regions using domain-specific perceptual losses. Most recently, Li et al. [2021a] introduced intermediate sketch guidance to address the large motion issues, which, however, is typically not always available due to the necessity of hand drawing. Although these methods advance cartoon video interpolation significantly, they rely on the explicit identification of correspondences, as well as the linear or straightfoward motion assumption. They fail to model complex non-linear motion or disocclusion phenomena in cartoon. In contrast, we address these with a new paradigm of generative cartoon interpolation, leveraging the rich live-action video generation prior.
+2.2 Image-conditioned Video Diffusion Models
+Recently, there have been substantial efforts in training large-scale text-to-video (T2V) models [Blattmann et al. 2023b; He et al. 2022; Ho et al. 2022; Liu et al. 2023a; Singer et al. 2023; Wang et al. 2024b; Xing et al. 2024] on large-scale datasets using diffusion models (DMs) [Ho et al. 2020]. Moreover, introducing additional image conditions to these T2V models is well-studied for image-to-video (I2V) synthesis [Blattmann et al. 2023a; Gal et al. 2024; Gu et al. 2024; Wang et al. 2024a; Xing et al. 2023; Zhang et al. 2023b]. Specifically, SEINE [Chen et al. 2024] is firstly proposed to produce creative transition video segments to connect two different scenes by concatenating two input frames with noisy video latents as input to the diffusion UNet. Similarly, single-image-to-video diffusion models, such as DynamiCrafter [Xing et al. 2023], SparseCtrl [Guo et al. 2023], and PixelDance [Zeng et al. 2024] also exhibit their extensibility for downstream applications of video interpolation/transition by either concatenating two input frames with noisy frame latents [Xing et al. 2023; Zeng et al. 2024] or using an auxiliary frame encoder [Guo et al. 2023], akin to ControlNet [Zhang et al. 2023a], respectively. Unfortunately, they are not stable and usable when applying to toon interpolation due to the unique challenges in cartoon. In this paper, we aim to leverage the rich motion-generative prior in I2V diffusion models learned from live-action videos and adapt it for generative cartoon interpolation.
+3 Method
+Our generative cartoon interpolation framework is built upon the open-sourced DynamiCrafter interpolation model [Xing et al. 2023],
+zT z0
+D
+Image Context Projector
+Sketch Encoder
+Optional
+Sec. 3.4
+x1
+P
+Generator
+Sec. 3.3
+Spatial Layers
+Temporal Layers (frozen)
+D
+Detail-injected Decoder
+S
+s
+xL
+xො
+Fig. 2. Overview of the proposed ToonCrafter. Given two cartoon images x1 and xL, ToonCrafter leverages the image-to-video generative diffusion model as a generator to generate intermediate frame latents z0. These latents are subsequently decoded into pixel space through the proposed detail-injected decoder with x1 and xL as detail guidance. Optionally, the interpolation can be controlled with sparse sketch guidance. ©B&T.
+a state-of-the-art image-to-video generative diffusion model that demonstrates robust motion understanding for live-action interpolation but falls short when applied to cartoon animations. As shown in Fig. 2, our framework shares a similar structure to the base model but incorporates three key improvements for generative cartoon interpolation: (1) a meticulously designed toon rectification learning strategy for effective domain adaptation, (2) a novel dual-reference 3D decoder D to tackle the visual degradation due to the lossy latent space, and (3) a frame-independent sketch encoder S that enables the user control over the interpolation.
+3.1 Preliminary
+Diffusion models [Ho et al. 2020; Sohl-Dickstein et al. 2015] are score-based generative models that transform data x0 ∼ pdata (x) into Gaussian noise xT ∼ N (0, I) via a forward diffusion process and learn to reverse it through denoising. The forward process q(xt |x0, t) has T timesteps, progressively adding noise to the data sample x0 to produce xt using a parameterization trick. The denoising process pθ (xt −1|xt , t) retrieves less noisy data xt −1 from the noisy input xt via a denoising network εθ (xt , t), with the objective:
+min
+θ
+E
+t,x∼pdata,ε∼N (0,I) ∥ε − εθ (xt , t ) ∥2
+2, (1)
+where θ denotes learnable network parameters and ε represents the sampled ground truth noise. After training, denoised data x0 can be obtained from random noise xT via iterative denoising. In the video generation realm, Latent Diffusion Models (LDMs) [Rombach et al. 2022] are widely employed to reduce computational complexity. In this work, we base our study on an image-to-video generation LDM, DynamiCrafter [Xing et al. 2023]. Given a video x ∈ RL×3×H ×W , we first encode it into a latent representation z = E (x), z ∈ RL×C×h×w on a frame-by-frame basis. Next, both the forward diffusion process zt = p (z0, t) and backward denoising process zt = pθ (zt −1, c, t) are executed in this latent space, where c represents the denoising conditions such as text ctxt and image prompts cimg. Following the description in DynamiCrafter, the interpolation application is realized by providing both starting and ending frames x1 and xL while leaving middle frames as empty for
+ACM Trans. Graph., Vol. 43, No. 6, Article 245. Publication date: December 2024.
+
+
+245:4 • Jinbo Xing, Hanyuan Liu, Menghan Xia, Yong Zhang, Xintao Wang, Ying Shan, and Tien-Tsin Wong
+cimg. Then, the objective is:
+min
+θ
+EE (x),t,ε∼N (0,I)
+h
+∥ε − εθ zt ; cimg, ctxt, t, f ps ∥2
+2
+i
+, (2)
+where f ps is the FPS control introduced in [Xing et al. 2023]. The generated videos are then obtained through the decoder xˆ = D (z0).
+3.2 Toon Rectification Learning
+Cartoon and live-action videos exhibit a domain gap due to factors such as distinct visual styles, exaggerated expressions, and simplified textures. This domain gap poses challenges to applying existing video generative prior models (mainly trained on live-action videos) to cartoon animations. Some potential issues include the unintentional synthesis of non-cartoon content (Fig. 6-I), as well as the model’s inability to accurately comprehend animation content, leading to the generation of inappropriate motion. To address this, we first collect a cartoon video dataset and then adapt the motion prior model to the cartoon domain by meticulously designed fine-tuning.
+Cartoon Video Dataset Construction. We collect a series of raw cartoon videos and then manually select high-quality ones based on the bit rate, resolution, and subjective quality. These videos are sourced from Western (~18%), Chinese (~5%), and Japanese cartoons (~75%). The majority are in 2D style, with only a small portion being 3D-rendered. The total duration of the selected videos is 500+ hours. The collected videos are with high resolutions of 1920×1080 or 1280×720. We employ PySceneDetect [2023] to detect and split shots, using a union set of predictions from AdaptiveDetector and ContentAdapter. The static shots are filtered out by removing any videos with low average optical flow [Teed and Deng 2020] magnitude computed from 24 uniformly sampled frames (θ =0.1). Moreover, we apply optical character recognition (CRAFT) [Baek et al. 2019] to weed out clips containing large amounts of text. Specifically, we annotate the start, middle, and end frames of each clip and filter out all clips with a total area of detected text bounding box larger than 10%. In addition, we adopt LAION [Schuhmann et al. 2021] regressive model to calculate the aesthetic score for removing the low-aesthetic samples to ensure overall video quality (θ =4.0). Next, we annotate each clip with the synthetic captioning method BLIP-2 [Li et al. 2023]. Lastly, we annotate the first, middle, and last frames of each video clip with pre-trained CLIP ViT-L/14 [Radford et al. 2021] from which we measure the text-video alignment using cosine-similarity between the extracted text and frame embeddings, to filter out mismatched samples (θ =0.17). In the end, we obtained 271K cartoon video clips. The video lengths have a mean of 98 frames, a standard deviation of 61 frames, a minimum of 32 frames, and a maximum of 439 frames, almost all at 24 fps. They were randomly split into two sets. The training set contains 270K clips, while the evaluation set contains 1K clips.
+Rectification Learning. With the collected cartoon text-video data, we can then adapt the DynamiCrafter interpolation model (DCinterp) trained on live-action videos for cartoon interpolation. However, directly fine-tuning the denoising network of DCinterp on our data would lead to catastrophic forgetting due to unbalanced scale between our cartoon video data (270K video clips) and the original training data of DCinterp (WebVid-10M [Bain et al. 2021],
+Q
+Crossattention
+...
+K
+V
+Pseudo3D
+ResBlock xො1 xොL
+xො2 ...
+Upsample
+Deep Layers
+Shallow Layers
+Basic Block ×2
+...
+...
+z1 z2 zL
+×3
+{Fs1, FsL}
+Fd1
+FdL
+Fig. 3. Illustration of the detail-injected 3D decoder. Given frame latents z as input, we inject the intermediate features of input images x1 and xL from encoder E through cross-attention in shallow layers, while via residual learning, i.e., addition to features of 1-st and L-th frame in deep layers. ©B&T.
+10M), which deteriorates motion prior, as evidenced in Sec. 4.5. One straightforward solution is to expand our training set by orchestrated allocation of the original training data of DCinterp and our fine-tuning data, but this approach would require significantly more training compute. To address this issue, we design an efficient rectification learning strategy that allows for fine-tuning the base model using only a small-scale cartoon dataset without compromising the robust motion prior obtained from the large-scale live-action video datasets. The DCinterp model consists of three key components: an imagecontext projector, the spatial layers (sharing the same architecture as StableDiffusion v2.1), and the temporal layers. Based on our experiments in Sec. 4.5, we have the following observations: the image-context projector helps the DCinterp model to digest the context of the input frames; the spatial layers are responsible for learning the appearance distribution of video frames; the temporal layers capture the motion dynamics between the video frames. In other words, the temporal layers should be frozen during the fine-tuning to preserve the real-world motion prior as illustrated in Fig. 2. On the other hand, the image-context projector can be finetuned to achieve better semantic alignment and allow the model to digest the cartoon scene context better. Simultaneously, spatial layers should also be tuned for appearance rectification, thereby preventing the generation of live-action video content in the intermediate frames. Even though the cartoon animation might exhibit motions (not as rigid as possible for cases) that are slightly different from the real-world motions, the high-level motion concepts are still the same (otherwise, human viewers cannot recognize what the motion is), making the appearance the dominant factor in domain adaptation for cartoon animation. In summary, our toon rectification learning strategy focuses on the appearance by freezing the temporal layers (to preserve the real-world motion prior) and finetuning the image-context projector and spatial layers with only our collected cartoon data to achieve effective domain adaptation.
+ACM Trans. Graph., Vol. 43, No. 6, Article 245. Publication date: December 2024.
+
+
+ToonCrafter: Generative Cartoon Interpolation • 245:5
+3.3 Detail Injection and Propagation in Decoding
+Most of the current video diffusion models [Blattmann et al. 2023b; Wang et al. 2024a], including DynamiCrafter [Xing et al. 2023] we built upon, learn to generate the videos in highly compressed latent spaces [Rombach et al. 2022], which are typically obtained through vector quantized auto-encoding (VQ-VAE) [Esser et al. 2021]. The latent video diffusion paradigm effectively reduces computational demand. However, it results in a significant loss of details and intolerable quality degradation including flickering and distortion artifacts. Unfortunately, such degradations are more apparent in cartoon animation due to its typical appearance of high-contrast regions, fine structural outline, and the lack of motion blur (motion blur in live-action video effectively “hides” the degradation). Consequently, directly applying the latent video diffusion model for cartoon interpolation could lead to unacceptable results, as the structure and texture are highly likely to contain artifacts and be inconsistent with the original input frames (4-th row in Fig. 8). While several solutions try to improve the decoding quality, they either require perfectly-aligned references [Liu et al. 2023b; Parmar et al. 2024] or only work for single frame generation [Danier et al. 2024], or sacrifice high-frequency components in the results [Blattmann et al. 2023a]. To address this issue, we propose to exploit the existing information from the input frames and introduce a dual-reference-based 3D decoder to propagate the pixel-level details from the two input frames to the decoding process of the generated lossy-space frame latents. Rather than relying solely on the decoder D to recover the compressed details, we firstly extract the inner features {FK
+i } at each residual block of E (where i represents the i-th residual block from the end in the encoder and K indicates the K-th frame), and then inject them into the decoding process. This provides the necessary hints for achieving pixel-perfect compensation. Specifically, we propose a hybrid-attention-residual-learning mechanism (HAR) to inject and propagate details. As shown in Fig. 3, we introduce crossframe-attention in D to inject the intricate details from {F1
+i }i ∈s and {FL
+i }i ∈s to decoder’s intermediate features Gin:
+G
+j
+out = Softmax( QK⊤
+√
+d
+)V + Gj
+in, j ∈ 1...L (3)
+where Q = Gj
+inWQ, K = [F1
+i ; FL
+i ]WK, V = [F1
+i ; FL
+i ]WV, and [; ] denotes concatenation. Considering the computational cost of attention, we implement it only in the first two layers (i.e., shallow layers s = {1, 2}) of D. Since the input frame x1 and resultant ˆx1 are aligned in pixel-level, we add the ZeroConv [Zhang et al. 2023a] processed {F1
+i }i ∈d (ZeroConv processed {FL
+i }i ∈d ) to the corresponding feature maps of the first frame (the L-th frame),
+G1out = ZeroConv1×1 (F1
+i ) + G1
+in. (4)
+To avoid redundant computation, we implement this residual learning only at the deep layers (d = {3, 4, 5}) of D. In addition, we incorporate pseudo-3D convolutions (P3D) [Qiu et al. 2017] to further facilitate the propagation and improve the temporal coherence.
+Training. We freeze the image encoder E and optimize the proposed decoder D, which is initialized from the vanilla image decoder.
+Frame x! Frame x"
+Sketch-guidance s
+Fig. 4. Examples of different patterns of sketch-guidance: (top) bisection (
+n=1) and (bottom) random position. ©B&T.
+We use a compound loss L to encourage reconstruction:
+L = L1 + λp Lp + λd Ld, (5)
+where L1 is the MAE loss, Lp is a perceptual loss (LPIPS [Zhang et al. 2018]), Ld is a discriminator loss [Lim and Ye 2017], and λp = 0.1, λd is an adaptive weight following [Esser et al. 2021].
+3.4 Sketch-based Controllable Generation
+The generative nature of our framework enables nonlinear motion interpolation but unavoidably introduces variations in the generation results. While such variation is needed for some users, others may prefer better control over the frame interpolation. To make our framework more controllable for real-world production settings, we follow the industrial practices [Li et al. 2021a] and introduce sketch-based generation guidance. We propose a frame-independent sketch encoder S that enables users to control the generated motion using sparse sketch guidance. Built upon the adapter mechanism [Zhang et al. 2023a], our sketch encoder effectively converts our video diffusion model into a sketch-conditioned generative model. To reduce users’ drawing efforts and accommodate real-world usage, we design our sketch encoder module S that supports sparse inputs (Fig. 4) in which the users are not required to provide all sketch images for the target frames. To achieve this, we design S as a frame-wise adapter that learns to adjust the intermediate features of each frame independently based on the provided sketch: Fi
+inject = S(si, zi, t), where Fi
+inject is processed using the same strategy of ControlNet [Zhang et al. 2023a]. For the frames without sketch guidance, S takes an empty image as input: Fi
+inject = S (s∅, zi, t ). Using empty image inputs improves the learning dynamics of sketch encoder. If we simply omit the guidance for frames without sketch input, the back-propagated gradient is only from the frames with userprovided sketches, where the adapter could only learn to control the spatial contents of a certain frame but compromise the temporal consistency across the frame sequence.
+Training. We freeze the denoising network εθ and optimize the sketch encoder S only. S adopts a ControlNet-like network architecture, initialized from the pre-trained StableDiffusion v2.1. The training objective is:
+min
+θ
+EE (x),s,t,ε∼N (0,I)
+h
+∥ε − ε S
+θ zt ; cimg, ctxt, s′, t, f ps ∥2
+2
+i
+, (6)
+where ε S
+θ denotes the combination of εθ and S, s denotes sketches obtained from Anime2Sketch[Xiang et al. 2021] using original video
+ACM Trans. Graph., Vol. 43, No. 6, Article 245. Publication date: December 2024.
+
+
+245:6 • Jinbo Xing, Hanyuan Liu, Menghan Xia, Yong Zhang, Xintao Wang, Ying Shan, and Tien-Tsin Wong
+Table 1. Quantitative comparison with state-of-the-art video interpolation methods on the cartoon test set (1K).
+Metric AnimeInterp EISAI FILM SEINE Ours
+FVD ↓ 196.66 146.65 189.88 98.96 43.92 KVD ↓ 8.44 5.55 8.01 2.93 1.52
+LPIPS ↓ 0.1890 0.1729 0.1702 0.2519 0.1733 CLIPimg ↑ 0.8866 0.9083 0.9006 0.8531 0.9221 CLIPtxt ↑ 0.3069 0.3097 0.3083 0.2962 0.3129
+CPBD ↑ 0.5974 0.6413 0.6317 0.6630 0.6723
+frames, and s′ denotes selected sketches from s (illustrated in Fig. 4). To support typical patterns of user-provided sketch inputs, we design a bisection selection pattern (chosen 80% of the time) to select input sketches: for an interpolation segment (i, j), the sketch of ⌊
+i+j
+2 ⌋-th frame is selected; the selection is applied recursively (with
+the recursion depth n uniformly sampled from [1, 4]) from segment (1, L) to subdivided segments. This bisection selection pattern mimics real-world user behavior, where users provides sketches at equally-spaced interval. For the remaining 20%, we randomly select input sketches from s to maximize the generalization ability.
+4 Experiments 4.1 Implementation Details
+Our implementation is primarily based on the image-to-video model DynamiCrafter [Xing et al. 2023] (interpolation variant @512×320 resolution). In the toon rectification learning, we trained spatial layers and P with 50K steps on the learning rate (lr) of 1 × 10−5 and a mini-batch size (bs) of 32. Then, the sketch encoder was trained with 50K steps on the lr=5 × 10−5 and bs=32, based on the fine-tuned weights in toon rectification learning. We trained our dual-referencebased 3D decoder with 60K steps on the lr=4.5 × 10−6 and bs=16. Note that the training of 3D decoder (supervised by pixel-space reconstruction in Eq. 5) is independent of the training processes supervised by latent-space denoising in rectification and sketch encoder learning. Our ToonCrafter was trained on the collected cartoon video dataset by sampling 16 frames with dynamic FPS at the resolution of 512×320 in a batch. At inference, we adopt DDIM sampler [Song et al. 2021] with multi-condition classifier-free guidance [Ho and Salimans 2022], following [Xing et al. 2023] (i.e., guidance from both text and image).
+4.2 Quantitative Comparisons
+Metrics and datasets. To evaluate the quality and temporal motion dynamics of generated videos in both the spatial and temporal domains, we report Fréchet Video Distance (FVD) [Unterthiner et al. 2019] as well as Kernel Video Distance (KVD). In addition, we conduct image-level evaluation. Following [Chen and Zwicker 2022], we employ LPIPS [Zhang et al. 2018] to measure the perceptual similarity with the ground-truth videos. To evaluate the correctness of semantics in the generated video frames, we calculate cosine similarity between the CLIP [Radford et al. 2021] features of generated frames and the GT frames & text prompts, separately, and denote
+Table 2. User study statistics of the preference rate for Motion Quality (M.Q.), Temporal Coherence (T.C.), and Frame Fidelity (F.F.).
+Property AnimeInterp EISAI FILM SEINE Ours
+M.Q. ↑ 3.24% 6.94% 6.02% 14.81% 68.98% T.C. ↑ 6.94% 14.81% 13.43% 15.74% 49.07% F.F. ↑ 6.48% 11.57% 12.50% 18.06% 51.39%
+them as CLIPimg and CLIPtxt, respectively. We employ cumulative probability blur detection (CPBD) [Narvekar and Karam 2011] to evaluate sharpness. We evaluate these metrics on the 1K evaluation set of our cartoon video dataset (@512×320 with 16 frames). We compare our method against various representative stateof-the-arts: cartoon video interpolation methods (AnimeInterp [Li et al. 2021b] and EISAI [Chen and Zwicker 2022]), general video interpolation method for handling large motion (FILM [Reda et al. 2022]), and generative video transition (SEINE [Chen et al. 2024]), which are fine-tuned on our dataset for fair comparison. The quantitative results are presented in Table 1. According to the results, our proposed method significantly outperforms previous approaches in almost all metrics except for LPIPS. However, we argue that LPIPS is a full-reference metric and requires pixel-level alignment, which is less suitable in the generative context, as the ground-truth intermediate frames might not be the only correct answer, especially for ambiguous motions with multiple valid outcomes.
+4.3 Qualitative Comparisons
+The visual comparisons of representative interpolation results are shown in Fig. 5. Among all compared methods, our approach generates intermediate frames with non-linear plausible motions. In contrast, traditional correspondence-based methods (i.e., AnimeInterp, EISAI, and FILM) struggle to produce natural motions due to their failure to handle dis-occlusions (‘dissolving’ hands and arms in ‘man’ case of Fig. 5). These methods also struggle with synthesizing complex non-linear motions (morphing in ‘car’ case of Fig. 5). While SEINE can potentially generate videos exhibiting decent motions, it suffers from severe distortions in both structure and texture. More video results are provided in the Supplement for better comparisons (especially for physical phenomena).
+4.4 User Study
+We conduct a user study (detailed in the supplementary) to evaluate the perceptual quality of the results. The participants were asked to choose the best result in terms of motion quality, temporal coherence, and frame fidelity. The statistics from the responses of 24 participants are presented in Table 2. Our method demonstrates significant superiority over other competitors in all aspects.
+4.5 Ablation Study
+Toon rectification learning. We construct the following baselines to investigate the effectiveness of our domain adaptation strategy: (I) DCinterp: directly using the pre-trained backbone model (DCinterp [Xing et al. 2023]), (II) ft.ICP+UNet: fine-tuning the
+ACM Trans. Graph., Vol. 43, No. 6, Article 245. Publication date: December 2024.
+
+
+ToonCrafter: Generative Cartoon Interpolation • 245:7
+Input
+Input
+Ours SEINE FILM EISAI AnimeInterp Ours SEINE FILM EISAI AnimeInterp
+“man”
+“car”
+Fig. 5. Visual comparison of cartoon interpolation results from AnimeInterp, EISAI, FILM, SEINE, and our ToonCrafter. The inputs are from ATD-12K dataset.
+ACM Trans. Graph., Vol. 43, No. 6, Article 245. Publication date: December 2024.
+
+
+245:8 • Jinbo Xing, Hanyuan Liu, Menghan Xia, Yong Zhang, Xintao Wang, Ying Shan, and Tien-Tsin Wong
+Input
+IV ft.ICP+Spa (Ours)
+I DCinterp
+II ft.ICP+UNet
+III ft.ICP+Spa_bpt
+V ft.ICP
+Fig. 6. Visual comparison of the interpolation frames generated by variants with different rectification strategies.
+Table 3. Ablation study of different rectification learning strategies. ∗All these variants are evaluated without the proposed dual-reference-based 3D decoder to demonstrate the original performance of the denoising network.
+Variant∗ ICP Spa. Temp. Bypass Temp. FVD↓ CLIPimg↑
+I DCinterp 86.62 0.8637 II ft.ICP+UNet ✓ ✓ ✓ 70.73 0.8978 III ft.ICP+Spa_bpt ✓ ✓ ✓ 291.45 0.7997 IV ft.ICP+Spa (Ours) ✓ ✓ 52.73 0.9096 V ft.ICP ✓ 81.45 0.8875
+image-context projector (ICP) and entire denoising U-Net (Spatial+Temporal layers) of DCinterp, (III) ft.ICP+Spa_bpt: fine-tuning ICP and spatial layers while bypassing temporal layers in forwarding during training, (IV) ft.ICP+Spa (Ours): fine-tuning ICP and spatial layers while keeping temporal layers frozen, and (V) ft.ICP: fine-tuning only ICP. The quantitative comparison is shown in Table 3. DCInterp without any fine-tuning (I) shows decent quantitative results but suffers from unexpected generation of live-action content (2nd row in Fig. 6). While directly fine-tuning all layers (II) leads to adaption to the cartoon domain to some extent, it deteriorates the temporal prior, as evidenced by the inconsistency and sudden
+Input
+Input
+II ft.ICP+UNet
+IV ft.ICP+Spa (Ours)
+II ft.ICP+UNet
+IV ft.ICP+Spa (Ours)
+Fig. 7. Visual comparison of the interpolation frames generated by the rectification strategy variant II ft.ICP+UNet and our method ft.ICP+Spa.
+change of generated content (3rd row in Fig. 6). Moreover, simply bypassing temporal layers (III) in forwarding to preserve temporal prior leads to disastrous degradation due to mismatched distribution mapping. Comparing (I), (II), and (IV), we can observe the improved performance of both FVD and CLIPimg by fine-tuning ICP and spatial layers, while keeping temporal layers frozen, which enhances the adaptability to the cartoon domain and preserves learned motion prior, as further evidenced in Fig. 7. Our frozen temporal layers strategy (IV ft.ICP+Spa) demonstrates better temporal coherence than fine-tuning the entire model (II ft.ICP+UNet). The comparison between (I) and (V) shows fine-tuning ICP slightly improves semantic alignment for generating semantically correct content (higher CLIPimg), thanks to its better comprehension of cartoon context.
+Dual-reference-based 3D VAE decoder. We further evaluate the effectiveness of different modules in the proposed dual-referencebased 3D decoder. We first construct a variant by removing the pseudo-3D convolutions (P3D), denoted by Oursw/o P3D. Base on that, we then further remove the introduced hybrid-attention-residual (HAR) module to obtain the second variant Oursw/o HAR & P3D, which is exactly the image decoder used in most diffusion-based image/video generative models. We evaluate the our full method with the mentioned variant via video reconstruction task and report the evaluation results in Table 4. The performance of ‘Oursw/o P3D’
+ACM Trans. Graph., Vol. 43, No. 6, Article 245. Publication date: December 2024.
+
+
+ToonCrafter: Generative Cartoon Interpolation • 245:9
+Table 4. Quantitative comparison of reconstruction by different decoders on the 1K cartoon video evaluation set (256×256). HAR: Hybrid-attentionresidual. P3D: Pseudo-3D Convolution.
+Variant Ref. Temp. PSNR ↑ SSIM ↑ LPIPS ↓
+Ours ✓ ✓ 33.83 0.9450 0.0204 Oursw/o P3D ✓ ✗ 32.51 0.9270 0.0326 Oursw/o HAR & P3D ✗ ✗ 29.49 0.8670 0.0426
+Input Ours Oursw/o P3D Oursw/o HAR & P3D
+Fig. 8. Visual comparison of the reconstructed video frames produced by different decoder variants. Only the middle frames are shown above.
+declines due to the attenuation of propagation for injected reference information, leading to a loss of details (3rd column in Fig. 8). Furthermore, removing both HAR and P3D considerably impairs the performance, as shown in Table 4, since solely relying on the VAE decoder without reference fails to recover lost details in compressed latents (4th column in Fig. 8). In contrast, our full method effectively compensates for the lost details through the introduced dual-reference-based detail injection and propagation mechanism. Additionally, we show the comparison of reconstruction quality along frame sequences (average on the 1K test samples) in Fig. 10, which further highlights the effectiveness of our design.
+Sparse sketch guidance. To verify the design of our frame-independent sketch encoder, we construct a variant by training S with full conditions s (i.e., per-frame sketch guidance) and enable its sparse control by zeroing out Fi
+inject for frames without guidance during inference. We provide only the middle-frame sketch as sparse control and compare this ZeroGate variant with our FrameIn.Enc. (frameindependent encoder), as shown in Fig. 9. Although ‘ZeroGate’ can generate the middle frame adhering to the sketch guidance, it struggles to produce consistent content for other unguided frames. In contrast, our ‘FrameIn.Enc.’ not only generates middle frames with good conformity to the sketch, but also maintains temporal coherence across the generated sequence. We also present the generated results without sketch guidance (4th row in Fig. 9) using the same input cartoon images.
+5 Applications
+Cartoon sketch interpolation is more than challenging due to its extremely sparse structure without color and textures. Nonetheless,
+w/o sketch FrameIn.Enc. ZeroGate Input
+4th frame Middle frame 12th frame
+Fig. 9. Visual comparison of intermediate frames generated by different variants, with or without sparse sketch guidance (middle frame only).
+29
+30
+31
+32
+33
+34
+35
+PSNR
+Frame index
+2 15
+Ours Oursw/o P3D Oursw/o HAR & P3D
+Fig. 10. Comparison of reconstruction quality against the frame index.
+our ToonCrafter can still produce decent results (Fig. 11 top) on such unseen input, thanks to its powerful generalization capabilities. It can also support reference-based sketch colorization by providing 1 or 2 reference images and per-frame sketches. The visual results of these applications are presented in Fig. 11.
+6 Conclusion
+We introduced ToonCrafter, an innovative framework for the first attempt of generative cartoon interpolation. We propose the toon rectification learning to retain the live-action motion priors while overcoming the domain gap, and preserve the visual details through the dual-reference-based 3D decoder. To allow user control over the interpolation, we design a frame-independent sketch encoder. Both quantitative and qualitative experimental results evidence the effectiveness and superiority of our method compared to existing competitors. Lastly, we showcase the versatility of our approach across various applications.
+References
+PySceneDetect Authors. 2023. PySceneDetect. Accessed October.1, 2023, [Online]. https://github.com/Breakthrough/PySceneDetect Youngmin Baek, Bado Lee, Dongyoon Han, Sangdoo Yun, and Hwalsuk Lee. 2019. Character Region Awareness for Text Detection. In CVPR.
+ACM Trans. Graph., Vol. 43, No. 6, Article 245. Publication date: December 2024.
+
+
+245:10 • Jinbo Xing, Hanyuan Liu, Menghan Xia, Yong Zhang, Xintao Wang, Ying Shan, and Tien-Tsin Wong
+Input sketch Interpolation results Input sketch
+Input reference
+Colorization
+Input sketch
+Colorization
+Input sketch
+Colorization
+Input sketch
+Fig. 11. Results when our method is applied for: (upper row) cartoon sketch interpolation, and (middle and lower rows) reference-based sketch colorization. The inputs in sketch interpolation are from ATD-12K dataset.
+ACM Trans. Graph., Vol. 43, No. 6, Article 245. Publication date: December 2024.
+
+
+ToonCrafter: Generative Cartoon Interpolation • 245:11
+Max Bain, Arsha Nagrani, Gül Varol, and Andrew Zisserman. 2021. Frozen in time: A joint video and image encoder for end-to-end retrieval. In ICCV. Wenbo Bao, Wei-Sheng Lai, Chao Ma, Xiaoyun Zhang, Zhiyong Gao, and Ming-Hsuan Yang. 2019. Depth-aware video frame interpolation. In CVPR. Andreas Blattmann, Tim Dockhorn, Sumith Kulal, Daniel Mendelevitch, Maciej Kilian, Dominik Lorenz, Yam Levi, Zion English, Vikram Voleti, Adam Letts, et al. 2023a. Stable video diffusion: Scaling latent video diffusion models to large datasets. arXiv preprint arXiv:2311.15127 (2023).
+Andreas Blattmann, Robin Rombach, Huan Ling, Tim Dockhorn, Seung Wook Kim, Sanja Fidler, and Karsten Kreis. 2023b. Align your Latents: High-Resolution Video Synthesis with Latent Diffusion Models. In CVPR. Shuhong Chen and Matthias Zwicker. 2022. Improving the Perceptual Quality of 2D Animation Interpolation. In ECCV. Xinyuan Chen, Yaohui Wang, Lingjun Zhang, Shaobin Zhuang, Xin Ma, Jiashuo Yu, Yali Wang, Dahua Lin, Yu Qiao, and Ziwei Liu. 2024. Seine: Short-to-long video diffusion model for generative transition and prediction. In ICLR. Duolikun Danier, Fan Zhang, and David Bull. 2024. Ldmvfi: Video frame interpolation with latent diffusion models. In AAAI. Jiong Dong, Kaoru Ota, and Mianxiong Dong. 2023. Video frame interpolation: A comprehensive survey. ACM Transactions on Multimedia Computing, Communications and Applications 19, 2s (2023), 1–31. Patrick Esser, Robin Rombach, and Bjorn Ommer. 2021. Taming transformers for high-resolution image synthesis. In CVPR. Rinon Gal, Yael Vinker, Yuval Alaluf, Amit Bermano, Daniel Cohen-Or, Ariel Shamir, and Gal Chechik. 2024. Breathing Life Into Sketches Using Text-to-Video Priors. In CVPR.
+Chris A Glasbey and Kantilal Vardichand Mardia. 1998. A review of image-warping methods. Journal of applied statistics 25, 2 (1998), 155–171. Xianfan Gu, Chuan Wen, Weirui Ye, Jiaming Song, and Yang Gao. 2024. Seer: Language Instructed Video Prediction with Latent Diffusion Models. In ICLR. Yuwei Guo, Ceyuan Yang, Anyi Rao, Maneesh Agrawala, Dahua Lin, and Bo Dai. 2023. Sparsectrl: Adding sparse controls to text-to-video diffusion models. arXiv preprint arXiv:2311.16933 (2023).
+Yingqing He, Tianyu Yang, Yong Zhang, Ying Shan, and Qifeng Chen. 2022. Latent Video Diffusion Models for High-Fidelity Video Generation with Arbitrary Lengths. arXiv preprint arXiv:2211.13221 (2022).
+Jonathan Ho, William Chan, Chitwan Saharia, Jay Whang, Ruiqi Gao, Alexey Gritsenko, Diederik P Kingma, Ben Poole, Mohammad Norouzi, David J Fleet, et al. 2022. Imagen video: High definition video generation with diffusion models. arXiv preprint arXiv:2210.02303 (2022).
+Jonathan Ho, Ajay Jain, and Pieter Abbeel. 2020. Denoising diffusion probabilistic models. In NeurIPS. Jonathan Ho and Tim Salimans. 2022. Classifier-free diffusion guidance. arXiv preprint arXiv:2207.12598 (2022).
+Zhewei Huang, Tianyuan Zhang, Wen Heng, Boxin Shi, and Shuchang Zhou. 2022. Real-Time Intermediate Flow Estimation for Video Frame Interpolation. In ECCV. Siddhant Jain, Daniel Watson, Eric Tabellion, Ben Poole, Janne Kontkanen, et al. 2024. Video interpolation with diffusion models. In CVPR. Huaizu Jiang, Deqing Sun, Varun Jampani, Ming-Hsuan Yang, Erik Learned-Miller, and Jan Kautz. 2018. Super slomo: High quality estimation of multiple intermediate frames for video interpolation. In CVPR. Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. 2023. Blip-2: Bootstrapping language-image pre-training with frozen image encoders and large language models. In ICML.
+Siyao Li, Shiyu Zhao, Weijiang Yu, Wenxiu Sun, Dimitris Metaxas, Chen Change Loy, and Ziwei Liu. 2021b. Deep Animation Video Interpolation in the Wild. In CVPR. Xiaoyu Li, Bo Zhang, Jing Liao, and Pedro V Sander. 2021a. Deep sketch-guided cartoon video inbetweening. IEEE TVCG 28, 8 (2021), 2938–2952. Jae Hyun Lim and Jong Chul Ye. 2017. Geometric gan. arXiv preprint arXiv:1705.02894 (2017). Gongye Liu, Menghan Xia, Yong Zhang, Haoxin Chen, Jinbo Xing, Xintao Wang, Yujiu Yang, and Ying Shan. 2023a. Stylecrafter: Enhancing stylized text-to-video generation with style adapter. arXiv preprint arXiv:2312.00330 (2023). Hanyuan Liu, Minshan Xie, Jinbo Xing, Chengze Li, and Tien-Tsin Wong. 2023b. Video Colorization with Pre-trained Text-to-Image Diffusion Models. arXiv preprint arXiv:2306.01732 (2023).
+Ao Luo, Xin Li, Fan Yang, Jiangyu Liu, Haoqiang Fan, and Shuaicheng Liu. 2024. FlowDiffuser: Advancing Optical Flow Estimation with Diffusion Models. CVPR (2024). Simone Meyer, Abdelaziz Djelouah, Brian McWilliams, Alexander Sorkine-Hornung, Markus Gross, and Christopher Schroers. 2018. Phasenet for video frame interpolation. In CVPR. Simone Meyer, Oliver Wang, Henning Zimmer, Max Grosse, and Alexander SorkineHornung. 2015. Phase-based frame interpolation for video. In CVPR. Niranjan D Narvekar and Lina J Karam. 2011. A no-reference image blur metric based on the cumulative probability of blur detection (CPBD). IEEE TIP 20, 9 (2011), 2678–2683.
+Simon Niklaus and Feng Liu. 2020. Softmax splatting for video frame interpolation. In CVPR.
+Simon Niklaus, Long Mai, and Feng Liu. 2017a. Video frame interpolation via adaptive convolution. In CVPR. Simon Niklaus, Long Mai, and Feng Liu. 2017b. Video frame interpolation via adaptive separable convolution. In ICCV. Gaurav Parmar, Taesung Park, Srinivasa Narasimhan, and Jun-Yan Zhu. 2024. One-step image translation with text-to-image models. arXiv preprint arXiv:2403.12036 (2024). Zhaofan Qiu, Ting Yao, and Tao Mei. 2017. Learning spatio-temporal representation with pseudo-3d residual networks. In ICCV. Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. 2021. Learning transferable visual models from natural language supervision. In ICML. Fitsum Reda, Janne Kontkanen, Eric Tabellion, Deqing Sun, Caroline Pantofaru, and Brian Curless. 2022. Film: Frame interpolation for large motion. In ECCV. Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer. 2022. High-resolution image synthesis with latent diffusion models. In CVPR. Christoph Schuhmann, Richard Vencu, Romain Beaumont, Robert Kaczmarczyk, Clayton Mullis, Aarush Katta, Theo Coombes, Jenia Jitsev, and Aran Komatsuzaki. 2021. Laion-400m: Open dataset of clip-filtered 400 million image-text pairs. arXiv preprint arXiv:2111.02114 (2021).
+Uriel Singer, Adam Polyak, Thomas Hayes, Xi Yin, Jie An, Songyang Zhang, Qiyuan Hu, Harry Yang, Oron Ashual, Oran Gafni, et al. 2023. Make-a-video: Text-to-video generation without text-video data. In ICLR. Jascha Sohl-Dickstein, Eric A. Weiss, Niru Maheswaranathan, and Surya Ganguli. 2015. Deep Unsupervised Learning using Nonequilibrium Thermodynamics. In ICML. Jiaming Song, Chenlin Meng, and Stefano Ermon. 2021. Denoising diffusion implicit models. In ICLR. Zachary Teed and Jia Deng. 2020. Raft: Recurrent all-pairs field transforms for optical flow. In ECCV. Thomas Unterthiner, Sjoerd van Steenkiste, Karol Kurach, Raphaël Marinier, Marcin Michalski, and Sylvain Gelly. 2019. FVD: A new metric for video generation. In ICLR workshop.
+Xiang Wang, Hangjie Yuan, Shiwei Zhang, Dayou Chen, Jiuniu Wang, Yingya Zhang, Yujun Shen, Deli Zhao, and Jingren Zhou. 2024a. Videocomposer: Compositional video synthesis with motion controllability. In NeurIPS. Xiang Wang, Shiwei Zhang, Hang jie Yuan, Zhiwu Qing, Biao Gong, Yingya Zhang, Yujun Shen, Changxin Gao, and Nong Sang. 2024b. A Recipe for Scaling up Text-toVideo Generation with Text-free Videos. In CVPR. Guangyang Wu, Xin Tao, Changlin Li, Wenyi Wang, Xiaohong Liu, and Qingqing Zheng. 2024. Perception-Oriented Video Frame Interpolation via Asymmetric Blending. In CVPR.
+Xiaoyu Xiang, Ding Liu, Xiao Yang, Yiheng Zhu, and Xiaohui Shen. 2021. Anime2Sketch: A Sketch Extractor for Anime Arts with Deep Networks. https://github.com/ Mukosame/Anime2Sketch. Jinbo Xing, Wenbo Hu, Yuechen Zhang, and Tien-Tsin Wong. 2021. Flow-aware synthesis: A generic motion model for video frame interpolation. Computational Visual Media 7 (2021), 393–405. Jinbo Xing, Menghan Xia, Yuxin Liu, Yuechen Zhang, Y He, H Liu, H Chen, X Cun, X Wang, Y Shan, et al. 2024. Make-Your-Video: Customized Video Generation Using Textual and Structural Guidance. IEEE TVCG (2024). Jinbo Xing, Menghan Xia, Yong Zhang, Haoxin Chen, Wangbo Yu, Hanyuan Liu, Xintao Wang, Tien-Tsin Wong, and Ying Shan. 2023. DynamiCrafter: Animating Opendomain Images with Video Diffusion Priors. arXiv preprint arXiv:2310.12190 (2023). Xiangyu Xu, Li Siyao, Wenxiu Sun, Qian Yin, and Ming-Hsuan Yang. 2019. Quadratic video interpolation. Advances in Neural Information Processing Systems 32 (2019). Yan Zeng, Guoqiang Wei, Jiani Zheng, Jiaxin Zou, Yang Wei, Yuchen Zhang, and Hang Li. 2024. Make pixels dance: High-dynamic video generation. In CVPR. Guozhen Zhang, Yuhan Zhu, Haonan Wang, Youxin Chen, Gangshan Wu, and Limin Wang. 2023c. Extracting motion and appearance via inter-frame attention for efficient video frame interpolation. In CVPR. Lvmin Zhang, Anyi Rao, and Maneesh Agrawala. 2023a. Adding conditional control to text-to-image diffusion models. In ICCV. Richard Zhang, Phillip Isola, Alexei A Efros, Eli Shechtman, and Oliver Wang. 2018. The unreasonable effectiveness of deep features as a perceptual metric. In CVPR. Shiwei Zhang, Jiayu Wang, Yingya Zhang, Kang Zhao, Hangjie Yuan, Zhiwu Qin, Xiang Wang, Deli Zhao, and Jingren Zhou. 2023b. I2vgen-xl: High-quality image-to-video synthesis via cascaded diffusion models. arXiv preprint arXiv:2311.04145 (2023). Haichao Zhu, Xueting Liu, Tien-Tsin Wong, and Pheng-Ann Heng. 2016. Globally Optimal Toon Tracking. ACM TOG 35, 4 (2016), 75:1–75:10.
+ACM Trans. Graph., Vol. 43, No. 6, Article 245. Publication date: December 2024.

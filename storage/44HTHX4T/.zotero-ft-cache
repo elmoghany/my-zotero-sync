@@ -1,0 +1,59 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2501.01407 (cs)
+[Submitted on 2 Jan 2025]
+Nested Attention: Semantic-aware Attention Values for Concept Personalization
+Or Patashnik, Rinon Gal, Daniil Ostashev, Sergey Tulyakov, Kfir Aberman, Daniel Cohen-Or
+View PDF
+HTML (experimental)
+Personalizing text-to-image models to generate images of specific subjects across diverse scenes and styles is a rapidly advancing field. Current approaches often face challenges in maintaining a balance between identity preservation and alignment with the input text prompt. Some methods rely on a single textual token to represent a subject, which limits expressiveness, while others employ richer representations but disrupt the model's prior, diminishing prompt alignment. In this work, we introduce Nested Attention, a novel mechanism that injects a rich and expressive image representation into the model's existing cross-attention layers. Our key idea is to generate query-dependent subject values, derived from nested attention layers that learn to select relevant subject features for each region in the generated image. We integrate these nested layers into an encoder-based personalization method, and show that they enable high identity preservation while adhering to input text prompts. Our approach is general and can be trained on various domains. Additionally, its prior preservation allows us to combine multiple personalized subjects from different domains in a single image.
+Comments:	Project page at this https URL
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Graphics (cs.GR); Machine Learning (cs.LG)
+Cite as:	arXiv:2501.01407 [cs.CV]
+ 	(or arXiv:2501.01407v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2501.01407
+Focus to learn more
+Submission history
+From: Or Patashnik [view email]
+[v1] Thu, 2 Jan 2025 18:52:11 UTC (48,669 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2025-01
+Change to browse by: cs cs.GR cs.LG
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack
