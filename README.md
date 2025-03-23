@@ -7,7 +7,7 @@
 
 ## Blue:
 	Very important take away
-	<ethodology
+	Methodology
 	Theoretical framework
 
 ## Green:
