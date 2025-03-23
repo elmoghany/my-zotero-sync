@@ -10,6 +10,14 @@
 	Methodology
 	Theoretical framework
 
+ # Purple:
+	Titles
+
+## Grey:
+	Supplementary details
+	Historical background
+	Literature review summaries
+ 
 ## Green:
 	Evidence 
 	Backs up the key ideas
@@ -38,7 +46,3 @@
 	Potential errors
 	Points that need more verification or follow-up
 
-## Grey:
-	Supplementary details
-	Historical background
-	Literature review summaries
