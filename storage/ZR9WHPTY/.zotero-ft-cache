@@ -1,0 +1,61 @@
+Skip to main content
+Computer Science > Sound
+arXiv:2309.05396 (cs)
+[Submitted on 11 Sep 2023 (v1), last revised 25 Dec 2023 (this version, v3)]
+SlideSpeech: A Large-Scale Slide-Enriched Audio-Visual Corpus
+Haoxu Wang, Fan Yu, Xian Shi, Yuezhang Wang, Shiliang Zhang, Ming Li
+View PDF
+HTML (experimental)
+Multi-Modal automatic speech recognition (ASR) techniques aim to leverage additional modalities to improve the performance of speech recognition systems. While existing approaches primarily focus on video or contextual information, the utilization of extra supplementary textual information has been overlooked. Recognizing the abundance of online conference videos with slides, which provide rich domain-specific information in the form of text and images, we release SlideSpeech, a large-scale audio-visual corpus enriched with slides. The corpus contains 1,705 videos, 1,000+ hours, with 473 hours of high-quality transcribed speech. Moreover, the corpus contains a significant amount of real-time synchronized slides. In this work, we present the pipeline for constructing the corpus and propose baseline methods for utilizing text information in the visual slide context. Through the application of keyword extraction and contextual ASR methods in the benchmark system, we demonstrate the potential of improving speech recognition performance by incorporating textual information from supplementary video slides.
+Comments:	Accepted by ICASSP 2024
+Subjects:	Sound (cs.SD); Audio and Speech Processing (eess.AS)
+Cite as:	arXiv:2309.05396 [cs.SD]
+ 	(or arXiv:2309.05396v3 [cs.SD] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2309.05396
+Focus to learn more
+Submission history
+From: Haoxu Wang [view email]
+[v1] Mon, 11 Sep 2023 11:56:44 UTC (5,684 KB)
+[v2] Tue, 12 Sep 2023 03:08:34 UTC (5,684 KB)
+[v3] Mon, 25 Dec 2023 13:01:00 UTC (5,861 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.SD
+< prev next >
+
+newrecent2023-09
+Change to browse by: cs eess eess.AS
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

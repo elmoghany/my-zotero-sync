@@ -1,3 +1,660 @@
+@misc{ararPALPPromptAligned2024,
+  title = {{{PALP}}: {{Prompt Aligned Personalization}} of {{Text-to-Image Models}}},
+  shorttitle = {{{PALP}}},
+  author = {Arar, Moab and Voynov, Andrey and Hertz, Amir and Avrahami, Omri and Fruchter, Shlomi and Pritch, Yael and {Cohen-Or}, Daniel and Shamir, Ariel},
+  year = {2024},
+  month = jan,
+  number = {arXiv:2401.06105},
+  eprint = {2401.06105},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2401.06105},
+  urldate = {2025-03-20},
+  abstract = {Content creators often aim to create personalized images using personal subjects that go beyond the capabilities of conventional text-to-image models. Additionally, they may want the resulting image to encompass a specific location, style, ambiance, and more. Existing personalization methods may compromise personalization ability or the alignment to complex textual prompts. This trade-off can impede the fulfillment of user prompts and subject fidelity. We propose a new approach focusing on personalization methods for a {\textbackslash}emph\{single\} prompt to address this issue. We term our approach prompt-aligned personalization. While this may seem restrictive, our method excels in improving text alignment, enabling the creation of images with complex and intricate prompts, which may pose a challenge for current techniques. In particular, our method keeps the personalized model aligned with a target prompt using an additional score distillation sampling term. We demonstrate the versatility of our method in multi- and single-shot settings and further show that it can compose multiple subjects or use inspiration from reference images, such as artworks. We compare our approach quantitatively and qualitatively with existing baselines and state-of-the-art techniques.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computation and Language,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Graphics,Computer Science - Machine Learning},
+  note = {Comment: Project page available at https://prompt-aligned.github.io/},
+  groups = {Personalization},
+  timestamp = {2025-03-20T11:27:08Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\ALALK32S\\Arar et al. - 2024 - PALP Prompt Aligned Personalization of Text-to-Image Models.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\UPE59K7D\\2401.html:text/html}
+}
+% == BibTeX quality report for ararPALPPromptAligned2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2401.06105")
+
+@misc{atzmonMotionQueriesIdentityMotion2025,
+  title = {Motion by {{Queries}}: {{Identity-Motion Trade-offs}} in {{Text-to-Video Generation}}},
+  shorttitle = {Motion by {{Queries}}},
+  author = {Atzmon, Yuval and Gal, Rinon and Tewel, Yoad and Kasten, Yoni and Chechik, Gal},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2412.07750},
+  eprint = {2412.07750},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2412.07750},
+  urldate = {2025-03-19},
+  abstract = {Text-to-video diffusion models have shown remarkable progress in generating coherent video clips from textual descriptions. However, the interplay between motion, structure, and identity representations in these models remains under-explored. Here, we investigate how self-attention query features (a.k.a. Q features) simultaneously govern motion, structure, and identity and examine the challenges arising when these representations interact. Our analysis reveals that Q affects not only layout, but that during denoising Q also has a strong effect on subject identity, making it hard to transfer motion without the side-effect of transferring identity. Understanding this dual role enabled us to control query feature injection (Q injection) and demonstrate two applications: (1) a zero-shot motion transfer method that is 20 times more efficient than existing approaches, and (2) a training-free technique for consistent multi-shot video generation, where characters maintain identity across multiple video shots while Q injection enhances motion fidelity.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: (1) Project page: https://research.nvidia.com/labs/par/MotionByQueries/ (2) The methods and results in section 5, "Consistent multi-shot video generation", are based on the arXiv version 1 (v1) of this work. Here, in version 2 (v2), we extend and further analyze those findings to efficient motion transfer},
+  groups = {Video-to-Video},
+  timestamp = {2025-03-19T09:12:06Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\AD2VR3JF\\Atzmon et al. - 2025 - Motion by Queries Identity-Motion Trade-offs in Text-to-Video Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\7GTRJH3X\\2412.html:text/html}
+}
+% == BibTeX quality report for atzmonMotionQueriesIdentityMotion2025:
+% ? unused Url ("http://arxiv.org/abs/2412.07750")
+
+@misc{biCustomTTTMotionAppearance2024,
+  title = {{{CustomTTT}}: {{Motion}} and {{Appearance Customized Video Generation}} via {{Test-Time Training}}},
+  shorttitle = {{{CustomTTT}}},
+  author = {Bi, Xiuli and Lu, Jian and Liu, Bo and Cun, Xiaodong and Zhang, Yong and Li, Weisheng and Xiao, Bin},
+  year = {2024},
+  month = dec,
+  number = {arXiv:2412.15646},
+  eprint = {2412.15646},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2412.15646},
+  urldate = {2025-03-19},
+  abstract = {Benefiting from large-scale pre-training of text-video pairs, current text-to-video (T2V) diffusion models can generate high-quality videos from the text description. Besides, given some reference images or videos, the parameter-efficient fine-tuning method, i.e. LoRA, can generate high-quality customized concepts, e.g., the specific subject or the motions from a reference video. However, combining the trained multiple concepts from different references into a single network shows obvious artifacts. To this end, we propose CustomTTT, where we can joint custom the appearance and the motion of the given video easily. In detail, we first analyze the prompt influence in the current video diffusion model and find the LoRAs are only needed for the specific layers for appearance and motion customization. Besides, since each LoRA is trained individually, we propose a novel test-time training technique to update parameters after combination utilizing the trained customized models. We conduct detailed experiments to verify the effectiveness of the proposed methods. Our method outperforms several state-of-the-art works in both qualitative and quantitative evaluations.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Accepted in AAAI 2025. Project Page: https://customttt.github.io/ Code: https://github.com/RongPiKing/CustomTTT},
+  groups = {Video-to-Video},
+  timestamp = {2025-03-19T09:32:12Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\7MV28QFN\\Bi et al. - 2024 - CustomTTT Motion and Appearance Customized Video Generation via Test-Time Training.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\IJ3U4EYQ\\2412.html:text/html}
+}
+% == BibTeX quality report for biCustomTTTMotionAppearance2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2412.15646")
+
+@misc{chenDocumentHaystacksVisionLanguage2024,
+  title = {Document {{Haystacks}}: {{Vision-Language Reasoning Over Piles}} of 1000+ {{Documents}}},
+  shorttitle = {Document {{Haystacks}}},
+  author = {Chen, Jun and Xu, Dannong and Fei, Junjie and Feng, Chun-Mei and Elhoseiny, Mohamed},
+  year = {2024},
+  month = dec,
+  number = {arXiv:2411.16740},
+  eprint = {2411.16740},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2411.16740},
+  urldate = {2025-03-23},
+  abstract = {Large multimodal models (LMMs) have achieved impressive progress in vision-language understanding, yet they face limitations in real-world applications requiring complex reasoning over a large number of images. Existing benchmarks for multi-image question-answering are limited in scope, each question is paired with only up to 30 images, which does not fully capture the demands of large-scale retrieval tasks encountered in the real-world usages. To reduce these gaps, we introduce two document haystack benchmarks, dubbed DocHaystack and InfoHaystack, designed to evaluate LMM performance on large-scale visual document retrieval and understanding. Additionally, we propose V-RAG, a novel, vision-centric retrieval-augmented generation (RAG) framework that leverages a suite of multimodal vision encoders, each optimized for specific strengths, and a dedicated question-document relevance module. V-RAG sets a new standard, with a 9\% and 11\% improvement in Recall@1 on the challenging DocHaystack-1000 and InfoHaystack-1000 benchmarks, respectively, compared to the previous best baseline models. Additionally, integrating V-RAG with LMMs enables them to efficiently operate across thousands of images, yielding significant improvements on our DocHaystack and InfoHaystack benchmarks. Our code and datasets are available at https://github.com/Vision-CAIR/dochaystacks},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: the correct arxiv version},
+  groups = {AV-RAG},
+  timestamp = {2025-03-23T21:36:42Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\KY55R9PE\\Chen et al. - 2024 - Document Haystacks Vision-Language Reasoning Over Piles of 1000+ Documents.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\3W7V77I2\\2411.html:text/html}
+}
+% == BibTeX quality report for chenDocumentHaystacksVisionLanguage2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2411.16740")
+
+@misc{chenOuroborosDiffusionExploringConsistent2025,
+  title = {Ouroboros-{{Diffusion}}: {{Exploring Consistent Content Generation}} in {{Tuning-free Long Video Diffusion}}},
+  shorttitle = {Ouroboros-{{Diffusion}}},
+  author = {Chen, Jingyuan and Long, Fuchen and An, Jie and Qiu, Zhaofan and Yao, Ting and Luo, Jiebo and Mei, Tao},
+  year = {2025},
+  month = jan,
+  number = {arXiv:2501.09019},
+  eprint = {2501.09019},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2501.09019},
+  urldate = {2025-03-20},
+  abstract = {The first-in-first-out (FIFO) video diffusion, built on a pre-trained text-to-video model, has recently emerged as an effective approach for tuning-free long video generation. This technique maintains a queue of video frames with progressively increasing noise, continuously producing clean frames at the queue's head while Gaussian noise is enqueued at the tail. However, FIFO-Diffusion often struggles to keep long-range temporal consistency in the generated videos due to the lack of correspondence modeling across frames. In this paper, we propose Ouroboros-Diffusion, a novel video denoising framework designed to enhance structural and content (subject) consistency, enabling the generation of consistent videos of arbitrary length. Specifically, we introduce a new latent sampling technique at the queue tail to improve structural consistency, ensuring perceptually smooth transitions among frames. To enhance subject consistency, we devise a Subject-Aware Cross-Frame Attention (SACFA) mechanism, which aligns subjects across frames within short segments to achieve better visual coherence. Furthermore, we introduce self-recurrent guidance. This technique leverages information from all previous cleaner frames at the front of the queue to guide the denoising of noisier frames at the end, fostering rich and contextual global information interaction. Extensive experiments of long video generation on the VBench benchmark demonstrate the superiority of our Ouroboros-Diffusion, particularly in terms of subject consistency, motion smoothness, and temporal consistency.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  groups = {Video-Gen},
+  timestamp = {2025-03-20T09:07:03Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\D8P9EYR8\\Chen et al. - 2025 - Ouroboros-Diffusion Exploring Consistent Content Generation in Tuning-free Long Video Diffusion.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\ZCEJIGZF\\2501.html:text/html}
+}
+% == BibTeX quality report for chenOuroborosDiffusionExploringConsistent2025:
+% ? unused Url ("http://arxiv.org/abs/2501.09019")
+
+@misc{guoLongContextTuning2025,
+  title = {Long {{Context Tuning}} for {{Video Generation}}},
+  author = {Guo, Yuwei and Yang, Ceyuan and Yang, Ziyan and Ma, Zhibei and Lin, Zhijie and Yang, Zhenheng and Lin, Dahua and Jiang, Lu},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2503.10589},
+  eprint = {2503.10589},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2503.10589},
+  urldate = {2025-03-19},
+  abstract = {Recent advances in video generation can produce realistic, minute-long single-shot videos with scalable diffusion transformers. However, real-world narrative videos require multi-shot scenes with visual and dynamic consistency across shots. In this work, we introduce Long Context Tuning (LCT), a training paradigm that expands the context window of pre-trained single-shot video diffusion models to learn scene-level consistency directly from data. Our method expands full attention mechanisms from individual shots to encompass all shots within a scene, incorporating interleaved 3D position embedding and an asynchronous noise strategy, enabling both joint and auto-regressive shot generation without additional parameters. Models with bidirectional attention after LCT can further be fine-tuned with context-causal attention, facilitating auto-regressive generation with efficient KV-cache. Experiments demonstrate single-shot models after LCT can produce coherent multi-shot scenes and exhibit emerging capabilities, including compositional generation and interactive shot extension, paving the way for more practical visual content creation. See https://guoyww.github.io/projects/long-context-video/ for more details.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Project Page: https://guoyww.github.io/projects/long-context-video/},
+  groups = {Video-Gen},
+  timestamp = {2025-03-19T11:25:59Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\M9AUCSAZ\\Guo et al. - 2025 - Long Context Tuning for Video Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\TWJBEEFQ\\2503.html:text/html}
+}
+% == BibTeX quality report for guoLongContextTuning2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2503.10589")
+
+@misc{heAnyStoryUnifiedSingle2025,
+  title = {{{AnyStory}}: {{Towards Unified Single}} and {{Multiple Subject Personalization}} in {{Text-to-Image Generation}}},
+  shorttitle = {{{AnyStory}}},
+  author = {He, Junjie and Tuo, Yuxiang and Chen, Binghui and Zhong, Chongyang and Geng, Yifeng and Bo, Liefeng},
+  year = {2025},
+  month = jan,
+  number = {arXiv:2501.09503},
+  eprint = {2501.09503},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2501.09503},
+  urldate = {2025-03-20},
+  abstract = {Recently, large-scale generative models have demonstrated outstanding text-to-image generation capabilities. However, generating high-fidelity personalized images with specific subjects still presents challenges, especially in cases involving multiple subjects. In this paper, we propose AnyStory, a unified approach for personalized subject generation. AnyStory not only achieves high-fidelity personalization for single subjects, but also for multiple subjects, without sacrificing subject fidelity. Specifically, AnyStory models the subject personalization problem in an "encode-then-route" manner. In the encoding step, AnyStory utilizes a universal and powerful image encoder, i.e., ReferenceNet, in conjunction with CLIP vision encoder to achieve high-fidelity encoding of subject features. In the routing step, AnyStory utilizes a decoupled instance-aware subject router to accurately perceive and predict the potential location of the corresponding subject in the latent space, and guide the injection of subject conditions. Detailed experimental results demonstrate the excellent performance of our method in retaining subject details, aligning text descriptions, and personalizing for multiple subjects. The project page is at https://aigcdesigngroup.github.io/AnyStory/ .},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Tech report; Project page: https://aigcdesigngroup.github.io/AnyStory/},
+  groups = {Story-Visualization},
+  timestamp = {2025-03-20T13:53:25Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\DAQ9XME6\\He et al. - 2025 - AnyStory Towards Unified Single and Multiple Subject Personalization in Text-to-Image Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\2MF859LB\\2501.html:text/html}
+}
+% == BibTeX quality report for heAnyStoryUnifiedSingle2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2501.09503")
+
+@misc{heDreamStoryOpenDomainStory2025,
+  title = {{{DreamStory}}: {{Open-Domain Story Visualization}} by {{LLM-Guided Multi-Subject Consistent Diffusion}}},
+  shorttitle = {{{DreamStory}}},
+  author = {He, Huiguo and Yang, Huan and Tuo, Zixi and Zhou, Yuan and Wang, Qiuyue and Zhang, Yuhang and Liu, Zeyu and Huang, Wenhao and Chao, Hongyang and Yin, Jian},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2407.12899},
+  eprint = {2407.12899},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2407.12899},
+  urldate = {2025-03-20},
+  abstract = {Story visualization aims to create visually compelling images or videos corresponding to textual narratives. Despite recent advances in diffusion models yielding promising results, existing methods still struggle to create a coherent sequence of subject-consistent frames based solely on a story. To this end, we propose DreamStory, an automatic open-domain story visualization framework by leveraging the LLMs and a novel multi-subject consistent diffusion model. DreamStory consists of (1) an LLM acting as a story director and (2) an innovative Multi-Subject consistent Diffusion model (MSD) for generating consistent multi-subject across the images. First, DreamStory employs the LLM to generate descriptive prompts for subjects and scenes aligned with the story, annotating each scene's subjects for subsequent subject-consistent generation. Second, DreamStory utilizes these detailed subject descriptions to create portraits of the subjects, with these portraits and their corresponding textual information serving as multimodal anchors (guidance). Finally, the MSD uses these multimodal anchors to generate story scenes with consistent multi-subject. Specifically, the MSD includes Masked Mutual Self-Attention (MMSA) and Masked Mutual Cross-Attention (MMCA) modules. MMSA and MMCA modules ensure appearance and semantic consistency with reference images and text, respectively. Both modules employ masking mechanisms to prevent subject blending. To validate our approach and promote progress in story visualization, we established a benchmark, DS-500, which can assess the overall performance of the story visualization framework, subject-identification accuracy, and the consistency of the generation model. Extensive experiments validate the effectiveness of DreamStory in both subjective and objective evaluations. Please visit our project homepage at https://dream-xyz.github.io/dreamstory.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Multimedia},
+  groups = {Story-Visualization},
+  timestamp = {2025-03-20T14:13:32Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\R4AY38PC\\He et al. - 2025 - DreamStory Open-Domain Story Visualization by LLM-Guided Multi-Subject Consistent Diffusion.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\DRCX7T46\\2407.html:text/html}
+}
+% == BibTeX quality report for heDreamStoryOpenDomainStory2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2407.12899")
+
+@misc{heImprovingMultiSubjectConsistency2025,
+  title = {Improving {{Multi-Subject Consistency}} in {{Open-Domain Image Generation}} with {{Isolation}} and {{Reposition Attention}}},
+  author = {He, Huiguo and Wang, Qiuyue and Zhou, Yuan and Cai, Yuxuan and Chao, Hongyang and Yin, Jian and Yang, Huan},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2411.19261},
+  eprint = {2411.19261},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2411.19261},
+  urldate = {2025-03-20},
+  abstract = {Training-free diffusion models have achieved remarkable progress in generating multi-subject consistent images within open-domain scenarios. The key idea of these methods is to incorporate reference subject information within the attention layer. However, existing methods still obtain suboptimal performance when handling numerous subjects. This paper reveals two primary issues contributing to this deficiency. Firstly, the undesired internal attraction between different subjects within the target image can lead to the convergence of multiple subjects into a single entity. Secondly, tokens tend to reference nearby tokens, which reduces the effectiveness of the attention mechanism when there is a significant positional difference between subjects in reference and target images. To address these issues, we propose a training-free diffusion model with Isolation and Reposition Attention, named IR-Diffusion. Specifically, Isolation Attention ensures that multiple subjects in the target image do not reference each other, effectively eliminating the subject convergence. On the other hand, Reposition Attention involves scaling and repositioning subjects in both reference and target images to the same position within the images. This ensures that subjects in the target image can better reference those in the reference image, thereby maintaining better consistency. Extensive experiments demonstrate that IR-Diffusion significantly enhances multi-subject consistency, outperforming all existing methods in open-domain scenarios.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  groups = {Multiple-subjects},
+  timestamp = {2025-03-20T21:48:06Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\5SCLNSCC\\He et al. - 2025 - Improving Multi-Subject Consistency in Open-Domain Image Generation with Isolation and Reposition At.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\JPH669ZN\\2411.html:text/html}
+}
+% == BibTeX quality report for heImprovingMultiSubjectConsistency2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2411.19261")
+
+@misc{heUniPortraitUnifiedFramework2024,
+  title = {{{UniPortrait}}: {{A Unified Framework}} for {{Identity-Preserving Single-}} and {{Multi-Human Image Personalization}}},
+  shorttitle = {{{UniPortrait}}},
+  author = {He, Junjie and Geng, Yifeng and Bo, Liefeng},
+  year = {2024},
+  month = sep,
+  number = {arXiv:2408.05939},
+  eprint = {2408.05939},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2408.05939},
+  urldate = {2025-03-23},
+  abstract = {This paper presents UniPortrait, an innovative human image personalization framework that unifies single- and multi-ID customization with high face fidelity, extensive facial editability, free-form input description, and diverse layout generation. UniPortrait consists of only two plug-and-play modules: an ID embedding module and an ID routing module. The ID embedding module extracts versatile editable facial features with a decoupling strategy for each ID and embeds them into the context space of diffusion models. The ID routing module then combines and distributes these embeddings adaptively to their respective regions within the synthesized image, achieving the customization of single and multiple IDs. With a carefully designed two-stage training scheme, UniPortrait achieves superior performance in both single- and multi-ID customization. Quantitative and qualitative experiments demonstrate the advantages of our method over existing approaches as well as its good scalability, e.g., the universal compatibility with existing generative control tools. The project page is at https://aigcdesigngroup.github.io/UniPortrait-Page/ .},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Tech report; Project page: https://aigcdesigngroup.github.io/UniPortrait-Page/},
+  groups = {Z-To-read-later},
+  timestamp = {2025-03-23T13:59:45Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\XSG2C33U\\He et al. - 2024 - UniPortrait A Unified Framework for Identity-Preserving Single- and Multi-Human Image Personalizati.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\XHS3DAZP\\2408.html:text/html}
+}
+% == BibTeX quality report for heUniPortraitUnifiedFramework2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2408.05939")
+
+@misc{jiangAniSoraExploringFrontiers2024,
+  title = {{{AniSora}}: {{Exploring}} the {{Frontiers}} of {{Animation Video Generation}} in the {{Sora Era}}},
+  shorttitle = {{{AniSora}}},
+  author = {Jiang, Yudong and Xu, Baohan and Yang, Siqian and Yin, Mingyu and Liu, Jing and Xu, Chao and Wang, Siqi and Wu, Yidi and Zhu, Bingwen and Zhang, Xinwen and Zheng, Xingyu and Xu, Jixuan and Zhang, Yue and Hou, Jinlong and Sun, Huyang},
+  year = {2024},
+  month = dec,
+  number = {arXiv:2412.10255},
+  eprint = {2412.10255},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2412.10255},
+  urldate = {2025-03-20},
+  abstract = {Animation has gained significant interest in the recent film and TV industry. Despite the success of advanced video generation models like Sora, Kling, and CogVideoX in generating natural videos, they lack the same effectiveness in handling animation videos. Evaluating animation video generation is also a great challenge due to its unique artist styles, violating the laws of physics and exaggerated motions. In this paper, we present a comprehensive system, AniSora, designed for animation video generation, which includes a data processing pipeline, a controllable generation model, and an evaluation dataset. Supported by the data processing pipeline with over 10M high-quality data, the generation model incorporates a spatiotemporal mask module to facilitate key animation production functions such as image-to-video generation, frame interpolation, and localized image-guided animation. We also collect an evaluation benchmark of 948 various animation videos, the evaluation on VBench and human double-blind test demonstrates consistency in character and motion, achieving state-of-the-art results in animation video generation. Our evaluation benchmark will be publicly available at https://github.com/bilibili/Index-anisora.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Graphics},
+  groups = {Inbetweening Interpolation},
+  timestamp = {2025-03-20T15:34:25Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\IU8KQDF8\\Jiang et al. - 2024 - AniSora Exploring the Frontiers of Animation Video Generation in the Sora Era.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\7TR5KYK8\\2412.html:text/html}
+}
+% == BibTeX quality report for jiangAniSoraExploringFrontiers2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2412.10255")
+
+@misc{jinPyramidalFlowMatching2025,
+  title = {Pyramidal {{Flow Matching}} for {{Efficient Video Generative Modeling}}},
+  author = {Jin, Yang and Sun, Zhicheng and Li, Ningyuan and Xu, Kun and Xu, Kun and Jiang, Hao and Zhuang, Nan and Huang, Quzhe and Song, Yang and Mu, Yadong and Lin, Zhouchen},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2410.05954},
+  eprint = {2410.05954},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2410.05954},
+  urldate = {2025-03-22},
+  abstract = {Video generation requires modeling a vast spatiotemporal space, which demands significant computational resources and data usage. To reduce the complexity, the prevailing approaches employ a cascaded architecture to avoid direct training with full resolution latent. Despite reducing computational demands, the separate optimization of each sub-stage hinders knowledge sharing and sacrifices flexibility. This work introduces a unified pyramidal flow matching algorithm. It reinterprets the original denoising trajectory as a series of pyramid stages, where only the final stage operates at the full resolution, thereby enabling more efficient video generative modeling. Through our sophisticated design, the flows of different pyramid stages can be interlinked to maintain continuity. Moreover, we craft autoregressive video generation with a temporal pyramid to compress the full-resolution history. The entire framework can be optimized in an end-to-end manner and with a single unified Diffusion Transformer (DiT). Extensive experiments demonstrate that our method supports generating high-quality 5-second (up to 10-second) videos at 768p resolution and 24 FPS within 20.7k A100 GPU training hours. All code and models are open-sourced at https://pyramid-flow.github.io.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition,Computer Science - Machine Learning},
+  note = {Comment: ICLR 2025},
+  groups = {Video-Gen},
+  timestamp = {2025-03-22T13:24:11Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\H9THSGNZ\\Jin et al. - 2025 - Pyramidal Flow Matching for Efficient Video Generative Modeling.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\M8B77586\\2410.html:text/html}
+}
+% == BibTeX quality report for jinPyramidalFlowMatching2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2410.05954")
+
+@misc{kimTuningFreeMultiEventLong2025,
+  title = {Tuning-{{Free Multi-Event Long Video Generation}} via {{Synchronized Coupled Sampling}}},
+  author = {Kim, Subin and Oh, Seoung Wug and Wang, Jui-Hsien and Lee, Joon-Young and Shin, Jinwoo},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2503.08605},
+  eprint = {2503.08605},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2503.08605},
+  urldate = {2025-03-19},
+  abstract = {While recent advancements in text-to-video diffusion models enable high-quality short video generation from a single prompt, generating real-world long videos in a single pass remains challenging due to limited data and high computational costs. To address this, several works propose tuning-free approaches, i.e., extending existing models for long video generation, specifically using multiple prompts to allow for dynamic and controlled content changes. However, these methods primarily focus on ensuring smooth transitions between adjacent frames, often leading to content drift and a gradual loss of semantic coherence over longer sequences. To tackle such an issue, we propose Synchronized Coupled Sampling (SynCoS), a novel inference framework that synchronizes denoising paths across the entire video, ensuring long-range consistency across both adjacent and distant frames. Our approach combines two complementary sampling strategies: reverse and optimization-based sampling, which ensure seamless local transitions and enforce global coherence, respectively. However, directly alternating between these samplings misaligns denoising trajectories, disrupting prompt guidance and introducing unintended content changes as they operate independently. To resolve this, SynCoS synchronizes them through a grounded timestep and a fixed baseline noise, ensuring fully coupled sampling with aligned denoising paths. Extensive experiments show that SynCoS significantly improves multi-event long video generation, achieving smoother transitions and superior long-range coherence, outperforming previous approaches both quantitatively and qualitatively.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Machine Learning},
+  note = {Comment: Project page with visuals: https://syncos2025.github.io/},
+  groups = {Video-Gen},
+  timestamp = {2025-03-19T15:12:28Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\BJSD9Y3G\\Kim et al. - 2025 - Tuning-Free Multi-Event Long Video Generation via Synchronized Coupled Sampling.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\5H6MFWGP\\2503.html:text/html}
+}
+% == BibTeX quality report for kimTuningFreeMultiEventLong2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2503.08605")
+
+@misc{leiAnimateAnythingConsistentControllable2024,
+  title = {{{AnimateAnything}}: {{Consistent}} and {{Controllable Animation}} for {{Video Generation}}},
+  shorttitle = {{{AnimateAnything}}},
+  author = {Lei, Guojun and Wang, Chi and Li, Hong and Zhang, Rong and Wang, Yikai and Xu, Weiwei},
+  year = {2024},
+  month = nov,
+  number = {arXiv:2411.10836},
+  eprint = {2411.10836},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2411.10836},
+  urldate = {2025-03-22},
+  abstract = {We present a unified controllable video generation approach AnimateAnything that facilitates precise and consistent video manipulation across various conditions, including camera trajectories, text prompts, and user motion annotations. Specifically, we carefully design a multi-scale control feature fusion network to construct a common motion representation for different conditions. It explicitly converts all control information into frame-by-frame optical flows. Then we incorporate the optical flows as motion priors to guide final video generation. In addition, to reduce the flickering issues caused by large-scale motion, we propose a frequency-based stabilization module. It can enhance temporal coherence by ensuring the video's frequency domain consistency. Experiments demonstrate that our method outperforms the state-of-the-art approaches. For more details and videos, please refer to the webpage: https://yu-shaonian.github.io/Animate\_Anything/.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  groups = {Video-Gen},
+  timestamp = {2025-03-22T13:01:33Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\LWG9R9CC\\Lei et al. - 2024 - AnimateAnything Consistent and Controllable Animation for Video Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\K3IFDIIT\\2411.html:text/html}
+}
+% == BibTeX quality report for leiAnimateAnythingConsistentControllable2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2411.10836")
+
+@misc{liuOnePromptOneStoryFreeLunchConsistent2025,
+  title = {One-{{Prompt-One-Story}}: {{Free-Lunch Consistent Text-to-Image Generation Using}} a {{Single Prompt}}},
+  shorttitle = {One-{{Prompt-One-Story}}},
+  author = {Liu, Tao and Wang, Kai and Li, Senmao and van de Weijer, Joost and Khan, Fahad Shahbaz and Yang, Shiqi and Wang, Yaxing and Yang, Jian and Cheng, Ming-Ming},
+  year = {2025},
+  month = feb,
+  number = {arXiv:2501.13554},
+  eprint = {2501.13554},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2501.13554},
+  urldate = {2025-03-20},
+  abstract = {Text-to-image generation models can create high-quality images from input prompts. However, they struggle to support the consistent generation of identity-preserving requirements for storytelling. Existing approaches to this problem typically require extensive training in large datasets or additional modifications to the original model architectures. This limits their applicability across different domains and diverse diffusion model configurations. In this paper, we first observe the inherent capability of language models, coined context consistency, to comprehend identity through context with a single prompt. Drawing inspiration from the inherent context consistency, we propose a novel training-free method for consistent text-to-image (T2I) generation, termed "One-Prompt-One-Story" (1Prompt1Story). Our approach 1Prompt1Story concatenates all prompts into a single input for T2I diffusion models, initially preserving character identities. We then refine the generation process using two novel techniques: Singular-Value Reweighting and Identity-Preserving Cross-Attention, ensuring better alignment with the input description for each frame. In our experiments, we compare our method against various existing consistent T2I generation approaches to demonstrate its effectiveness through quantitative metrics and qualitative assessments. Code is available at https://github.com/byliutao/1Prompt1Story.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Machine Learning},
+  note = {Comment: 28 pages, 22 figures, ICLR2025 conference},
+  groups = {Story-Visualization},
+  timestamp = {2025-03-20T16:12:53Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\HSEQ5U3P\\Liu et al. - 2025 - One-Prompt-One-Story Free-Lunch Consistent Text-to-Image Generation Using a Single Prompt.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\WY99Z2YB\\2501.html:text/html}
+}
+% == BibTeX quality report for liuOnePromptOneStoryFreeLunchConsistent2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2501.13554")
+
+@misc{longVideoStudioGeneratingConsistentContent2024,
+  title = {{{VideoStudio}}: {{Generating Consistent-Content}} and {{Multi-Scene Videos}}},
+  shorttitle = {{{VideoStudio}}},
+  author = {Long, Fuchen and Qiu, Zhaofan and Yao, Ting and Mei, Tao},
+  year = {2024},
+  month = sep,
+  number = {arXiv:2401.01256},
+  eprint = {2401.01256},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2401.01256},
+  urldate = {2025-03-20},
+  abstract = {The recent innovations and breakthroughs in diffusion models have significantly expanded the possibilities of generating high-quality videos for the given prompts. Most existing works tackle the single-scene scenario with only one video event occurring in a single background. Extending to generate multi-scene videos nevertheless is not trivial and necessitates to nicely manage the logic in between while preserving the consistent visual appearance of key content across video scenes. In this paper, we propose a novel framework, namely VideoStudio, for consistent-content and multi-scene video generation. Technically, VideoStudio leverages Large Language Models (LLM) to convert the input prompt into comprehensive multi-scene script that benefits from the logical knowledge learnt by LLM. The script for each scene includes a prompt describing the event, the foreground/background entities, as well as camera movement. VideoStudio identifies the common entities throughout the script and asks LLM to detail each entity. The resultant entity description is then fed into a text-to-image model to generate a reference image for each entity. Finally, VideoStudio outputs a multi-scene video by generating each scene video via a diffusion process that takes the reference images, the descriptive prompt of the event and camera movement into account. The diffusion model incorporates the reference images as the condition and alignment to strengthen the content consistency of multi-scene videos. Extensive experiments demonstrate that VideoStudio outperforms the SOTA video generation models in terms of visual quality, content consistency, and user preference. Source code is available at {\textbackslash}url\{https://github.com/FuchenUSTC/VideoStudio\}.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computation and Language,Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: ECCV 2024. Source code is available at https://github.com/FuchenUSTC/VideoStudio},
+  groups = {Video-Gen},
+  timestamp = {2025-03-20T08:47:26Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\4R72A5AA\\Long et al. - 2024 - VideoStudio Generating Consistent-Content and Multi-Scene Videos.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\ZC8HSX2Z\\2401.html:text/html}
+}
+% == BibTeX quality report for longVideoStudioGeneratingConsistentContent2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2401.01256")
+
+@misc{mengAniDocAnimationCreation2025,
+  title = {{{AniDoc}}: {{Animation Creation Made Easier}}},
+  shorttitle = {{{AniDoc}}},
+  author = {Meng, Yihao and Ouyang, Hao and Wang, Hanlin and Wang, Qiuyu and Wang, Wen and Cheng, Ka Leong and Liu, Zhiheng and Shen, Yujun and Qu, Huamin},
+  year = {2025},
+  month = jan,
+  number = {arXiv:2412.14173},
+  eprint = {2412.14173},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2412.14173},
+  urldate = {2025-03-22},
+  abstract = {The production of 2D animation follows an industry-standard workflow, encompassing four essential stages: character design, keyframe animation, in-betweening, and coloring. Our research focuses on reducing the labor costs in the above process by harnessing the potential of increasingly powerful generative AI. Using video diffusion models as the foundation, AniDoc emerges as a video line art colorization tool, which automatically converts sketch sequences into colored animations following the reference character specification. Our model exploits correspondence matching as an explicit guidance, yielding strong robustness to the variations (e.g., posture) between the reference character and each line art frame. In addition, our model could even automate the in-betweening process, such that users can easily create a temporally consistent animation by simply providing a character image as well as the start and end sketches. Our code is available at: https://yihao-meng.github.io/AniDoc\_demo.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Project page and code: https://yihao-meng.github.io/AniDoc\_demo},
+  groups = {Inbetweening Interpolation},
+  timestamp = {2025-03-22T11:04:20Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\PPEHLVN3\\Meng et al. - 2025 - AniDoc Animation Creation Made Easier.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\LB43MZFD\\2412.html:text/html}
+}
+% == BibTeX quality report for mengAniDocAnimationCreation2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2412.14173")
+
+@misc{meralMotionFlowAttentionDrivenMotion2024,
+  title = {{{MotionFlow}}: {{Attention-Driven Motion Transfer}} in {{Video Diffusion Models}}},
+  shorttitle = {{{MotionFlow}}},
+  author = {Meral, Tuna Han Salih and Yesiltepe, Hidir and Dunlop, Connor and Yanardag, Pinar},
+  year = {2024},
+  month = dec,
+  number = {arXiv:2412.05275},
+  eprint = {2412.05275},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2412.05275},
+  urldate = {2025-03-19},
+  abstract = {Text-to-video models have demonstrated impressive capabilities in producing diverse and captivating video content, showcasing a notable advancement in generative AI. However, these models generally lack fine-grained control over motion patterns, limiting their practical applicability. We introduce MotionFlow, a novel framework designed for motion transfer in video diffusion models. Our method utilizes cross-attention maps to accurately capture and manipulate spatial and temporal dynamics, enabling seamless motion transfers across various contexts. Our approach does not require training and works on test-time by leveraging the inherent capabilities of pre-trained video diffusion models. In contrast to traditional approaches, which struggle with comprehensive scene changes while maintaining consistent motion, MotionFlow successfully handles such complex transformations through its attention-based mechanism. Our qualitative and quantitative experiments demonstrate that MotionFlow significantly outperforms existing models in both fidelity and versatility even during drastic scene alterations.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Project Page: https://motionflow-diffusion.github.io},
+  groups = {Video-to-Video},
+  timestamp = {2025-03-19T10:39:01Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\7FXI9P5P\\Meral et al. - 2024 - MotionFlow Attention-Driven Motion Transfer in Video Diffusion Models.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\TEXMDNZH\\2412.html:text/html}
+}
+% == BibTeX quality report for meralMotionFlowAttentionDrivenMotion2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2412.05275")
+
+@misc{patashnikNestedAttentionSemanticaware2025,
+  title = {Nested {{Attention}}: {{Semantic-aware Attention Values}} for {{Concept Personalization}}},
+  shorttitle = {Nested {{Attention}}},
+  author = {Patashnik, Or and Gal, Rinon and Ostashev, Daniil and Tulyakov, Sergey and Aberman, Kfir and {Cohen-Or}, Daniel},
+  year = {2025},
+  month = jan,
+  number = {arXiv:2501.01407},
+  eprint = {2501.01407},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2501.01407},
+  urldate = {2025-03-20},
+  abstract = {Personalizing text-to-image models to generate images of specific subjects across diverse scenes and styles is a rapidly advancing field. Current approaches often face challenges in maintaining a balance between identity preservation and alignment with the input text prompt. Some methods rely on a single textual token to represent a subject, which limits expressiveness, while others employ richer representations but disrupt the model's prior, diminishing prompt alignment. In this work, we introduce Nested Attention, a novel mechanism that injects a rich and expressive image representation into the model's existing cross-attention layers. Our key idea is to generate query-dependent subject values, derived from nested attention layers that learn to select relevant subject features for each region in the generated image. We integrate these nested layers into an encoder-based personalization method, and show that they enable high identity preservation while adhering to input text prompts. Our approach is general and can be trained on various domains. Additionally, its prior preservation allows us to combine multiple personalized subjects from different domains in a single image.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition,Computer Science - Graphics,Computer Science - Machine Learning},
+  note = {Comment: Project page at https://snap-research.github.io/NestedAttention/},
+  groups = {Personalization},
+  timestamp = {2025-03-20T11:15:42Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\37PW25CA\\Patashnik et al. - 2025 - Nested Attention Semantic-aware Attention Values for Concept Personalization.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\44HTHX4T\\2501.html:text/html}
+}
+% == BibTeX quality report for patashnikNestedAttentionSemanticaware2025:
+% ? unused Url ("http://arxiv.org/abs/2501.01407")
+
+@misc{shenStoryGPTVLargeLanguage2023,
+  title = {{{StoryGPT-V}}: {{Large Language Models}} as {{Consistent Story Visualizers}}},
+  shorttitle = {{{StoryGPT-V}}},
+  author = {Shen, Xiaoqian and Elhoseiny, Mohamed},
+  year = {2023},
+  month = dec,
+  number = {arXiv:2312.02252},
+  eprint = {2312.02252},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2312.02252},
+  urldate = {2025-03-22},
+  abstract = {Recent generative models have demonstrated impressive capabilities in generating realistic and visually pleasing images grounded on textual prompts. Nevertheless, a significant challenge remains in applying these models for the more intricate task of story visualization. Since it requires resolving pronouns (he, she, they) in the frame descriptions, i.e., anaphora resolution, and ensuring consistent characters and background synthesis across frames. Yet, the emerging Large Language Model (LLM) showcases robust reasoning abilities to navigate through ambiguous references and process extensive sequences. Therefore, we introduce {\textbackslash}textbf\{StoryGPT-V\}, which leverages the merits of the latent diffusion (LDM) and LLM to produce images with consistent and high-quality characters grounded on given story descriptions. First, we train a character-aware LDM, which takes character-augmented semantic embedding as input and includes the supervision of the cross-attention map using character segmentation masks, aiming to enhance character generation accuracy and faithfulness. In the second stage, we enable an alignment between the output of LLM and the character-augmented embedding residing in the input space of the first-stage model. This harnesses the reasoning ability of LLM to address ambiguous references and the comprehension capability to memorize the context. We conduct comprehensive experiments on two visual story visualization benchmarks. Our model reports superior quantitative results and consistently generates accurate characters of remarkable quality with low memory consumption. Our code will be made publicly available.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Project page: https://xiaoqian-shen.github.io/StoryGPT-V},
+  groups = {Story-Visualization},
+  timestamp = {2025-03-22T12:58:09Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\3K93A4LD\\Shen and Elhoseiny - 2023 - StoryGPT-V Large Language Models as Consistent Story Visualizers.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\2LTJQU6M\\2312.html:text/html}
+}
+% == BibTeX quality report for shenStoryGPTVLargeLanguage2023:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2312.02252")
+
+@misc{songMoMAMultimodalLLM2024,
+  title = {{{MoMA}}: {{Multimodal LLM Adapter}} for {{Fast Personalized Image Generation}}},
+  shorttitle = {{{MoMA}}},
+  author = {Song, Kunpeng and Zhu, Yizhe and Liu, Bingchen and Yan, Qing and Elgammal, Ahmed and Yang, Xiao},
+  year = {2024},
+  month = apr,
+  number = {arXiv:2404.05674},
+  eprint = {2404.05674},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2404.05674},
+  urldate = {2025-03-20},
+  abstract = {In this paper, we present MoMA: an open-vocabulary, training-free personalized image model that boasts flexible zero-shot capabilities. As foundational text-to-image models rapidly evolve, the demand for robust image-to-image translation grows. Addressing this need, MoMA specializes in subject-driven personalized image generation. Utilizing an open-source, Multimodal Large Language Model (MLLM), we train MoMA to serve a dual role as both a feature extractor and a generator. This approach effectively synergizes reference image and text prompt information to produce valuable image features, facilitating an image diffusion model. To better leverage the generated features, we further introduce a novel self-attention shortcut method that efficiently transfers image features to an image diffusion model, improving the resemblance of the target object in generated images. Remarkably, as a tuning-free plug-and-play module, our model requires only a single reference image and outperforms existing methods in generating images with high detail fidelity, enhanced identity-preservation and prompt faithfulness. Our work is open-source, thereby providing universal access to these advancements.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  groups = {Personalization},
+  timestamp = {2025-03-20T11:15:27Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\BAG2ZZIY\\Song et al. - 2024 - MoMA Multimodal LLM Adapter for Fast Personalized Image Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\2HKMX7KK\\2404.html:text/html}
+}
+% == BibTeX quality report for songMoMAMultimodalLLM2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2404.05674")
+
+@misc{tangGenerativeAICelAnimation2025,
+  title = {Generative {{AI}} for {{Cel-Animation}}: {{A Survey}}},
+  shorttitle = {Generative {{AI}} for {{Cel-Animation}}},
+  author = {Tang, Yunlong and Guo, Junjia and Liu, Pinxin and Wang, Zhiyuan and Hua, Hang and Zhong, Jia-Xing and Xiao, Yunzhong and Huang, Chao and Song, Luchuan and Liang, Susan and Song, Yizhi and He, Liu and Bi, Jing and Feng, Mingqian and Li, Xinyang and Zhang, Zeliang and Xu, Chenliang},
+  year = {2025},
+  month = jan,
+  number = {arXiv:2501.06250},
+  eprint = {2501.06250},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2501.06250},
+  urldate = {2025-03-20},
+  abstract = {Traditional Celluloid (Cel) Animation production pipeline encompasses multiple essential steps, including storyboarding, layout design, keyframe animation, inbetweening, and colorization, which demand substantial manual effort, technical expertise, and significant time investment. These challenges have historically impeded the efficiency and scalability of Cel-Animation production. The rise of generative artificial intelligence (GenAI), encompassing large language models, multimodal models, and diffusion models, offers innovative solutions by automating tasks such as inbetween frame generation, colorization, and storyboard creation. This survey explores how GenAI integration is revolutionizing traditional animation workflows by lowering technical barriers, broadening accessibility for a wider range of creators through tools like AniDoc, ToonCrafter, and AniSora, and enabling artists to focus more on creative expression and artistic innovation. Despite its potential, issues such as maintaining visual consistency, ensuring stylistic coherence, and addressing ethical considerations continue to pose challenges. Furthermore, this paper discusses future directions and explores potential advancements in AI-assisted animation. For further exploration and resources, please visit our GitHub repository: https://github.com/yunlong10/Awesome-AI4Animation},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Human-Computer Interaction},
+  note = {Comment: 20 pages},
+  groups = {Story-Visualization},
+  timestamp = {2025-03-20T15:24:07Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\C9AXK4DD\\Tang et al. - 2025 - Generative AI for Cel-Animation A Survey.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\IGT2SI4N\\2501.html:text/html}
+}
+% == BibTeX quality report for tangGenerativeAICelAnimation2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2501.06250")
+
+@misc{tanOminiControl2EfficientConditioning2025,
+  title = {{{OminiControl2}}: {{Efficient Conditioning}} for {{Diffusion Transformers}}},
+  shorttitle = {{{OminiControl2}}},
+  author = {Tan, Zhenxiong and Xue, Qiaochu and Yang, Xingyi and Liu, Songhua and Wang, Xinchao},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2503.08280},
+  eprint = {2503.08280},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2503.08280},
+  urldate = {2025-03-20},
+  abstract = {Fine-grained control of text-to-image diffusion transformer models (DiT) remains a critical challenge for practical deployment. While recent advances such as OminiControl and others have enabled a controllable generation of diverse control signals, these methods face significant computational inefficiency when handling long conditional inputs. We present OminiControl2, an efficient framework that achieves efficient image-conditional image generation. OminiControl2 introduces two key innovations: (1) a dynamic compression strategy that streamlines conditional inputs by preserving only the most semantically relevant tokens during generation, and (2) a conditional feature reuse mechanism that computes condition token features only once and reuses them across denoising steps. These architectural improvements preserve the original framework's parameter efficiency and multi-modal versatility while dramatically reducing computational costs. Our experiments demonstrate that OminiControl2 reduces conditional processing overhead by over 90\% compared to its predecessor, achieving an overall 5.9\${\textbackslash}times\$ speedup in multi-conditional generation scenarios. This efficiency enables the practical implementation of complex, multi-modal control for high-quality image synthesis with DiT models.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition},
+  timestamp = {2025-03-20T13:48:35Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\52F6VWY3\\Tan et al. - 2025 - OminiControl2 Efficient Conditioning for Diffusion Transformers.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\DRPLUXNV\\2503.html:text/html}
+}
+% == BibTeX quality report for tanOminiControl2EfficientConditioning2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2503.08280")
+
+@misc{tanOminiControlMinimalUniversal2025,
+  title = {{{OminiControl}}: {{Minimal}} and {{Universal Control}} for {{Diffusion Transformer}}},
+  shorttitle = {{{OminiControl}}},
+  author = {Tan, Zhenxiong and Liu, Songhua and Yang, Xingyi and Xue, Qiaochu and Wang, Xinchao},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2411.15098},
+  eprint = {2411.15098},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2411.15098},
+  urldate = {2025-03-20},
+  abstract = {We present OminiControl, a novel approach that rethinks how image conditions are integrated into Diffusion Transformer (DiT) architectures. Current image conditioning methods either introduce substantial parameter overhead or handle only specific control tasks effectively, limiting their practical versatility. OminiControl addresses these limitations through three key innovations: (1) a minimal architectural design that leverages the DiT's own VAE encoder and transformer blocks, requiring just 0.1\% additional parameters; (2) a unified sequence processing strategy that combines condition tokens with image tokens for flexible token interactions; and (3) a dynamic position encoding mechanism that adapts to both spatially-aligned and non-aligned control tasks. Our extensive experiments show that this streamlined approach not only matches but surpasses the performance of specialized methods across multiple conditioning tasks. To overcome data limitations in subject-driven generation, we also introduce Subjects200K, a large-scale dataset of identity-consistent image pairs synthesized using DiT models themselves. This work demonstrates that effective image control can be achieved without architectural complexity, opening new possibilities for efficient and versatile image generation systems.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Machine Learning},
+  groups = {Personalization},
+  timestamp = {2025-03-20T11:45:58Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\8RNTQ6UF\\Tan et al. - 2025 - OminiControl Minimal and Universal Control for Diffusion Transformer.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\6XRH9LWM\\2411.html:text/html}
+}
+% == BibTeX quality report for tanOminiControlMinimalUniversal2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2411.15098")
+
+@inproceedings{taoCoInLightweightEffective2024,
+  title = {{{CoIn}}: {{A Lightweight}} and {{Effective Framework}} for {{Story Visualization}} and {{Continuation}}},
+  shorttitle = {{{CoIn}}},
+  booktitle = {Proc. 32nd {{ACM Int}}. {{Conf}}. {{Multimed}}.},
+  author = {Tao, Ming and Bao, Bing-Kun and Tang, Hao and Wang, Yaowei and Xu, Changsheng},
+  year = {2024},
+  month = oct,
+  pages = {10659--10668},
+  publisher = {ACM},
+  address = {Melbourne VIC Australia},
+  doi = {10.1145/3664647.3680873},
+  urldate = {2025-03-22},
+  isbn = {979-8-4007-0686-8},
+  langid = {english},
+  timestamp = {2025-03-22T11:35:13Z}
+}
+% == BibTeX quality report for taoCoInLightweightEffective2024:
+% ? Unsure about the formatting of the booktitle
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Conference name ("MM '24: The 32nd ACM International Conference on Multimedia")
+% ? unused Library catalog ("DOI.org (Crossref)")
+% ? unused Publication title ("Proceedings of the 32nd ACM International Conference on Multimedia")
+% ? unused Url ("https://dl.acm.org/doi/10.1145/3664647.3680873")
+
+@inproceedings{taoCoInLightweightEffective2024a,
+  title = {{{CoIn}}: {{A Lightweight}} and {{Effective Framework}} for {{Story Visualization}} and {{Continuation}}},
+  shorttitle = {{{CoIn}}},
+  booktitle = {Proc. 32nd {{ACM Int}}. {{Conf}}. {{Multimed}}.},
+  author = {Tao, Ming and Bao, Bing-Kun and Tang, Hao and Wang, Yaowei and Xu, Changsheng},
+  year = {2024},
+  month = oct,
+  pages = {10659--10668},
+  publisher = {ACM},
+  address = {Melbourne VIC Australia},
+  doi = {10.1145/3664647.3680873},
+  urldate = {2025-03-22},
+  isbn = {979-8-4007-0686-8},
+  langid = {english},
+  groups = {Story-Visualization},
+  timestamp = {2025-03-22T11:36:50Z},
+  file = {PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\MEKMXFAG\\Tao et al. - 2024 - CoIn A Lightweight and Effective Framework for Story Visualization and Continuation.pdf:application/pdf}
+}
+% == BibTeX quality report for taoCoInLightweightEffective2024a:
+% ? Unsure about the formatting of the booktitle
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Conference name ("MM '24: The 32nd ACM International Conference on Multimedia")
+% ? unused Library catalog ("DOI.org (Crossref)")
+% ? unused Publication title ("Proceedings of the 32nd ACM International Conference on Multimedia")
+% ? unused Url ("https://dl.acm.org/doi/10.1145/3664647.3680873")
+
+@misc{taoStoryImagerUnifiedEfficient2024,
+  title = {{{StoryImager}}: {{A Unified}} and {{Efficient Framework}} for {{Coherent Story Visualization}} and {{Completion}}},
+  shorttitle = {{{StoryImager}}},
+  author = {Tao, Ming and Bao, Bing-Kun and Tang, Hao and Wang, Yaowei and Xu, Changsheng},
+  year = {2024},
+  month = apr,
+  number = {arXiv:2404.05979},
+  eprint = {2404.05979},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2404.05979},
+  urldate = {2025-03-20},
+  abstract = {Story visualization aims to generate a series of realistic and coherent images based on a storyline. Current models adopt a frame-by-frame architecture by transforming the pre-trained text-to-image model into an auto-regressive manner. Although these models have shown notable progress, there are still three flaws. 1) The unidirectional generation of auto-regressive manner restricts the usability in many scenarios. 2) The additional introduced story history encoders bring an extremely high computational cost. 3) The story visualization and continuation models are trained and inferred independently, which is not user-friendly. To these ends, we propose a bidirectional, unified, and efficient framework, namely StoryImager. The StoryImager enhances the storyboard generative ability inherited from the pre-trained text-to-image model for a bidirectional generation. Specifically, we introduce a Target Frame Masking Strategy to extend and unify different story image generation tasks. Furthermore, we propose a Frame-Story Cross Attention Module that decomposes the cross attention for local fidelity and global coherence. Moreover, we design a Contextual Feature Extractor to extract contextual information from the whole storyline. The extensive experimental results demonstrate the excellent performance of our StoryImager. The code is available at https://github.com/tobran/StoryImager.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: 17 pages},
+  timestamp = {2025-03-20T15:55:38Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\XYC5IYWS\\Tao et al. - 2024 - StoryImager A Unified and Efficient Framework for Coherent Story Visualization and Completion.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\I6EPXBCR\\2404.html:text/html}
+}
+% == BibTeX quality report for taoStoryImagerUnifiedEfficient2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2404.05979")
+
+@misc{taoStoryImagerUnifiedEfficient2024a,
+  title = {{{StoryImager}}: {{A Unified}} and {{Efficient Framework}} for {{Coherent Story Visualization}} and {{Completion}}},
+  shorttitle = {{{StoryImager}}},
+  author = {Tao, Ming and Bao, Bing-Kun and Tang, Hao and Wang, Yaowei and Xu, Changsheng},
+  year = {2024},
+  month = apr,
+  number = {arXiv:2404.05979},
+  eprint = {2404.05979},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2404.05979},
+  urldate = {2025-03-22},
+  abstract = {Story visualization aims to generate a series of realistic and coherent images based on a storyline. Current models adopt a frame-by-frame architecture by transforming the pre-trained text-to-image model into an auto-regressive manner. Although these models have shown notable progress, there are still three flaws. 1) The unidirectional generation of auto-regressive manner restricts the usability in many scenarios. 2) The additional introduced story history encoders bring an extremely high computational cost. 3) The story visualization and continuation models are trained and inferred independently, which is not user-friendly. To these ends, we propose a bidirectional, unified, and efficient framework, namely StoryImager. The StoryImager enhances the storyboard generative ability inherited from the pre-trained text-to-image model for a bidirectional generation. Specifically, we introduce a Target Frame Masking Strategy to extend and unify different story image generation tasks. Furthermore, we propose a Frame-Story Cross Attention Module that decomposes the cross attention for local fidelity and global coherence. Moreover, we design a Contextual Feature Extractor to extract contextual information from the whole storyline. The extensive experimental results demonstrate the excellent performance of our StoryImager. The code is available at https://github.com/tobran/StoryImager.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: 17 pages},
+  groups = {Story-Visualization},
+  timestamp = {2025-03-22T11:19:10Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\YBAHN3DN\\Tao et al. - 2024 - StoryImager A Unified and Efficient Framework for Coherent Story Visualization and Completion.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\9IKVHAZ5\\2404.html:text/html}
+}
+% == BibTeX quality report for taoStoryImagerUnifiedEfficient2024a:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2404.05979")
+
 @misc{tewelTrainingFreeConsistentTexttoImage2024,
   title = {Training-{{Free Consistent Text-to-Image Generation}}},
   author = {Tewel, Yoad and Kaduri, Omri and Gal, Rinon and Kasten, Yoni and Wolf, Lior and Chechik, Gal and Atzmon, Yuval},
@@ -11,21 +668,429 @@
   urldate = {2025-03-10},
   abstract = {Text-to-image models offer a new level of creative flexibility by allowing users to guide the image generation process through natural language. However, using these models to consistently portray the same subject across diverse prompts remains challenging. Existing approaches fine-tune the model to teach it new words that describe specific user-provided subjects or add image conditioning to the model. These methods require lengthy per-subject optimization or large-scale pre-training. Moreover, they struggle to align generated images with text prompts and face difficulties in portraying multiple subjects. Here, we present ConsiStory, a training-free approach that enables consistent subject generation by sharing the internal activations of the pretrained model. We introduce a subject-driven shared attention block and correspondence-based feature injection to promote subject consistency between images. Additionally, we develop strategies to encourage layout diversity while maintaining subject consistency. We compare ConsiStory to a range of baselines, and demonstrate state-of-the-art performance on subject consistency and text alignment, without requiring a single optimization step. Finally, ConsiStory can naturally extend to multi-subject scenarios, and even enable training-free personalization for common objects.},
   archiveprefix = {arXiv},
-  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Graphics,Computer Science - Machine Learning},
   note = {Comment: Accepted to journal track of SIGGRAPH 2024 (TOG). Project page is at https://consistory-paper.github.io},
   groups = {Consistency},
   timestamp = {2025-03-10T10:07:38Z},
-  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-papers-data\\storage\\RF26FHQD\\Tewel et al. - 2024 - Training-Free Consistent Text-to-Image Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-papers-data\\storage\\XM64MDMS\\2402.html:text/html}
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\RF26FHQD\\Tewel et al. - 2024 - Training-Free Consistent Text-to-Image Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\XM64MDMS\\2402.html:text/html}
 }
 % == BibTeX quality report for tewelTrainingFreeConsistentTexttoImage2024:
 % ? Title looks like it was stored in title-case in Zotero
 % ? unused Url ("http://arxiv.org/abs/2402.03286")
 
+@misc{wangDocVideoQAComprehensiveUnderstanding2025,
+  title = {{{DocVideoQA}}: {{Towards Comprehensive Understanding}} of {{Document-Centric Videos}} through {{Question Answering}}},
+  shorttitle = {{{DocVideoQA}}},
+  author = {Wang, Haochen and Hu, Kai and Gao, Liangcai},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2503.15887},
+  eprint = {2503.15887},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2503.15887},
+  urldate = {2025-03-23},
+  abstract = {Remote work and online courses have become important methods of knowledge dissemination, leading to a large number of document-based instructional videos. Unlike traditional video datasets, these videos mainly feature rich-text images and audio that are densely packed with information closely tied to the visual content, requiring advanced multimodal understanding capabilities. However, this domain remains underexplored due to dataset availability and its inherent complexity. In this paper, we introduce the DocVideoQA task and dataset for the first time, comprising 1454 videos across 23 categories with a total duration of about 828 hours. The dataset is annotated with 154k question-answer pairs generated manually and via GPT, assessing models' comprehension, temporal awareness, and modality integration capabilities. Initially, we establish a baseline using open-source MLLMs. Recognizing the challenges in modality comprehension for document-centric videos, we present DV-LLaMA, a robust video MLLM baseline. Our method enhances unimodal feature extraction with diverse instruction-tuning data and employs contrastive learning to strengthen modality integration. Through fine-tuning, the LLM is equipped with audio-visual capabilities, leading to significant improvements in document-centric video understanding. Extensive testing on the DocVideoQA dataset shows that DV-LLaMA significantly outperforms existing models. We'll release the code and dataset to facilitate future research.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  groups = {AV-RAG},
+  timestamp = {2025-03-23T21:36:58Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\AG2VT5FK\\Wang et al. - 2025 - DocVideoQA Towards Comprehensive Understanding of Document-Centric Videos through Question Answerin.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\RKZFZ35A\\2503.html:text/html}
+}
+% == BibTeX quality report for wangDocVideoQAComprehensiveUnderstanding2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2503.15887")
+
+@misc{wangDreamRunnerFineGrainedCompositional2025,
+  title = {{{DreamRunner}}: {{Fine-Grained Compositional Story-to-Video Generation}} with {{Retrieval-Augmented Motion Adaptation}}},
+  shorttitle = {{{DreamRunner}}},
+  author = {Wang, Zun and Li, Jialu and Lin, Han and Yoon, Jaehong and Bansal, Mohit},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2411.16657},
+  eprint = {2411.16657},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2411.16657},
+  urldate = {2025-03-22},
+  abstract = {Storytelling video generation (SVG) aims to produce coherent and visually rich multi-scene videos that follow a structured narrative. Existing methods primarily employ LLM for high-level planning to decompose a story into scene-level descriptions, which are then independently generated and stitched together. However, these approaches struggle with generating high-quality videos aligned with the complex single-scene description, as visualizing such complex description involves coherent composition of multiple characters and events, complex motion synthesis and muti-character customization. To address these challenges, we propose DreamRunner, a novel story-to-video generation method: First, we structure the input script using a large language model (LLM) to facilitate both coarse-grained scene planning as well as fine-grained object-level layout and motion planning. Next, DreamRunner presents retrieval-augmented test-time adaptation to capture target motion priors for objects in each scene, supporting diverse motion customization based on retrieved videos, thus facilitating the generation of new videos with complex, scripted motions. Lastly, we propose a novel spatial-temporal region-based 3D attention and prior injection module SR3AI for fine-grained object-motion binding and frame-by-frame semantic control. We compare DreamRunner with various SVG baselines, demonstrating state-of-the-art performance in character consistency, text alignment, and smooth transitions. Additionally, DreamRunner exhibits strong fine-grained condition-following ability in compositional text-to-video generation, significantly outperforming baselines on T2V-ComBench. Finally, we validate DreamRunner's robust ability to generate multi-object interactions with qualitative examples.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computation and Language,Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Project website: https://zunwang1.github.io/DreamRunner},
+  groups = {Story-Visualization},
+  timestamp = {2025-03-22T11:50:28Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\8IE2CU8H\\Wang et al. - 2025 - DreamRunner Fine-Grained Compositional Story-to-Video Generation with Retrieval-Augmented Motion Ad.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\6NFZ79FN\\2411.html:text/html}
+}
+% == BibTeX quality report for wangDreamRunnerFineGrainedCompositional2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2411.16657")
+
+@misc{wangMotionInversionVideo2024,
+  title = {Motion {{Inversion}} for {{Video Customization}}},
+  author = {Wang, Luozhou and Mai, Ziyang and Shen, Guibao and Liang, Yixun and Tao, Xin and Wan, Pengfei and Zhang, Di and Li, Yijun and Chen, Yingcong},
+  year = {2024},
+  month = oct,
+  number = {arXiv:2403.20193},
+  eprint = {2403.20193},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2403.20193},
+  urldate = {2025-03-20},
+  abstract = {In this work, we present a novel approach for motion customization in video generation, addressing the widespread gap in the exploration of motion representation within video generative models. Recognizing the unique challenges posed by the spatiotemporal nature of video, our method introduces Motion Embeddings, a set of explicit, temporally coherent embeddings derived from a given video. These embeddings are designed to integrate seamlessly with the temporal transformer modules of video diffusion models, modulating self-attention computations across frames without compromising spatial integrity. Our approach provides a compact and efficient solution to motion representation, utilizing two types of embeddings: a Motion Query-Key Embedding to modulate the temporal attention map and a Motion Value Embedding to modulate the attention values. Additionally, we introduce an inference strategy that excludes spatial dimensions from the Motion Query-Key Embedding and applies a differential operation to the Motion Value Embedding, both designed to debias appearance and ensure the embeddings focus solely on motion. Our contributions include the introduction of a tailored motion embedding for customization tasks and a demonstration of the practical advantages and effectiveness of our method through extensive experiments.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: https://wileewang.github.io/MotionInversion/},
+  groups = {Video-to-Video},
+  timestamp = {2025-03-20T09:19:03Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\2GXEYEXB\\Wang et al. - 2024 - Motion Inversion for Video Customization.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\PRTV6PWB\\2403.html:text/html}
+}
+% == BibTeX quality report for wangMotionInversionVideo2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2403.20193")
+
+@misc{wangSlideSpeechLargeScaleSlideEnriched2023,
+  title = {{{SlideSpeech}}: {{A Large-Scale Slide-Enriched Audio-Visual Corpus}}},
+  shorttitle = {{{SlideSpeech}}},
+  author = {Wang, Haoxu and Yu, Fan and Shi, Xian and Wang, Yuezhang and Zhang, Shiliang and Li, Ming},
+  year = {2023},
+  month = dec,
+  number = {arXiv:2309.05396},
+  eprint = {2309.05396},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2309.05396},
+  urldate = {2025-03-23},
+  abstract = {Multi-Modal automatic speech recognition (ASR) techniques aim to leverage additional modalities to improve the performance of speech recognition systems. While existing approaches primarily focus on video or contextual information, the utilization of extra supplementary textual information has been overlooked. Recognizing the abundance of online conference videos with slides, which provide rich domain-specific information in the form of text and images, we release SlideSpeech, a large-scale audio-visual corpus enriched with slides. The corpus contains 1,705 videos, 1,000+ hours, with 473 hours of high-quality transcribed speech. Moreover, the corpus contains a significant amount of real-time synchronized slides. In this work, we present the pipeline for constructing the corpus and propose baseline methods for utilizing text information in the visual slide context. Through the application of keyword extraction and contextual ASR methods in the benchmark system, we demonstrate the potential of improving speech recognition performance by incorporating textual information from supplementary video slides.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Sound,Electrical Engineering and Systems Science - Audio and Speech Processing},
+  note = {Comment: Accepted by ICASSP 2024},
+  groups = {AV-RAG},
+  timestamp = {2025-03-23T21:37:11Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\MRE5M8IQ\\Wang et al. - 2023 - SlideSpeech A Large-Scale Slide-Enriched Audio-Visual Corpus.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\ZR9WHPTY\\2309.html:text/html}
+}
+% == BibTeX quality report for wangSlideSpeechLargeScaleSlideEnriched2023:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2309.05396")
+
+@misc{wangTransPixelerAdvancingTexttoVideo2025,
+  title = {{{TransPixeler}}: {{Advancing Text-to-Video Generation}} with {{Transparency}}},
+  shorttitle = {{{TransPixeler}}},
+  author = {Wang, Luozhou and Li, Yijun and Chen, Zhifei and Wang, Jui-Hsien and Zhang, Zhifei and Zhang, He and Lin, Zhe and Chen, Yingcong},
+  year = {2025},
+  month = jan,
+  number = {arXiv:2501.03006},
+  eprint = {2501.03006},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2501.03006},
+  urldate = {2025-03-19},
+  abstract = {Text-to-video generative models have made significant strides, enabling diverse applications in entertainment, advertising, and education. However, generating RGBA video, which includes alpha channels for transparency, remains a challenge due to limited datasets and the difficulty of adapting existing models. Alpha channels are crucial for visual effects (VFX), allowing transparent elements like smoke and reflections to blend seamlessly into scenes. We introduce TransPixeler, a method to extend pretrained video models for RGBA generation while retaining the original RGB capabilities. TransPixar leverages a diffusion transformer (DiT) architecture, incorporating alpha-specific tokens and using LoRA-based fine-tuning to jointly generate RGB and alpha channels with high consistency. By optimizing attention mechanisms, TransPixar preserves the strengths of the original RGB model and achieves strong alignment between RGB and alpha channels despite limited training data. Our approach effectively generates diverse and consistent RGBA videos, advancing the possibilities for VFX and interactive content creation.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Project page: https://wileewang.github.io/TransPixar/},
+  groups = {Video-to-Video},
+  timestamp = {2025-03-19T11:03:07Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\A2RE2ZJD\\Wang et al. - 2025 - TransPixeler Advancing Text-to-Video Generation with Transparency.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\L68HMA2Z\\2501.html:text/html}
+}
+% == BibTeX quality report for wangTransPixelerAdvancingTexttoVideo2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2501.03006")
+
+@misc{weiDreamRelationRelationCentricVideo2025,
+  title = {{{DreamRelation}}: {{Relation-Centric Video Customization}}},
+  shorttitle = {{{DreamRelation}}},
+  author = {Wei, Yujie and Zhang, Shiwei and Yuan, Hangjie and Gong, Biao and Tang, Longxiang and Wang, Xiang and Qiu, Haonan and Li, Hengjia and Tan, Shuai and Zhang, Yingya and Shan, Hongming},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2503.07602},
+  eprint = {2503.07602},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2503.07602},
+  urldate = {2025-03-19},
+  abstract = {Relational video customization refers to the creation of personalized videos that depict user-specified relations between two subjects, a crucial task for comprehending real-world visual content. While existing methods can personalize subject appearances and motions, they still struggle with complex relational video customization, where precise relational modeling and high generalization across subject categories are essential. The primary challenge arises from the intricate spatial arrangements, layout variations, and nuanced temporal dynamics inherent in relations; consequently, current models tend to overemphasize irrelevant visual details rather than capturing meaningful interactions. To address these challenges, we propose DreamRelation, a novel approach that personalizes relations through a small set of exemplar videos, leveraging two key components: Relational Decoupling Learning and Relational Dynamics Enhancement. First, in Relational Decoupling Learning, we disentangle relations from subject appearances using relation LoRA triplet and hybrid mask training strategy, ensuring better generalization across diverse relationships. Furthermore, we determine the optimal design of relation LoRA triplet by analyzing the distinct roles of the query, key, and value features within MM-DiT's attention mechanism, making DreamRelation the first relational video generation framework with explainable components. Second, in Relational Dynamics Enhancement, we introduce space-time relational contrastive loss, which prioritizes relational dynamics while minimizing the reliance on detailed subject appearances. Extensive experiments demonstrate that DreamRelation outperforms state-of-the-art methods in relational video customization. Code and models will be made publicly available.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Project Page: https://dreamrelation.github.io},
+  groups = {Video-to-Video},
+  timestamp = {2025-03-19T10:41:53Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\D4JFDGKF\\Wei et al. - 2025 - DreamRelation Relation-Centric Video Customization.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\HVQ73XGB\\2503.html:text/html}
+}
+% == BibTeX quality report for weiDreamRelationRelationCentricVideo2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2503.07602")
+
+@misc{weiEchoVideoIdentityPreservingHuman2025,
+  title = {{{EchoVideo}}: {{Identity-Preserving Human Video Generation}} by {{Multimodal Feature Fusion}}},
+  shorttitle = {{{EchoVideo}}},
+  author = {Wei, Jiangchuan and Yan, Shiyue and Lin, Wenfeng and Liu, Boyuan and Chen, Renjie and Guo, Mingyu},
+  year = {2025},
+  month = feb,
+  number = {arXiv:2501.13452},
+  eprint = {2501.13452},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2501.13452},
+  urldate = {2025-03-22},
+  abstract = {Recent advancements in video generation have significantly impacted various downstream applications, particularly in identity-preserving video generation (IPT2V). However, existing methods struggle with "copy-paste" artifacts and low similarity issues, primarily due to their reliance on low-level facial image information. This dependence can result in rigid facial appearances and artifacts reflecting irrelevant details. To address these challenges, we propose EchoVideo, which employs two key strategies: (1) an Identity Image-Text Fusion Module (IITF) that integrates high-level semantic features from text, capturing clean facial identity representations while discarding occlusions, poses, and lighting variations to avoid the introduction of artifacts; (2) a two-stage training strategy, incorporating a stochastic method in the second phase to randomly utilize shallow facial information. The objective is to balance the enhancements in fidelity provided by shallow features while mitigating excessive reliance on them. This strategy encourages the model to utilize high-level features during training, ultimately fostering a more robust representation of facial identities. EchoVideo effectively preserves facial identities and maintains full-body integrity. Extensive experiments demonstrate that it achieves excellent results in generating high-quality, controllability and fidelity videos.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  groups = {Consistency},
+  timestamp = {2025-03-22T12:31:08Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\WSXA88HJ\\Wei et al. - 2025 - EchoVideo Identity-Preserving Human Video Generation by Multimodal Feature Fusion.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\8HGCCDC9\\2501.html:text/html}
+}
+% == BibTeX quality report for weiEchoVideoIdentityPreservingHuman2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2501.13452")
+
+@misc{weiPersonalizedImageGeneration2025,
+  title = {Personalized {{Image Generation}} with {{Deep Generative Models}}: {{A Decade Survey}}},
+  shorttitle = {Personalized {{Image Generation}} with {{Deep Generative Models}}},
+  author = {Wei, Yuxiang and Zheng, Yiheng and Zhang, Yabo and Liu, Ming and Ji, Zhilong and Zhang, Lei and Zuo, Wangmeng},
+  year = {2025},
+  month = feb,
+  number = {arXiv:2502.13081},
+  eprint = {2502.13081},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2502.13081},
+  urldate = {2025-03-20},
+  abstract = {Recent advancements in generative models have significantly facilitated the development of personalized content creation. Given a small set of images with user-specific concept, personalized image generation allows to create images that incorporate the specified concept and adhere to provided text descriptions. Due to its wide applications in content creation, significant effort has been devoted to this field in recent years. Nonetheless, the technologies used for personalization have evolved alongside the development of generative models, with their distinct and interrelated components. In this survey, we present a comprehensive review of generalized personalized image generation across various generative models, including traditional GANs, contemporary text-to-image diffusion models, and emerging multi-model autoregressive models. We first define a unified framework that standardizes the personalization process across different generative models, encompassing three key components, i.e., inversion spaces, inversion methods, and personalization schemes. This unified framework offers a structured approach to dissecting and comparing personalization techniques across different generative architectures. Building upon this unified framework, we further provide an in-depth analysis of personalization techniques within each generative model, highlighting their unique contributions and innovations. Through comparative analysis, this survey elucidates the current landscape of personalized image generation, identifying commonalities and distinguishing features among existing methods. Finally, we discuss the open challenges in the field and propose potential directions for future research. We keep tracing related works at https://github.com/csyxwei/Awesome-Personalized-Image-Generation.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: 39 pages; under submission; more information: https://github.com/csyxwei/Awesome-Personalized-Image-Generation},
+  groups = {Personalization},
+  timestamp = {2025-03-20T11:26:14Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\VP9SSUZM\\Wei et al. - 2025 - Personalized Image Generation with Deep Generative Models A Decade Survey.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\QJ6RIDQI\\2502.html:text/html}
+}
+% == BibTeX quality report for weiPersonalizedImageGeneration2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2502.13081")
+
+@misc{wuAutomatedMovieGeneration2025,
+  title = {Automated {{Movie Generation}} via {{Multi-Agent CoT Planning}}},
+  author = {Wu, Weijia and Zhu, Zeyu and Shou, Mike Zheng},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2503.07314},
+  eprint = {2503.07314},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2503.07314},
+  urldate = {2025-03-20},
+  abstract = {Existing long-form video generation frameworks lack automated planning, requiring manual input for storylines, scenes, cinematography, and character interactions, resulting in high costs and inefficiencies. To address these challenges, we present MovieAgent, an automated movie generation via multi-agent Chain of Thought (CoT) planning. MovieAgent offers two key advantages: 1) We firstly explore and define the paradigm of automated movie/long-video generation. Given a script and character bank, our MovieAgent can generates multi-scene, multi-shot long-form videos with a coherent narrative, while ensuring character consistency, synchronized subtitles, and stable audio throughout the film. 2) MovieAgent introduces a hierarchical CoT-based reasoning process to automatically structure scenes, camera settings, and cinematography, significantly reducing human effort. By employing multiple LLM agents to simulate the roles of a director, screenwriter, storyboard artist, and location manager, MovieAgent streamlines the production pipeline. Experiments demonstrate that MovieAgent achieves new state-of-the-art results in script faithfulness, character consistency, and narrative coherence. Our hierarchical framework takes a step forward and provides new insights into fully automated movie generation. The code and project website are available at: https://github.com/showlab/MovieAgent and https://weijiawu.github.io/MovieAgent.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: The code and project website are available at: https://github.com/showlab/MovieAgent and https://weijiawu.github.io/MovieAgent},
+  groups = {Video-Gen},
+  timestamp = {2025-03-20T09:11:15Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\7R3X982A\\Wu et al. - 2025 - Automated Movie Generation via Multi-Agent CoT Planning.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\WYC5ZQGX\\2503.html:text/html}
+}
+% == BibTeX quality report for wuAutomatedMovieGeneration2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2503.07314")
+
+@misc{wuMindTimeTemporallyControlled2025,
+  title = {Mind the {{Time}}: {{Temporally-Controlled Multi-Event Video Generation}}},
+  shorttitle = {Mind the {{Time}}},
+  author = {Wu, Ziyi and Siarohin, Aliaksandr and Menapace, Willi and Skorokhodov, Ivan and Fang, Yuwei and Chordia, Varnith and Gilitschenski, Igor and Tulyakov, Sergey},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2412.05263},
+  eprint = {2412.05263},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2412.05263},
+  urldate = {2025-03-19},
+  abstract = {Real-world videos consist of sequences of events. Generating such sequences with precise temporal control is infeasible with existing video generators that rely on a single paragraph of text as input. When tasked with generating multiple events described using a single prompt, such methods often ignore some of the events or fail to arrange them in the correct order. To address this limitation, we present MinT, a multi-event video generator with temporal control. Our key insight is to bind each event to a specific period in the generated video, which allows the model to focus on one event at a time. To enable time-aware interactions between event captions and video tokens, we design a time-based positional encoding method, dubbed ReRoPE. This encoding helps to guide the cross-attention operation. By fine-tuning a pre-trained video diffusion transformer on temporally grounded data, our approach produces coherent videos with smoothly connected events. For the first time in the literature, our model offers control over the timing of events in generated videos. Extensive experiments demonstrate that MinT outperforms existing commercial and open-source models by a large margin.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: CVPR 2025. Project Page: https://mint-video.github.io/},
+  groups = {Video-Gen},
+  timestamp = {2025-03-19T11:59:21Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\AXPBAWPB\\Wu et al. - 2025 - Mind the Time Temporally-Controlled Multi-Event Video Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\CM5UGNBG\\2412.html:text/html}
+}
+% == BibTeX quality report for wuMindTimeTemporallyControlled2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2412.05263")
+
+@misc{xiaoOmniGenUnifiedImage2024,
+  title = {{{OmniGen}}: {{Unified Image Generation}}},
+  shorttitle = {{{OmniGen}}},
+  author = {Xiao, Shitao and Wang, Yueze and Zhou, Junjie and Yuan, Huaying and Xing, Xingrun and Yan, Ruiran and Li, Chaofan and Wang, Shuting and Huang, Tiejun and Liu, Zheng},
+  year = {2024},
+  month = nov,
+  number = {arXiv:2409.11340},
+  eprint = {2409.11340},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2409.11340},
+  urldate = {2025-03-20},
+  abstract = {The emergence of Large Language Models (LLMs) has unified language generation tasks and revolutionized human-machine interaction. However, in the realm of image generation, a unified model capable of handling various tasks within a single framework remains largely unexplored. In this work, we introduce OmniGen, a new diffusion model for unified image generation. OmniGen is characterized by the following features: 1) Unification: OmniGen not only demonstrates text-to-image generation capabilities but also inherently supports various downstream tasks, such as image editing, subject-driven generation, and visual-conditional generation. 2) Simplicity: The architecture of OmniGen is highly simplified, eliminating the need for additional plugins. Moreover, compared to existing diffusion models, it is more user-friendly and can complete complex tasks end-to-end through instructions without the need for extra intermediate steps, greatly simplifying the image generation workflow. 3) Knowledge Transfer: Benefit from learning in a unified format, OmniGen effectively transfers knowledge across different tasks, manages unseen tasks and domains, and exhibits novel capabilities. We also explore the model's reasoning capabilities and potential applications of the chain-of-thought mechanism. This work represents the first attempt at a general-purpose image generation model, and we will release our resources at https://github.com/VectorSpaceLab/OmniGen to foster future advancements.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Update the paper for OmniGen-v1},
+  groups = {Personalization},
+  timestamp = {2025-03-20T11:35:53Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\M5SJJX53\\Xiao et al. - 2024 - OmniGen Unified Image Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\XPY5SXHU\\2409.html:text/html}
+}
+% == BibTeX quality report for xiaoOmniGenUnifiedImage2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2409.11340")
+
+@article{xingToonCrafterGenerativeCartoon2024,
+  title = {{{ToonCrafter}}: {{Generative Cartoon Interpolation}}},
+  shorttitle = {{{ToonCrafter}}},
+  author = {Xing, Jinbo and Liu, Hanyuan and Xia, Menghan and Zhang, Yong and Wang, Xintao and Shan, Ying and Wong, Tien-Tsin},
+  year = {2024},
+  month = dec,
+  journal = {ACM Trans. Graph.},
+  volume = {43},
+  number = {6},
+  pages = {1--11},
+  issn = {0730-0301, 1557-7368},
+  doi = {10.1145/3687761},
+  urldate = {2025-03-20},
+  abstract = {We introduce ToonCrafter, a novel approach that transcends traditional correspondence-based cartoon video interpolation, paving the way for generative interpolation. Traditional methods, that implicitly assume linear motion and the absence of complicated phenomena like dis-occlusion, often struggle with the exaggerated non-linear and large motions with occlusion commonly found in cartoons, resulting in implausible or even failed interpolation results. To overcome these limitations, we explore the potential of adapting live-action video priors to better suit cartoon interpolation within a generative framework. ToonCrafter effectively addresses the challenges faced when applying live-action video motion priors to generative cartoon interpolation. First, we design a toon rectification learning strategy that seamlessly adapts live-action video priors to the cartoon domain, resolving the domain gap and content leakage issues. Next, we introduce a dual-reference-based 3D decoder to compensate for lost details due to the highly compressed latent prior spaces, ensuring the preservation of fine details in interpolation results. Finally, we design a flexible sketch encoder that empowers users with interactive control over the interpolation results. Experimental results demonstrate that our proposed method not only produces visually convincing and more natural dynamics, but also effectively handles dis-occlusion. The comparative evaluation demonstrates the notable superiority of our approach over existing competitors. Code and model weights are available at https://doubiiu.github.io/projects/ToonCrafter},
+  langid = {english},
+  groups = {Inbetweening Interpolation},
+  timestamp = {2025-03-20T15:35:33Z},
+  file = {Full Text:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\RUNZD8BS\\Xing et al. - 2024 - ToonCrafter Generative Cartoon Interpolation.pdf:application/pdf}
+}
+% == BibTeX quality report for xingToonCrafterGenerativeCartoon2024:
+% ? Possibly abbreviated journal title ACM Trans. Graph.
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Library catalog ("DOI.org (Crossref)")
+% ? unused Publication title ("ACM Transactions on Graphics")
+% ? unused Url ("https://dl.acm.org/doi/10.1145/3687761")
+
+@misc{yangSEEDStoryMultimodalLong2024,
+  title = {{{SEED-Story}}: {{Multimodal Long Story Generation}} with {{Large Language Model}}},
+  shorttitle = {{{SEED-Story}}},
+  author = {Yang, Shuai and Ge, Yuying and Li, Yang and Chen, Yukang and Ge, Yixiao and Shan, Ying and Chen, Yingcong},
+  year = {2024},
+  month = oct,
+  number = {arXiv:2407.08683},
+  eprint = {2407.08683},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2407.08683},
+  urldate = {2025-03-22},
+  abstract = {With the remarkable advancements in image generation and open-form text generation, the creation of interleaved image-text content has become an increasingly intriguing field. Multimodal story generation, characterized by producing narrative texts and vivid images in an interleaved manner, has emerged as a valuable and practical task with broad applications. However, this task poses significant challenges, as it necessitates the comprehension of the complex interplay between texts and images, and the ability to generate long sequences of coherent, contextually relevant texts and visuals. In this work, we propose SEED-Story, a novel method that leverages a Multimodal Large Language Model (MLLM) to generate extended multimodal stories. Our model, built upon the powerful comprehension capability of MLLM, predicts text tokens as well as visual tokens, which are subsequently processed with an adapted visual de-tokenizer to produce images with consistent characters and styles. We further propose multimodal attention sink mechanism to enable the generation of stories with up to 25 sequences (only 10 for training) in a highly efficient autoregressive manner. Additionally, we present a large-scale and high-resolution dataset named StoryStream for training our model and quantitatively evaluating the task of multimodal story generation in various aspects.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Our models, codes and datasets are released in https://github.com/TencentARC/SEED-Story},
+  groups = {Story-Visualization},
+  timestamp = {2025-03-22T12:34:44Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\T6NUWE8L\\Yang et al. - 2024 - SEED-Story Multimodal Long Story Generation with Large Language Model.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\62QRGJGR\\2407.html:text/html}
+}
+% == BibTeX quality report for yangSEEDStoryMultimodalLong2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2407.08683")
+
+@misc{yaoConceptConductorOrchestrating2024,
+  title = {Concept {{Conductor}}: {{Orchestrating Multiple Personalized Concepts}} in {{Text-to-Image Synthesis}}},
+  shorttitle = {Concept {{Conductor}}},
+  author = {Yao, Zebin and Feng, Fangxiang and Li, Ruifan and Wang, Xiaojie},
+  year = {2024},
+  month = sep,
+  number = {arXiv:2408.03632},
+  eprint = {2408.03632},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2408.03632},
+  urldate = {2025-03-20},
+  abstract = {The customization of text-to-image models has seen significant advancements, yet generating multiple personalized concepts remains a challenging task. Current methods struggle with attribute leakage and layout confusion when handling multiple concepts, leading to reduced concept fidelity and semantic consistency. In this work, we introduce a novel training-free framework, Concept Conductor, designed to ensure visual fidelity and correct layout in multi-concept customization. Concept Conductor isolates the sampling processes of multiple custom models to prevent attribute leakage between different concepts and corrects erroneous layouts through self-attention-based spatial guidance. Additionally, we present a concept injection technique that employs shape-aware masks to specify the generation area for each concept. This technique injects the structure and appearance of personalized concepts through feature fusion in the attention layers, ensuring harmony in the final image. Extensive qualitative and quantitative experiments demonstrate that Concept Conductor can consistently generate composite images with accurate layouts while preserving the visual details of each concept. Compared to existing baselines, Concept Conductor shows significant performance improvements. Our method supports the combination of any number of concepts and maintains high fidelity even when dealing with visually similar concepts. The code and models are available at https://github.com/Nihukat/Concept-Conductor.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Multimedia},
+  note = {Comment: Github Page: https://github.com/Nihukat/Concept-Conductor},
+  groups = {Multiple-subjects},
+  timestamp = {2025-03-20T13:43:08Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\C6M5XGSK\\Yao et al. - 2024 - Concept Conductor Orchestrating Multiple Personalized Concepts in Text-to-Image Synthesis.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\MV98894W\\2408.html:text/html}
+}
+% == BibTeX quality report for yaoConceptConductorOrchestrating2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2408.03632")
+
+@misc{yesiltepeMotionShopZeroShotMotion2024,
+  title = {{{MotionShop}}: {{Zero-Shot Motion Transfer}} in {{Video Diffusion Models}} with {{Mixture}} of {{Score Guidance}}},
+  shorttitle = {{{MotionShop}}},
+  author = {Yesiltepe, Hidir and Meral, Tuna Han Salih and Dunlop, Connor and Yanardag, Pinar},
+  year = {2024},
+  month = dec,
+  number = {arXiv:2412.05355},
+  eprint = {2412.05355},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2412.05355},
+  urldate = {2025-03-19},
+  abstract = {In this work, we propose the first motion transfer approach in diffusion transformer through Mixture of Score Guidance (MSG), a theoretically-grounded framework for motion transfer in diffusion models. Our key theoretical contribution lies in reformulating conditional score to decompose motion score and content score in diffusion models. By formulating motion transfer as a mixture of potential energies, MSG naturally preserves scene composition and enables creative scene transformations while maintaining the integrity of transferred motion patterns. This novel sampling operates directly on pre-trained video diffusion models without additional training or fine-tuning. Through extensive experiments, MSG demonstrates successful handling of diverse scenarios including single object, multiple objects, and cross-object motion transfer as well as complex camera motion transfer. Additionally, we introduce MotionBench, the first motion transfer dataset consisting of 200 source videos and 1000 transferred motions, covering single/multi-object transfers, and complex camera motions.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Project page: https://motionshop-diffusion.github.io},
+  groups = {Video-to-Video},
+  timestamp = {2025-03-19T10:51:22Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\RJEVLWDU\\Yesiltepe et al. - 2024 - MotionShop Zero-Shot Motion Transfer in Video Diffusion Models with Mixture of Score Guidance.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\LP2STJVU\\2412.html:text/html}
+}
+% == BibTeX quality report for yesiltepeMotionShopZeroShotMotion2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2412.05355")
+
+@misc{zhangBringingCharactersNew2025,
+  title = {Bringing {{Characters}} to {{New Stories}}: {{Training-Free Theme-Specific Image Generation}} via {{Dynamic Visual Prompting}}},
+  shorttitle = {Bringing {{Characters}} to {{New Stories}}},
+  author = {Zhang, Yuxin and Luo, Minyan and Dong, Weiming and Yang, Xiao and Huang, Haibin and Ma, Chongyang and Deussen, Oliver and Lee, Tong-Yee and Xu, Changsheng},
+  year = {2025},
+  month = jan,
+  number = {arXiv:2501.15641},
+  eprint = {2501.15641},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2501.15641},
+  urldate = {2025-03-22},
+  abstract = {The stories and characters that captivate us as we grow up shape unique fantasy worlds, with images serving as the primary medium for visually experiencing these realms. Personalizing generative models through fine-tuning with theme-specific data has become a prevalent approach in text-to-image generation. However, unlike object customization, which focuses on learning specific objects, theme-specific generation encompasses diverse elements such as characters, scenes, and objects. Such diversity also introduces a key challenge: how to adaptively generate multi-character, multi-concept, and continuous theme-specific images (TSI). Moreover, fine-tuning approaches often come with significant computational overhead, time costs, and risks of overfitting. This paper explores a fundamental question: Can image generation models directly leverage images as contextual input, similarly to how large language models use text as context? To address this, we present T-Prompter, a novel training-free TSI method for generation. T-Prompter introduces visual prompting, a mechanism that integrates reference images into generative models, allowing users to seamlessly specify the target theme without requiring additional training. To further enhance this process, we propose a Dynamic Visual Prompting (DVP) mechanism, which iteratively optimizes visual prompts to improve the accuracy and quality of generated images. Our approach enables diverse applications, including consistent story generation, character design, realistic character generation, and style-guided image generation. Comparative evaluations against state-of-the-art personalization methods demonstrate that T-Prompter achieves significantly better results and excels in maintaining character identity preserving, style consistency and text alignment, offering a robust and flexible solution for theme-specific image generation.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  groups = {Story-Visualization},
+  timestamp = {2025-03-22T11:28:33Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\49NZQFQB\\Zhang et al. - 2025 - Bringing Characters to New Stories Training-Free Theme-Specific Image Generation via Dynamic Visual.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\SLK3N4WR\\2501.html:text/html}
+}
+% == BibTeX quality report for zhangBringingCharactersNew2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2501.15641")
+
+@misc{zhangTrainingFreeMotionGuidedVideo2025,
+  title = {Training-{{Free Motion-Guided Video Generation}} with {{Enhanced Temporal Consistency Using Motion Consistency Loss}}},
+  author = {Zhang, Xinyu and Duan, Zicheng and Gong, Dong and Liu, Lingqiao},
+  year = {2025},
+  month = jan,
+  number = {arXiv:2501.07563},
+  eprint = {2501.07563},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2501.07563},
+  urldate = {2025-03-19},
+  abstract = {In this paper, we address the challenge of generating temporally consistent videos with motion guidance. While many existing methods depend on additional control modules or inference-time fine-tuning, recent studies suggest that effective motion guidance is achievable without altering the model architecture or requiring extra training. Such approaches offer promising compatibility with various video generation foundation models. However, existing training-free methods often struggle to maintain consistent temporal coherence across frames or to follow guided motion accurately. In this work, we propose a simple yet effective solution that combines an initial-noise-based approach with a novel motion consistency loss, the latter being our key innovation. Specifically, we capture the inter-frame feature correlation patterns of intermediate features from a video diffusion model to represent the motion pattern of the reference video. We then design a motion consistency loss to maintain similar feature correlation patterns in the generated video, using the gradient of this loss in the latent space to guide the generation process for precise motion control. This approach improves temporal consistency across various motion control tasks while preserving the benefits of a training-free setup. Extensive experiments show that our method sets a new standard for efficient, temporally coherent video generation.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Project page: https://zhangxinyu-xyz.github.io/SimulateMotion.github.io/},
+  groups = {Video-to-Video},
+  timestamp = {2025-03-19T09:34:42Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\LX4WFJHN\\Zhang et al. - 2025 - Training-Free Motion-Guided Video Generation with Enhanced Temporal Consistency Using Motion Consist.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\SSNGLEJ7\\2501.html:text/html}
+}
+% == BibTeX quality report for zhangTrainingFreeMotionGuidedVideo2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2501.07563")
+
 @comment{jabref-meta: databaseType:bibtex;}
 @comment{jabref-meta: grouping:
 0 AllEntriesGroup:;
+1 StaticGroup:AV-RAG\;0\;1\;0x8a8a8aff\;\;;
 1 StaticGroup:Consistency\;0\;1\;0x8a8a8aff\;\;;
+1 StaticGroup:Inbetweening Interpolation\;0\;1\;0x8a8a8aff\;\;;
+1 StaticGroup:Multiple-subjects\;0\;1\;0x8a8a8aff\;\;;
 1 StaticGroup:Personalization\;0\;1\;0x8a8a8aff\;\;;
-1 StaticGroup:Story-Gen\;0\;1\;0x8a8a8aff\;\;;
+1 StaticGroup:Story-Visualization\;0\;1\;0x8a8a8aff\;\;;
 1 StaticGroup:Video-Gen\;0\;1\;0x8a8a8aff\;\;;
+1 StaticGroup:Video-to-Video\;0\;1\;0x8a8a8aff\;\;;
+1 StaticGroup:Z-To-read-later\;0\;1\;0x8a8a8aff\;\;;
 }
