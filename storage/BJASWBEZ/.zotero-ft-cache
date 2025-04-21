@@ -1,0 +1,59 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2503.06505 (cs)
+[Submitted on 9 Mar 2025]
+DynamicID: Zero-Shot Multi-ID Image Personalization with Flexible Facial Editability
+Xirui Hu, Jiahao Wang, Hao Chen, Weizhan Zhang, Benqi Wang, Yikun Li, Haishun Nan
+View PDF
+HTML (experimental)
+Recent advancements in text-to-image generation have spurred interest in personalized human image generation, which aims to create novel images featuring specific human identities as reference images indicate. Although existing methods achieve high-fidelity identity preservation, they often struggle with limited multi-ID usability and inadequate facial editability. We present DynamicID, a tuning-free framework supported by a dual-stage training paradigm that inherently facilitates both single-ID and multi-ID personalized generation with high fidelity and flexible facial editability. Our key innovations include: 1) Semantic-Activated Attention (SAA), which employs query-level activation gating to minimize disruption to the original model when injecting ID features and achieve multi-ID personalization without requiring multi-ID samples during training. 2) Identity-Motion Reconfigurator (IMR), which leverages contrastive learning to effectively disentangle and re-entangle facial motion and identity features, thereby enabling flexible facial editing. Additionally, we have developed a curated VariFace-10k facial dataset, comprising 10k unique individuals, each represented by 35 distinct facial images. Experimental results demonstrate that DynamicID outperforms state-of-the-art methods in identity fidelity, facial editability, and multi-ID personalization capability.
+Comments:	17 pages, 16 figures
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI)
+Cite as:	arXiv:2503.06505 [cs.CV]
+ 	(or arXiv:2503.06505v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2503.06505
+Focus to learn more
+Submission history
+From: Xirui Hu [view email]
+[v1] Sun, 9 Mar 2025 08:16:19 UTC (22,915 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2025-03
+Change to browse by: cs cs.AI
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

@@ -1,0 +1,315 @@
+DynamicID: Zero-Shot Multi-ID Image Personalization with Flexible Facial
+Editability
+Xirui Hu1 Jiahao Wang1 Hao Chen2 Weizhan Zhang1∗ Benqi Wang2 Yikun Li1 Haishun Nan2 1 School of Computer Science and Technology, Xi’an Jiaotong University 2 AI Lab, Western Movie Group
+happy sad surprised front up side
+different seed
+afraid happy angry disgusted
+same seed
+happy happy front down side
+happy happy happy front front front
+front front front
+chef running Christmas hat snow Neonpunk blue hair
+Clothing Action Accessory Background Style Attribute
+(a)
+(b)
+Figure 1. Given only a single reference image for each identity, (a) our method demonstrates the capability to generate diverse and personalized multi-ID images based on text prompts. Furthermore, (b) it excels in performing independent and flexible facial editing, especially concerning expressions and orientations, while preserving high fidelity to the original character.
+Abstract
+Recent advancements in text-to-image generation have spurred interest in personalized human image generation, which aims to create novel images featuring specific human identities as reference images indicate. Although existing methods achieve high-fidelity identity preservation, they often struggle with limited multi-ID usability and inadequate facial editability. We present DynamicID, a tuning-free framework supported by a dual-stage training paradigm that inherently facilitates both single-ID and multi-ID personalized generation with high fidelity and flexible facial editability. Our key innovations include: 1) Semantic
+* Corresponding Author
+Activated Attention (SAA), which employs query-level activation gating to minimize disruption to the original model when injecting ID features and achieve multi-ID personalization without requiring multi-ID samples during training. 2) Identity-Motion Reconfigurator (IMR), which leverages contrastive learning to effectively disentangle and reentangle facial motion and identity features, thereby enabling flexible facial editing. Additionally, we have developed a curated VariFace-10k facial dataset, comprising 10k unique individuals, each represented by 35 distinct facial images. Experimental results demonstrate that DynamicID outperforms state-of-the-art methods in identity fidelity, facial editability, and multi-ID personalization capability.
+1
+arXiv:2503.06505v1 [cs.CV] 9 Mar 2025
+
+
+1. Introduction
+In recent years, the field of text-to-image synthesis has seen remarkable progress, largely due to advancements in diffusion-based models [35, 47, 53, 54, 58]. This progress has spurred interest in personalized human image generation, a domain with extensive applications such as AIgenerated portraits, image animation, and e-commerce advertising. The primary goal is to generate images that maintain consistent identities from reference images while seamlessly incorporating additional prompts. Previous research in personalized human image generation has achieved substantial progress through various approaches [1, 4, 6, 8, 14, 37, 51, 73]. Early methodologies [16, 34, 56, 57] demonstrated exceptional high-fidelity outcomes but required subject-specific retraining, imposing significant computational burdens and temporal constraints. To address these limitations, subsequent tuningfree paradigms [28, 41, 70, 72, 78, 81] employed pretrained face encoders coupled with feature injection modules. These frameworks extract facial features through the encoder and subsequently integrate them into the generation process via the injection module. While these parameterefficient methods eliminate retraining requirements and improve practical deployment capabilities, two critical limitations persist, as shown in Fig. 2: Constraints in MultiID Generation: In scenarios involving multiple identities, numerous approaches struggle with the challenge of identity blending [77]. While various mitigation strategies have emerged, these methods are built upon frameworks tailored for the single-ID contexts, which inherently leads to a compromise in model performance. Insufficient Facial Attribute Editability: Current methodologies lack explicit training models to disentangle identity features (e.g., facial structure and skin texture) from motion features (e.g., expression and orientation). This intrinsic entanglement within facial latent representations fundamentally restricts the flexible manipulation of facial attributes while preserving identity fidelity. To overcome these limitations, we propose DynamicID, a tuning-free method that inherently supports both singleID and multi-ID personalized image generation, ensuring high identity fidelity and flexible facial editability. DynamicID comprises two novel designs: 1) Semantic-Activated Attention (SAA) and 2) Identity-Motion Reconfigurator (IMR). The SAA, as an innovative feature injection mechanism, dynamically modulates the activation levels of distinct image latent queries based on their semantic relevance to the facial feature keys. This mechanism ensures that the original model’s behavior remains undisturbed during the injection of ID features and allows for free manipulation of activation levels to enable zero-shot layout control and multi-ID personalized image generation. The IMR, as a trainable feature transformer, learns to effectively disentan
+two people at war, both facing the camera
+a happy woman and an angry man
+a happy woman in side view and a sad man in front view
+Face-diffuser FastComposer UniPortrait Ours
+Reference
+Figure 2. Visual comparison on Multi-ID Personalization. Current methods demonstrate constraints in multi-ID generation and unsatisfying editability, while our method enables flexible facial editability as well as high image quality in such scenarios.
+gle and re-entangle identity and motion features of facial latent representations. It serves as an intermediary by capturing a face encoder’s output, modifying features, and delivering the modified output to the SAA, thereby enabling high fidelity and flexible facial editability. In the realm of the training paradigm, end-to-end training serves as a simple and straightforward approach. Yet the demand for large-scale specialized datasets with multi-ID concurrence and free-form facial attributes makes it practically unfeasible. To overcome this challenge, we introduce a task-decoupling training paradigm, characterized by a strategic bifurcation into two distinct stages aimed at separately training the SAA and the IMR. In the initial stage, we concurrently train the SAA and a face encoder, leveraging the innovative mechanism of the SAA, which allows this stage to be conducted using images containing only one single individual. Subsequently, our focus shifts to training the IMR which requires only a facial dataset where each individual is represented by multiple distinct images. To further augment the training of the IMR, we have meticulously curated the VariFace-10k dataset, which encompasses 10k unique individuals, each represented by 35 distinct facial images, thereby providing a flexible and diverse foundation for model enhancement. The main contributions of this paper are as follows: • We propose DynamicID, a tuning-free framework for personalized image generation that achieves zero-shot adaptation from single-ID to multi-ID contexts while preserving high identity fidelity and flexible facial editability. • We present a Semantic-Activated Attention mechanism, which employs query-level activation gating to refine the feature injection, coupled with an Identity-Motion Recon
+2
+
+
+figurator module to differentiate facial motion and identity features. • We introduce a task-decoupled training paradigm to streamline model optimization while reducing data dependency, supported by the VariFace-10k dataset comprising 10k identities with 35 systematically varying facial images per identity. • We conduct extensive and comprehensive experiments, which confirm DynamicID‘s efficacy and state-of-the-art performance.
+2. Related Work
+2.1. Text-to-Image Models
+The field of text-to-image generation has experienced significant advancements, driven by innovative techniques such as Generative Adversarial Networks (GANs) [30, 76], auto-regressive models [53, 65], and diffusion models [25, 54]. Among these techniques, diffusion models have emerged as the predominant approach, leveraging diffusion processes to iteratively transform noise into coherent images that align with textual descriptions [15, 47, 48, 50, 64]. In line with current trends, our methodology is built upon the Stable Diffusion model.
+2.2. Personalized Human Image Generation
+Personalized human image generation aims to create customized images that accurately reflect a specific identity based on one or more reference images. Early methods [3, 23, 26, 27, 45] predominantly rely on test-time finetuning. For example, DreamBooth [56] involved fine-tuning the model parameters on multiple images to learn the target identity. While these methods achieved high fidelity, they demanded substantial computational resources and time. Recent innovative works have introduced novel approaches to address these challenges.
+Tuning-free single-ID personalization: A vast amount of tuning-free studies have concentrated on the single-ID contexts [5, 9, 10, 29, 43], which typically utilize a face encoder to extract facial features from reference images and an injection module to integrate these features into the generative process. Current approaches can be systematically categorized into three distinct types based on the injection mechanism: text-based methods [7, 62, 66, 71], network-based methods [21, 81], and attention-based methods [17, 20, 42, 74, 75]. To illustrate, PhotoMaker [40] extracted facial features and merged them with the corresponding text token within the text embedding space, achieving semantic consistency though compromising identity fidelity. Conversely, InstantID [70] adapts ControlNet [80] architecture for high-fidelity generation but lacks facial editing granularity. Improving upon this, CapHuman [41] enhances facial editability via 3D Morphable Face Model
+[38] integration at the cost of increased computational complexity. As the pioneering attention-based method, IPAdapter [79] introduces a novel decoupled cross-attention mechanism for facial identity integration, achieving superior fidelity while sharing InstantID’s limitation in granular facial control. Inspired by this, the W+ adapter [39] leveraged the StyleGAN [32] encoder to extract features for expression control. However, using this encoder reduced fidelity and limited control over facial orientation. Moreover, these attention-based methods disrupted the model’s original behavior during the generative process due to the coarse-grained nature of cross-attention integration.
+Tuning-free multi-ID personalization: Multi-ID contexts remain significantly understudied compared to singleID contexts, presenting a unique technical challenge: identity blending [77], where facial features from different reference subjects intermingle during generation. Recent studies [13, 19, 49, 69] have proposed several mitigation strategies. Some works build on text-based methods originally tailored for single-ID contexts. For example, FastComposer [77] addressed identity blending through localized cross-attention maps, while Face-diffuser [72] combined dual specialized diffusion models with Saliency-adaptive Noise Fusion, simultaneously preventing the intermingling of features and enhancing image quality. Other works build on attentionbased methods. UniPortrait [24] introduced an ID routing module, enabling precise spatial allocation of facial features during synthesis. InstantFamily [33] and MagicID [13] incorporated a masked cross-attention mechanism to prevent feature leakage, coupled with a ControlNet integration to maintain positional correspondence between generated identities and their masked attention maps. Although prior works have addressed identity blending challenges, their reliance on existing frameworks tailored for single-ID context has inadvertently compromised core model functionalities while failing to achieve precise facial editing. In this work, we introduce two novel designs: SemanticActivated Attention (SAA), which could preserve the model’s original behavior while inherently supporting both single- and multi-ID contexts, and Identity-Motion Reconfigurator (IMR), which ensures both high fidelity and flexible facial editability.
+3. Methodology
+We present a novel unified framework that enables both single-ID and multi-ID personalized generation while achieving high identity fidelity and flexible facial editability. Our framework integrates three components: (1) a face encoder extracting facial features from reference images, (2) the Identity-Motion Reconfigurator (IMR) operating in latent space for feature-level editing, and (3) the SemanticActivated Attention (SAA) effectively injecting processed features into text-to-image models. To address the chal
+3
+
+
+(a) Anchoring Stage (b) Reconfiguration Stage
+Reference Prompt
+Text
+Encoder
+CA
+SAA
+CA
+SAA
+CA
+SAA
+Face
+Encoder
+Face
+feature
++
+Helper image
+Ground-truth
+feature
+Main image
+Face
+feature
+Face
+Encoder
+Face
+Encoder
+CA
+SAA
+···
+DisE Net
+ReE Net
+IMR
+Pose & prompt
+smile, side view
+netural, front
+A woman wearing a white blouse. Predicted
+feature
+Predicted
+noise
+Target Noise
+Target
+Helper noise
+Main noise
+Figure 3. The training pipeline of the proposed DynamicID. The proposed framework is architected around two core components: SAA and IMR. (a) In the anchoring stage, we jointly optimize the SAA and a face encoder to establish robust single-ID and multi-ID personalized generation capabilities. (b) Subsequently in the reconfiguration stage, we freeze these optimized components and leverage them to train the IMR for flexible and fine-grained facial editing.
+lenge of requiring large-scale specialized datasets, we introduce the task-decoupled training paradigm structured as an anchoring stage and a reconfiguration stage. As visualized in Fig. 3, the initial anchoring stage establishes fundamental personalized capabilities by simultaneously optimizing the face encoder and the SAA. The subsequent reconfiguration stage specializes in training the IMR for flexible facial editability. Section 3.1 provides a comprehensive analysis of the SAA alongside implementation details of the anchoring stage. Section 3.2 systematically elaborates on the IMR architecture and the reconfiguration stage methodology. Furthermore, we contribute the VariFace-10k dataset in Section 3.3 to support IMR training through diversified facial variations.
+3.1. Semantic-Activated Attention (SAA)
+The predominant technique for feature injection in personalized generation is the cross-attention mechanism. However, the inherent softmax function introduces an implicit inductive bias that forces each query to distribute a fixed total attention mass across all keys, even in the absence of semantic relevance between the query and any of the keys, which potentially causes perturbations to the model’s original behavior and identity blending [77] in multi-ID personalization. To overcome these limitations, we propose the Semantic-Activated Attention (SAA). As shown in Fig. 4, given the latent image representation z and facial features cf extracted from the reference image, SAA is formally defined through the following operations:
+znew = z + Expand(w) ⊙ softmax QK⊤
+√d V, (1)
+w =Norm(QK⊤J), (2)
+where Q = zWq, K = cf Wk, and V = cf Wv represent the query, key, and value matrices of the attention mechanism, respectively. The matrix J ∈ Rk×1 denotes an all
+ones column vector 1 1 · · · 1 ⊤ with length matching
+the number of keys, k. The Expand(·) operator broadcasts the weight vector w along the feature dimension to match the dimension of the attention output matrix. The Norm(·) operator applies min-max normalization to scale its input values to the [0, 1] range. The activation weights, derived from the interactions between queries and keys, effectively indicate the extent to which each query should be associated with the reference facial information, as verified in Fig. 7. Intuitively, SAA enhances ID features integration by ensuring that queries corresponding to the facial region receive strong activation (with their corresponding activation weight approaching 1) to incorporate reference facial information, while queries corresponding to the background are suppressed (with their corresponding activation weight approaching 0) according to their inherent irrelevance to the reference face. Additionally, queries corresponding to the body are moderately activated to maintain the internal coherence of the image.
+latent feature
+face feature
+Q
+K
+V
+Attention scores
+Sum&Norm
+Activation
+weights Output
+feature
+Figure 4. The mechanism of the proposed Semantic-Activated Attention. The SAA mitigates the fixed attention mass constraint of standard cross-attention by adaptively modulating the activation weights of the queries.
+The incorporation of a query-level activation gating mechanism confers inherent zero-shot generalization properties upon our pipeline, manifesting through three principal dimensions: Context Decoupling: The novel SAA suppresses queries originating from non-facial regions during infer
+4
+
+
+ence, ensuring that the generation process in these areas remains unaffected by extraneous facial information as shown in Fig. 8(a). This decoupling of context allows the model to maintain remarkable consistency in background and character behaviors across different reference identities. Layout Control: The novel SAA enables parametric modulation of activation weights during early denoising steps to achieve layout control as shown in Fig. 8(b). This controlled intervention, scaled by parameter β, induces the semantic transition of targeted regions toward facial features. Global coherence is maintained through multilevel query activation in subsequent denoising stages, which demonstrates superiority over binary activation approaches. The intervention is formally expressed as:
+wˆ = M ⊙ (w + β) + (1 − M ) ⊙ ( w
+β + 1 ), (3)
+where M represents the user-specified mask region, with the hyperparameters α and β governing the temporal scope and intervention intensity, respectively.
+Multi-ID Personalization: The layout control capability of SAA is instrumental in multi-ID contexts, enabling the spatial arrangement of each character’s face to be predetermined before inference. Specifically, during the incorporation of facial information for a particular character, queries associated with facial generation regions of other characters can be selectively suppressed to prevent identity blending. This approach facilitates multi-ID personalization generation without necessitating additional modules or training, as shown in Fig. 8(b). Notably, besides its versatility, the SAA framework maintains remarkable training efficiency, requiring only the single-ID dataset which is readily accessible. For the face encoder, we employ two pre-trained feature extractors to independently capture global and local facial features, followed by a projection module that synthesizes these features into a unified facial latent representation. In the anchoring stage, we freeze the parameters of the pre-trained extractors, training only the projection module and SAA, using the same training objective as the original diffusion process:
+Lnoise = Ez,t,ξ,τ,ε||ε − εθ(zt, t, ξ, τ )||2
+2, (4)
+where ξ and τ represent the reference facial features extracted by the face encoder and the textual features extracted by the text encoder, respectively, while εθ represents the T2I model incorporating the SAA.
+3.2. Identity-Motion Reconfigurator (IMR)
+To achieve personalized generation with flexible and finegrained facial editability, we introduce the Identity-Motion Reconfigurator (IMR) within the interaction space of the face encoder and the SAA. The IMR comprises two components: DisentangleNet φ1 and EntangleNet φ2, which
+strategically utilize face prompts to extract facial motion characteristics and incorporate subtle perturbed facial landmarks to enhance the accuracy of orientation angle estimation. The face prompts are encoded into fp ∈ R1×dp through a text encoder, while landmarks are transformed into fl ∈ R1×dl via a keypoint encoder. These representations are subsequently projected into c tokens using a Multilayer Perceptron (MLP), expressed as:
+ψ = MLP(Concat(fl, fp)) ∈ Rc×d. (5)
+DisentangleNet, leveraging the facial features ξsrc extracted by the face encoder trained during the anchoring stage, alongside the corresponding motion features ψsrc, predicts the posterior distribution of the identity features p(ζ|ξsrc, ψsrc). Subsequently, EntangleNet forecasts the distribution of the target facial features p(ξpred) by integrating the identity features ζ with the target motion features ψtgt.
+ξpred = φ2(φ1(ξsrc, ψsrc), ψtgt). (6)
+Consequently, by disentangling and re-entangling facial features, the IMR captures the feature output of the face encoder, effectively modifies its motion features towards the desired direction, and then provides these modified features to the SAA. Thereby, DynamicID facilitates fine-grained and flexible control of the facial motion while preserving identity fidelity. During inference, the IMR effortlessly handles precise and detailed face prompts and remains effective even when prompts are reduced to two fundamental attributes: expression and orientation. These attributes can be reliably decomposed from input faces using lightweight pre-trained models. Furthermore, incorporating subtly perturbed facial landmarks during training eliminates the need for exact source and target landmarks. Thanks to the innovative design of our IMR, which functions within latent representations, its training protocol only requires a dataset with various facial images of each individual. During the training phase, we commence by selecting a collection of m facial images of a specific individual, denoted as {xi}m
+i=1. Subsequently, we extract the corresponding motion features of face prompts and landmarks, {ψi}m
+i=1. Leveraging the face encoder, we project the origi
+nal images into the feature space, yielding {ξi}m
+i=1. In each training iteration, a single feature is randomly designated as the source feature, while the remaining features function as the target features. The IMR is then trained to employ motion cues to morph the source feature into the target feature, guided by our dual-objective loss function:
+Ledit = ||ξpred − ξtgt||2
+2
+| {z }
+Direct Feature Matching
++λ ||ε′
+θ(ξpred) − ε′
+θ (ξtgt )||2
+2
+| {z }
+Latent Diffusion Consistency
+, (7)
+where ε′
+θ denotes the optimized version of the original model εθ after the anchoring stage. The Direct Feature
+5
+
+
+Matching term enforces that the predicted representation aligns with the target representation in the explicit feature space, preserving critical attributes through numerical proximity. Concurrently, the Latent Diffusion Consistency term guarantees semantic equivalence in the T2I model’s implicit space, ensuring predicted features induce similar generative behaviors as target features.
+3.3. VariFace-10k Dataset
+Figure 5. An illustration of selected samples from our constructed VarFace-10k dataset. The VarFace-10k dataset contains multiple facial images per individual, exhibiting significant variations in facial expressions, head poses, lighting conditions, and other attributes.
+Our IMR requires a comprehensive personalized dataset consisting of various facial images for each individual, showcasing different expressions, orientations, and other attributes, paired with corresponding prompts. However, existing high-quality facial datasets, such as FFHQ [31], SFHQ [2], and CelebA [44], lack sufficient diversity in images of the same individual. To address this issue, we constructed the VariFace-10k dataset, where each individual is represented by 35 distinct facial images exhibiting significant variations, essential for mitigating the current scarcity of personalized datasets. More details about the VariFace10k dataset are available in the appendix.
+4. Experiment
+4.1. Experimental Setup
+Implementation details. We employ the SD1.5 model [54] as the foundational text-to-image model. For the face encoder, we utilize buffalo l [12] as the global feature extractor and CLIP-ViT-H [61] as the local feature extractor. Within the IMR architecture, the DisentangleNet and EntangleNet modules are identically structured, each comprising a single cross-attention layer followed by a selfattention layer and an MLP layer. We utilize clip-vit-largepatch14 [52] as the text encoder and a simple CNN [36] as the keypoint encoder. For the anchoring training stage, we filter 10k high-quality human images from the Laion-Face [60] dataset. For the reconfiguration training stage, we utilize the VariFace-10k dataset (with a 95% probability) and
+the KDEF [18] dataset (with a 5% probability). Additionally, we configured the hyperparameter λ to 1. All training is conducted on 8 NVIDIA A100 GPUs, utilizing the AdamW [46] optimizer with a batch size of 16 and a constant learning rate of 1e-5. During inference, we employ 50-step DDIM [63] sampling with a classifier-free guidance scale of 5. Detailed implementation of the Latent Diffusion Consistency term is provided in the appendix. Evaluation details. Following established evaluation protocols, we adopt the CLIP-T [52] metric for text-image alignment assessment and the FaceSim [59] metric for facial identity preservation. To facilitate the assessment of facial editability, we introduce two novel metrics: 1) Expr: This metric quantifies the effectiveness of expression editing by inputting the generated image into an expression classification model [55] and extracting the probability corresponding to the specified expression. 2) Pose: This metric evaluates viewpoint control accuracy using a head orientation estimation model [12] to categorize synthesized faces into four distinct viewpoint categories (front, side, up, and down) based on yaw and pitch angle thresholds. We employ an automated face detection pipeline with per-subject metric aggregation in the multi-ID contexts. For quantitative analysis, we randomly select identities from the CelebA [44] dataset to form our test set, following [77]. We augment prompts with explicit descriptors for expression and orientation to assess the model’s facial editability. Refer to the appendix for further details.
+4.2. Comparation Results
+Single-ID personalization. To demonstrate the effectiveness of our DynamicID for single-ID personalization, we conducted extensive comparative experiments against stateof-the-art baselines, including [20, 40, 70, 74, 79]. The quantitative results are presented in Table 1, while the qualitative outcomes are illustrated in Fig.6. Our analysis reveals that while IPA-FaceID-Plus and InstantID demonstrate high fidelity, they exhibit significant limitations in facial editability. The high FaceSim scores for these methods are primarily due to their tendency to direct facial replication, as evidenced by their low Expr and Pose scores. PhotoMakerv2 offers facial editing capabilities but compromises on fidelity. MasterWeaver attempts to balance expression editing and facial fidelity, yet fails to achieve satisfactory results. Despite being built upon the highly parameterintensive FLUX model [35], PuLID fails to deliver facial editing capabilities while significantly increasing resource consumption. In contrast, our proposed method strictly adheres to the prompts, generating images with flexible facial editability while maintaining strong identity fidelity. The visual comparison also intuitively highlights our method’s ability to generate high-quality images across diverse domains, including clothing, backgrounds, actions, and styles.
+6
+
+
+happy garden watercolor
+InstantID PuLID-Flux IPA-FaceID-Plus MasterWeaver PhotoMaker-v2 Ours
+laugh front view in snow
+side view standing
+Reference
+upward sweater
+sad drinking coffee
+surprised walking street
+Figure 6. Visual Comparison on Single-ID Personalization. All images are generated using the single reference image shown on the left. Our method uniquely achieves flexible and fine-grained editability of facial features, producing high-quality images with faithful identity preservation. Zoom in for a better view.
+Additional qualitative results, including complex expression editing, layout control, context decoupling, and ID mixing, are provided in the appendix.
+Method Arch. CLIP-T ↑ FaceSim ↑ Expr ↑ Pose ↑
+PuLID-FLUX FLUX 0.237 0.667 0.181 0.273 PhotoMaker-v2 SDXL 0.238 0.592 0.243 0.869 InstantID SDXL 0.233 0.723 0.151 0.264 IPA-FaceID-Plus SD1.5 0.236 0.712 0.156 0.266 MasterWeaver SD1.5 0.237 0.651 0.189 0.278 Ours SD1.5 0.239 0.671 0.456 0.878
+Table 1. Quantitative comparison between our DynamicID and state-of-the-art methods on single-ID Personalization.
+Multi-ID personalization. To validate the efficacy of our DynamicID for multi-ID personalization, we conducted comprehensive comparisons with existing state-of-the-art methods, including those proposed in [24, 72, 77]. Fig
+ure 2 showcases a visual comparison of qualitative results, while Table 2 provides the quantitative analysis. These evaluations underscore that our method uniquely enables independent, fine-grained editing of individual facial features. In contrast, FastComposer, Face-diffuser, and Uniportrait face challenges with direct facial replication. Furthermore, while maintaining comparable prompt consistency with baseline approaches, our method significantly enhances the visual quality of generated images. The higher score of Uniportrait in the FaceSim metric compared to our method stems from the same reason as discussed in the context of single-ID personalization. More visual examples for three-ID images are shown in Fig. 10.
+4.3. Ablation study
+Motivation Verification: Fig. 7 demonstrates that during the entire denoising process, only the queries corresponding to facial regions exhibit strong activation to incorporate ref
+7
+
+
+Method Arch. CLIP-T ↑ FaceSim ↑ Expr ↑ Pose ↑
+FastComposer SD1.5 0.233 0.594 0.144 0.256 Face-Diffuser SD1.5 0.234 0.612 0.149 0.264 UniPortrait SD1.5 0.235 0.718 0.149 0.268 Ours SD1.5 0.237 0.664 0.431 0.867
+Table 2. Quantitative comparison between our DynamicID and state-of-the-art methods on multi-ID Personalization.
+erence facial features. In contrast, queries corresponding to background regions remain non-activated, thereby preserving the behavior of the T2I model in these regions without interference.
+t = 1 t = 2 t = 3 t = 10 Generated Image
+Figure 7. Query activation levels across varying timesteps.
+Impact of SAA: Fig. 8 illustrates the effectiveness of the SAA. With the integration of SAA, the model’s behavior aligns more closely with that of the base T2I model, thereby preserving the robust text-editing capabilities inherent to the base T2I model. Moreover, SAA allows for manual adjustment of the query activation levels, which enables zero-shot layout control and multi-ID personalized generation. As presented in Table 3, quantitative experiments show a reduction in the CLIP-T score without SAA, indicating a decrease in the model’s text-editing proficiency. An extended analysis of the parametric sensitivity of α and β on multi-ID personalization, is presented in the appendix.
+Reference T2I model w/o SAA
++ running
+w / SAA w / SAA
++ library ( a ) ( b )
+Figure 8. Ablation study on SAA. (a) The SAA preserves the original model’s behavior when queries are adaptively activated. (b) Additionally, it allows for the manual enhancement of query activation levels in specific regions, which can be specified by the user using bounding boxes, thereby enabling zero-shot layout control and multi-ID personalized generation.
+Impact of IMR: Table 3 presents ablation study on our proposed IMR. Without IMR, the model exhibits significant limitations in flexible facial editing, as reflected in the degraded Expr and Pose metrics. The increased FaceSim
+Reference w/ IMR
+sad+front happy+side
+w/o IMR
+sad+front happy+side
+Figure 9. Ablation study on IMR. The IMR plays a significant role in enabling flexible and fine-grained facial editing.
+Method CLIP-T ↑ FaceSim ↑ Expr ↑ Pose ↑
+Ours w/o SAA 0.224 0.682 0.422 0.862 Ours w/o IMR 0.228 0.712 0.161 0.253 Ours 0.239 0.671 0.456 0.878
+Table 3. Ablation study on SAA and IMR.
+score stems from the model replicating the reference face rather than generating meaningful variations. These findings are visually supported by Fig. 9. Additional ablation experiments on the Direct Feature Matching and Latent Diffusion Consistency terms are available in the appendix.
+happy + sad + surprised + street
+Figure 10. Illustration of three IDs personalization. Our DynamicID framework is capable of effectively handling scenarios involving more than two individuals, while simultaneously enabling independent facial editing for each person.
+5. Conclusion
+We present DynamicID, a novel framework that enables high identity fidelity and flexible facial editing in personalized image generation across single- and multi-ID scenarios. Our approach introduces two key components: 1) Semantic-Activated Attention (SAA), which enhances feature integration through a query-level activation gating mechanism, thereby minimizing disruption to the original model and enabling zero-shot multi-ID personalization; 2) Identity-Motion Reconfigurator (IMR) that achieves superior facial editability via disentanglement and reentanglement of identity and motion features in facial space. The framework employs task-decoupled training to eliminate dependency on specialized datasets, complemented by our newly developed VariFace-10k dataset containing diverse facial variations across 10k identities. Extensive experiments demonstrate state-of-the-art performance, vali
+8
+
+
+dating the method’s effectiveness and broad application potential in personalized generation.
+References
+[1] Moab Arar, Andrey Voynov, Amir Hertz, Omri Avrahami, Shlomi Fruchter, Yael Pritch, Daniel Cohen-Or, and Ariel Shamir. PALP: prompt aligned personalization of text-toimage models. In SIGGRAPH Asia, 2024. 2 [2] David Beniaguev. Synthetic faces high quality (sfhq) dataset, 2022. 6, 11 [3] Erik Lien Bolager, Ana Cukarska, Iryna Burak, Zahra Monfared, and Felix Dietrich. Gradient-free training of recurrent neural networks. arXiv preprint arXiv:2410.23467, 2024. 3 [4] Daewon Chae, Nokyung Park, Jinkyu Kim, and Kimin Lee. Instructbooth: Instruction-following personalized text-toimage generation. arXiv preprint arXiv:2312.03011, 2024. 2
+[5] Dar-Yen Chen, Ayan Kumar Bhunia, Subhadeep Koley, Aneeshan Sain, Pinaki Nath Chowdhury, and Yi-Zhe Song. Democaricature: Democratising caricature generation with a rough sketch. In CVPR, 2024. 3 [6] Hong Chen, Yipeng Zhang, Simin Wu, Xin Wang, Xuguang Duan, Yuwei Zhou, and Wenwu Zhu. Disenbooth: Identitypreserving disentangled tuning for subject-driven text-toimage generation. In ICLR, 2024. 2 [7] Li Chen, Mengyi Zhao, Yiheng Liu, Mingxu Ding, Yangyang Song, Shizun Wang, Xu Wang, Hao Yang, Jing Liu, Kang Du, and Min Zheng. Photoverse: Tuning-free image customization with text-to-image diffusion models. arXiv preprint arXiv:2309.05793, 2023. 3
+[8] Wenhu Chen, Hexiang Hu, Yandong Li, Nataniel Ruiz, Xuhui Jia, Ming-Wei Chang, and William W. Cohen. Subject-driven text-to-image generation via apprenticeship learning. In NeurIPS, 2023. 2 [9] Weifeng Chen, Jiacheng Zhang, Jie Wu, Hefeng Wu, Xuefeng Xiao, and Liang Lin. Id-aligner: Enhancing identitypreserving text-to-image generation with reward feedback learning. arXiv preprint arXiv:2404.15449, 2024. 3
+[10] Zhuowei Chen, Shancheng Fang, Wei Liu, Qian He, Mengqi Huang, Yongdong Zhang, and Zhendong Mao. Dreamidentity: Improved editability for efficient face-identity preserved image generation. arXiv preprint arXiv:2307.00300, 2023. 3 [11] Zhe Chen, Jiannan Wu, Wenhai Wang, Weijie Su, Guo Chen, Sen Xing, Muyan Zhong, Qinglong Zhang, Xizhou Zhu, Lewei Lu, et al. Internvl: Scaling up vision foundation models and aligning for generic visual-linguistic tasks. In CVPR, 2024. 12 [12] Jiankang Deng, Jia Guo, Niannan Xue, and Stefanos Zafeiriou. Arcface: Additive angular margin loss for deep face recognition. In CVPR, 2019. 6, 12 [13] Zhaoli Deng, Wen Liu, Fanyi Wang, Junkang Zhang, Fan Chen, Meng Zhang, Wendong Zhang, and Zhenpeng Mi. Magicid: Flexible id fidelity generation system. arXiv preprint arXiv:2408.09248, 2024. 3
+[14] Ziyi Dong, Pengxu Wei, and Liang Lin. Dreamartist++: Controllable one-shot text-to-image generation via positivenegative adapter. arXiv preprint arXiv:2211.11337, 2022. 2
+[15] Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas Mu ̈ller, Harry Saini, Yam Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, Dustin Podell, Tim Dockhorn, Zion English, and Robin Rombach. Scaling rectified flow transformers for high-resolution image synthesis. In ICML, 2024. 3 [16] Rinon Gal, Yuval Alaluf, Yuval Atzmon, Or Patashnik, Amit Haim Bermano, Gal Chechik, and Daniel Cohen-Or. An image is worth one word: Personalizing text-to-image generation using textual inversion. In ICLR, 2023. 2 [17] Rinon Gal, Or Lichter, Elad Richardson, Or Patashnik, Amit H. Bermano, Gal Chechik, and Daniel Cohen-Or. Lcmlookahead for encoder-based text-to-image personalization. In ECCV, 2024. 3 [18] E. Goeleven, R. De Raedt, L. Leyman, and B. Verschuere. The karolinska directed emotional faces: A validation study. Cognition and Emotion, 2008. 6
+[19] Yuchao Gu, Xintao Wang, Jay Zhangjie Wu, Yujun Shi, Yunpeng Chen, Zihan Fan, Wuyou Xiao, Rui Zhao, Shuning Chang, Weijia Wu, Yixiao Ge, Ying Shan, and Mike Zheng Shou. Mix-of-show: Decentralized low-rank adaptation for multi-concept customization of diffusion models. In NeurIPS, 2023. 3
+[20] Zinan Guo, Yanze Wu, Zhuowei Chen, Lang Chen, Peng Zhang, and Qian He. Pulid: Pure and lightning ID customization via contrastive alignment. In NeurIPS, 2024. 3, 6
+[21] Yue Han, Junwei Zhu, Keke He, Xu Chen, Yanhao Ge, Wei Li, Xiangtai Li, Jiangning Zhang, Chengjie Wang, and Yong Liu. Face-adapter for pre-trained diffusion models with finegrained ID and attribute control. In ECCV, 2024. 3 [22] Yue Han, Junwei Zhu, Keke He, Xu Chen, Yanhao Ge, Wei Li, Xiangtai Li, Jiangning Zhang, Chengjie Wang, and Yong Liu. Face adapter for pre-trained diffusion models with fine-grained id and attribute control. arXiv preprint arXiv:2405.12970, 2024. 12
+[23] Shaozhe Hao, Kai Han, Shihao Zhao, and Kwan-Yee K. Wong. Vico: Plug-and-play visual condition for personalized text-to-image generation. arXiv preprint arXiv:2306.00971, 2023. 3 [24] Junjie He, Yifeng Geng, and Liefeng Bo. Uniportrait: A unified framework for identity-preserving singleand multi-human image personalization. arXiv preprint arXiv:2408.05939, 2024. 3, 7
+[25] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. In NeurIPS, 2020. 3 [26] Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan AllenZhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. Lora: Low-rank adaptation of large language models. In ICLR, 2022. 3 [27] Miao Hua, Jiawei Liu, Fei Ding, Wei Liu, Jie Wu, and Qian He. Dreamtuner: Single image is enough for subject-driven generation. arXiv preprint arXiv:2312.13691, 2023. 3
+[28] Jiehui Huang, Xiao Dong, Wenhui Song, Zheng Chong, Zhenchao Tang, Jun Zhou, Yuhao Cheng, Long Chen, Hanhui Li, Yiqiang Yan, Shengcai Liao, and Xiaodan Liang. Consistentid: Portrait generation with multi
+9
+
+
+modal fine-grained identity preserving. arXiv preprint arXiv:2404.16771, 2024. 2
+[29] Junha Hyung, Jaeyo Shin, and Jaegul Choo. Magicapture: High-resolution multi-concept portrait customization. In AAAI, 2024. 3 [30] Minguk Kang, Jun-Yan Zhu, Richard Zhang, Jaesik Park, Eli Shechtman, Sylvain Paris, and Taesung Park. Scaling up gans for text-to-image synthesis. In CVPR, 2023. 3 [31] Tero Karras, Samuli Laine, and Timo Aila. A style-based generator architecture for generative adversarial networks. In CVPR, 2019. 6, 11 [32] Tero Karras, Samuli Laine, and Timo Aila. A style-based generator architecture for generative adversarial networks. In CVPR, 2019. 3 [33] Chanran Kim, Jeongin Lee, Shichang Joung, Bongmo Kim, and Yeul-Min Baek. Instantfamily: Masked attention for zero-shot multi-id image generation. arXiv preprint arXiv:2404.19427, 2024. 3
+[34] Nupur Kumari, Bingliang Zhang, Richard Zhang, Eli Shechtman, and Jun-Yan Zhu. Multi-concept customization of text-to-image diffusion. In CVPR, 2023. 2 [35] Black Forest Labs. Flux. https://github.com/ black-forest-labs/flux, 2024. 2, 6
+[36] Yann LeCun, Le ́on Bottou, Yoshua Bengio, and Patrick Haffner. Gradient-based learning applied to document recognition. Proc. IEEE, 1998. 6 [37] Dongxu Li, Junnan Li, and Steven C. H. Hoi. Blip-diffusion: Pre-trained subject representation for controllable text-toimage generation and editing. In NeurIPS, 2023. 2 [38] Tianye Li, Timo Bolkart, Michael. J. Black, Hao Li, and Javier Romero. Learning a model of facial shape and expression from 4D scans. ACM Trans. Graph., 2017. 3 [39] Xiaoming Li, Xinyu Hou, and Chen Change Loy. When stylegan meets stable diffusion: a w+ adapter for personalized image generation. In CVPR, 2024. 3 [40] Zhen Li, Mingdeng Cao, Xintao Wang, Zhongang Qi, MingMing Cheng, and Ying Shan. Photomaker: Customizing realistic human photos via stacked ID embedding. In CVPR, 2024. 3, 6 [41] Chao Liang, Fan Ma, Linchao Zhu, Yingying Deng, and Yi Yang. Caphuman: Capture your moments in parallel universes. In CVPR, 2024. 2, 3 [42] Giuseppe Lisanti and Nico Giambi. Conditioning diffusion models via attributes and semantic masks for face generation. Comput. Vis. Image Underst., 2024. 3
+[43] Renshuai Liu, Bowen Ma, Wei Zhang, Zhipeng Hu, Changjie Fan, Tangjie Lv, Yu Ding, and Xuan Cheng. Towards a simultaneous and granular identity-expression control in personalized face generation. In CVPR, 2024. 3 [44] Ziwei Liu, Ping Luo, Xiaogang Wang, and Xiaoou Tang. Deep learning face attributes in the wild. In ICCV, 2015. 6, 11 [45] Zhiheng Liu, Yifei Zhang, Yujun Shen, Kecheng Zheng, Kai Zhu, Ruili Feng, Yu Liu, Deli Zhao, Jingren Zhou, and Yang Cao. Cones 2: Customizable image synthesis with multiple subjects. arXiv preprint arXiv:2305.19327, 2023. 3
+[46] Ilya Loshchilov and Frank Hutter. Decoupled weight decay regularization. In ICLR, 2019. 6 [47] Alexander Quinn Nichol, Prafulla Dhariwal, Aditya Ramesh, Pranav Shyam, Pamela Mishkin, Bob McGrew, Ilya Sutskever, and Mark Chen. GLIDE: towards photorealistic image generation and editing with text-guided diffusion models. In ICML, 2022. 2, 3 [48] William Peebles and Saining Xie. Scalable diffusion models with transformers. arXiv preprint arXiv:2212.09748, 2022. 3
+[49] Xu Peng, Junwei Zhu, Boyuan Jiang, Ying Tai, Donghao Luo, Jiangning Zhang, Wei Lin, Taisong Jin, Chengjie Wang, and Rongrong Ji. Portraitbooth: A versatile portrait model for fast identity-preserved personalization. In CVPR, 2024. 3
+[50] Dustin Podell, Zion English, Kyle Lacey, Andreas Blattmann, Tim Dockhorn, Jonas Mu ̈ller, Joe Penna, and Robin Rombach. SDXL: improving latent diffusion models for high-resolution image synthesis. In ICLR, 2024. 3 [51] Zeju Qiu, Weiyang Liu, Haiwen Feng, Yuxuan Xue, Yao Feng, Zhen Liu, Dan Zhang, Adrian Weller, and Bernhard Sch ̈olkopf. Controlling text-to-image diffusion by orthogonal finetuning. In NeurIPS, 2023. 2 [52] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. Learning transferable visual models from natural language supervision. In ICML, 2021. 6
+[53] Aditya Ramesh, Mikhail Pavlov, Gabriel Goh, Scott Gray, Chelsea Voss, Alec Radford, Mark Chen, and Ilya Sutskever. Zero-shot text-to-image generation. In ICML, 2021. 2, 3 [54] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bjo ̈rn Ommer. High-resolution image synthesis with latent diffusion models. In CVPR, 2022. 2, 3, 6, 11 [55] Arnab Kumar Roy, Hemant Kumar Kathania, Adhitiya Sharma, Abhishek Dey, and Md. Sarfaraj Alam Ansari. Resemotenet: Bridging accuracy and loss reduction in facial emotion recognition. IEEE Signal Process. Lett., 2025. 6 [56] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman. Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation. In CVPR, 2023. 2, 3 [57] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Wei Wei, Tingbo Hou, Yael Pritch, Neal Wadhwa, Michael Rubinstein, and Kfir Aberman. Hyperdreambooth: Hypernetworks for fast personalization of text-to-image models. In CVPR, 2024. 2
+[58] Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily L. Denton, Seyed Kamyar Seyed Ghasemipour, Raphael Gontijo Lopes, Burcu Karagol Ayan, Tim Salimans, Jonathan Ho, David J. Fleet, and Mohammad Norouzi. Photorealistic text-to-image diffusion models with deep language understanding. In NeurIPS, 2022. 2 [59] Florian Schroff, Dmitry Kalenichenko, and James Philbin. Facenet: A unified embedding for face recognition and clustering. In CVPR, 2015. 6
+10
+
+
+[60] Christoph Schuhmann, Richard Vencu, Romain Beaumont, Robert Kaczmarczyk, Clayton Mullis, Aarush Katta, Theo Coombes, Jenia Jitsev, and Aran Komatsuzaki. Laion-400m: Open dataset of clip-filtered 400 million image-text pairs. arXiv preprint arXiv:2111.02114, 2021. 6
+[61] Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Wortsman, Patrick Schramowski, Srivatsa Kundurthy, Katherine Crowson, Ludwig Schmidt, Robert Kaczmarczyk, and Jenia Jitsev. LAION-5B: an open large-scale dataset for training next generation image-text models. In NeurIPS, 2022. 6 [62] Kaede Shiohara and Toshihiko Yamasaki. Face2diffusion for fast and editable face personalization. In CVPR, 2024. 3 [63] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. In ICLR, 2021. 6 [64] Kolors Team. Kolors: Effective training of diffusion model for photorealistic text-to-image synthesis. arXiv preprint arXiv:2410.11795, 2024. 3
+[65] Keyu Tian, Yi Jiang, Zehuan Yuan, Bingyue Peng, and Liwei Wang. Visual autoregressive modeling: Scalable image generation via next-scale prediction. In NeurIPS, 2024. 3 [66] Dani Valevski, Danny Lumen, Yossi Matias, and Yaniv Leviathan. Face0: Instantaneously conditioning a text-toimage model on a face. In SIGGRAPH Asia, 2023. 3 [67] Jiahao Wang, Caixia Yan, Haonan Lin, Weizhan Zhang, Mengmeng Wang, Tieliang Gong, Guang Dai, and Hao Sun. Oneactor: Consistent subject generation via clusterconditioned guidance. In NeurIPS, 2024. [68] Jiahao Wang, Caixia Yan, Weizhan Zhang, Haonan Lin, Mengmeng Wang, Guang Dai, Tieliang Gong, Hao Sun, and Jingdong Wang. Spotactor: Training-free layoutcontrolled consistent image generation. arXiv preprint arXiv:2409.04801, 2024.
+[69] Kuan-Chieh Wang, Daniil Ostashev, Yuwei Fang, Sergey Tulyakov, and Kfir Aberman. Moa: Mixture-of-attention for subject-context disentanglement in personalized image generation. In SIGGRAPH Asia, 2024. 3 [70] Qixun Wang, Xu Bai, Haofan Wang, Zekui Qin, and Anthony Chen. Instantid: Zero-shot identity-preserving generation in seconds. arXiv preprint arXiv:2401.07519, 2024. 2, 3, 6 [71] Qinghe Wang, Xu Jia, Xiaomin Li, Taiqing Li, Liqian Ma, Yunzhi Zhuge, and Huchuan Lu. Stableidentity: Inserting anybody into anywhere at first sight. arXiv preprint arXiv:2401.15975, 2024. 3
+[72] Yibin Wang, Weizhong Zhang, Jianwei Zheng, and Cheng Jin. High-fidelity person-centric subject-to-image synthesis. In CVPR, 2024. 2, 3, 7 [73] Yuxiang Wei, Yabo Zhang, Zhilong Ji, Jinfeng Bai, Lei Zhang, and Wangmeng Zuo. ELITE: encoding visual concepts into textual embeddings for customized text-to-image generation. In ICCV, 2023. 2 [74] Yuxiang Wei, Zhilong Ji, Jinfeng Bai, Hongzhi Zhang, Lei Zhang, and Wangmeng Zuo. Masterweaver: Taming editability and face identity for personalized text-to-image generation. In ECCV, 2024. 3, 6
+[75] Yi Wu, Ziqiang Li, Heliang Zheng, Chaoyue Wang, and Bin Li. Infinite-id: Identity-preserved personalization via idsemantics decoupling paradigm. In ECCV, 2024. 3 [76] Weihao Xia, Yujiu Yang, Jing-Hao Xue, and Baoyuan Wu. Tedigan: Text-guided diverse face image generation and manipulation. In CVPR, 2021. 3 [77] Guangxuan Xiao, Tianwei Yin, William T. Freeman, Fr ́edo Durand, and Song Han. Fastcomposer: Tuning-free multisubject image generation with localized attention. IJCV, 2024. 2, 3, 4, 6, 7, 12 [78] Yuxuan Yan, Chi Zhang, Rui Wang, Yichao Zhou, Gege Zhang, Pei Cheng, Gang Yu, and Bin Fu. Facestudio: Put your face everywhere in seconds. arXiv preprint arXiv:2312.02663, 2023. 2
+[79] Hu Ye, Jun Zhang, Sibo Liu, Xiao Han, and Wei Yang. Ipadapter: Text compatible image prompt adapter for text-toimage diffusion models. arXiv preprint arXiv:2308.06721, 2023. 3, 6, 12 [80] Lvmin Zhang, Anyi Rao, and Maneesh Agrawala. Adding conditional control to text-to-image diffusion models. In ICCV, 2023. 3 [81] Shilong Zhang, Lianghua Huang, Xi Chen, Yifei Zhang, Zhi-Fan Wu, Yutong Feng, Wei Wang, Yujun Shen, Yu Liu, and Ping Luo. Flashface: Human image personalization with high-fidelity identity preservation. arXiv preprint arXiv:2403.17008, 2024. 2, 3
+6. Appendix
+6.1. Limitations
+While our approach is designed as a plug-and-play framework fundamentally compatible with all text-to-image generative models, this work has primarily utilized Stable Diffusion v1.5 [54] as the backbone architecture. Compared to state-of-the-art models with significantly larger parameter counts, the current implementation shows limitations in processing complex textual prompts. Future efforts will focus on scaling the methodology through expanded training datasets, adaptation to diverse models, and the release of corresponding versions.
+6.2. VariFace-10k dataset details
+The training of our IMR necessitates a comprehensive personalized dataset, where each identity is characterized by a diverse collection of facial images exhibiting a wide spectrum of expressions, orientations, and other attributes, complemented by corresponding textual prompts. This comprehensive dataset is crucial for advancing the model’s understanding of the disentanglement and entanglement between identity and motion features within the feature space. However, currently, available high-quality facial datasets, including FFHQ [31], SFHQ [2], and CelebA [44], demonstrate significant limitations in terms of intra-individual image diversity, typically constrained to a narrow range of expressions (predominantly neutral and happy) and even rep
+11
+
+
+resenting individuals with only a single image. To overcome these limitations, we have developed the VariFace10k dataset, which contains 35 distinct facial images per individual, each exhibiting substantial variations across multiple dimensions. This dataset serves as a fundamental resource for training our IMR and addresses the existing gap in personalized dataset availability. Our dataset construction process involved initially curating high-quality facial images from the FFHQ dataset, subsequently augmenting this collection with additional high-quality images sourced from the internet and further expanding the dataset through GAN-based generation of supplementary high-quality facial images. All images were standardized through uniform cropping to 512x512 resolution, resulting in a foundational set of 10k distinct facial images. Building upon this foundation, we employed the Face-Adapter [22] to perform face reenactment using images from the KDEF dataset as driving images, ultimately generating an extensive collection of 350k facial images comprising 10k unique identities, each represented by 35 distinct facial attributes. Recognizing the potential for facial distortion in generating profile views from frontal images, we processed each set of 35 images per individual through the IP-Adapter-FaceID-Portrait model [79] to regenerate 35 refined images. Finally, we implemented [12] for landmark generation and utilized [11] to provide detailed, fine-grained textual prompts for each facial image in our dataset.
+6.3. More evaluation details
+For quantitative analysis, we randomly selected 500 identities from the CelebA dataset to construct our test set, adhering to the methodology outlined in [77]. We employed 20 prompts encompassing various accessories, clothing, backgrounds, actions, and styles. Table 5 provides the complete list of prompts. Each base prompt was systematically augmented through the injection of supplementary facial attributes, including seven distinct facial expressions (neutral, happy, angry, disgusted, surprised, sad, afraid) and four orientation descriptors (front view, side view, facing up, facing down). Single-ID prompts are structured as: a person with a happy expression in a side view, wearing headphones. Multi-ID prompts are: The person on the left has a neutral expression in a side view, and the person on the right has a sad expression in a front view, both wearing headphones. For the Pose metric, if the source prompt includes ”facing up” or ”facing down,” we utilize the pitch angle with a threshold of 10 degrees to categorize the images into ’up,’ ’down,’ or ’front’ classes. Conversely, if the source prompt contains ”in front view” or ”in side view,” we employ the yaw angle with a threshold of 10 degrees to classify the images into ’side’ or ’front’ categories.
+6.4. Detailed implementation of LDC term
+The Latent Diffusion Consistency term can be more precisely expressed as:
+||εθ(zt, t, ξpred, τ ) − εθ(zt, t, ξtgt, τ )||2
+2 (8)
+where zt is derived from the target facial image, and τ is the text embedding corresponding to the facial prompt associated with the target image. Within this framework, the Latent Diffusion Consistency term ensures semantic equivalence in the T2I model’s latent space, ensuring that the predicted features induce generative behaviors similar to those of the target features.
+6.5. More ablation
+Effect of parameters α and β on multi-ID personalized generation: We conducted an in-depth investigation into the effects of parameters α and β on multi-ID personalized generation, using the probability of detecting valid faces across all target regions as the evaluation metric. As illustrated in Fig. 11, the experimental results led us to select α = 0.24 and β = 2 as the optimal values.
+Figure 11. Investigating the impact of varying hyperparameter values of α and β for multi-ID personalized generation, our experimental results led us to select α = 0.24 and β = 2.
+Effect of the two Terms in the IMR training stage: As evidenced in Table 4, both the Direct Feature Matching term and the Latent Diffusion Consistency term play pivotal roles in attaining flexible facial editability while maintaining high identity preservation. Our ablation study demonstrates that the elimination of the Latent Diffusion Consistency term substantially impairs facial editing capability, whereas the removal of the Direct Feature Matching term significantly compromises identity fidelity. These empirical findings underscore the complementary nature and synergistic interplay of these two terms in achieving optimal performance in personalized generation.
+12
+
+
+Method CLIP-T FaceSim Expr Pose
+Ours w/o DFM 0.237 0.663 0.433 0.851 Ours w/o LDC 0.238 0.667 0.234 0.644 Ours 0.239 0.671 0.456 0.878
+Table 4. The proposed Direct Feature Matching term and Latent Diffusion Consistency term significantly enhance flexible facial editability and maintain identity fidelity.
+6.6. More Applications
+We provide more applications of our DynamicID, encompassing context decoupling (Fig. 12), layout control (Fig. 13, complex expression editing (Fig. 15), ID mixing (Fig. 14), transformation from non-photo-realistic domains to photo-realistic ones (Fig. 16).
+Category Prompt Accessory wearing headphones
+with long yellow hair
+Clothing
+wearing a spacesuit in a chef outfit in a doctor’s outfit in a police outfit
+Background
+standing in front of a lake in the mountains on the street in the snow in the desert on the sofa on the beach
+Action
+reading books walking on the road playing the guitars holding a bottle of red wine eating lunch Style a painting in the style of Ghibli anime
+a painting in the style of watercolor
+Table 5. Evaluation text prompts are categorized into Clothing, Accessories, Background, Action, and Style, which will be incorporated as part of the final prompt.
+13
+
+
+a man on the road
+a woman on the street
+Figure 12. The application of context decoupling.
+14
+
+
+Query Activation Intervention
+Query Activation Level Generated Image
+Figure 13. The application of layout control.
+15
+
+
+0 0.2 0.4 0.6 0.8 1
+Reference Reference
+Figure 14. The application of ID mixing.
+Reference Reference
+happy + sad = mix happy + surprised = mix
+Figure 15. The application of complex expression editing. Zoom in for a better view.
+16
+
+
+Reference happy side Reference happy side
+Figure 16. The application of transformation from on-photo-realistic domains to photo-realistic one.
+17
