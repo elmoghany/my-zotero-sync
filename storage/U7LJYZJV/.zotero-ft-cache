@@ -1,0 +1,397 @@
+PersonaCraft: Personalized and Controllable Full-Body Multi-Human Scene
+Generation Using Occlusion-Aware 3D-Conditioned Diffusion
+Gwanghyun Kim1∗, Suh Yoon Jeon1∗, Seunggyu Lee1, Se Young Chun1,2† 1Dept. of Electrical and Computer Engineering, 2INMC & IPAI Seoul National University, Republic of Korea
+{gwang.kim, euniejeon, leeseunggyu, sychun}@snu.ac.kr
+Figure 1. PersonaCraft generates realistic, personalized images of multiple individuals with complex occlusions, preserving facial identity and body shape using occlusion-aware 3D pose and shape conditioned diffusion. PersonaCraft outperforms baselines in body shape personalization (blue arrows indicate failures) and naturalness (yellow arrows highlight artifacts, with zoomed-in views in yellow boxes).
+Abstract
+We present PersonaCraft, a framework for controllable and occlusion-robust full-body personalized image synthesis of multiple individuals in complex scenes. Current methods struggle with occlusion-heavy scenarios and complete body personalization, as 2D pose conditioning lacks 3D geometry, often leading to ambiguous occlusions and anatomical distortions, and many approaches focus solely on facial identity. In contrast, our PersonaCraft integrates diffusion models with 3D human modeling, employing SMPLx-ControlNet, to utilize 3D geometry like depth and normal maps for robust 3D-aware pose conditioning and enhanced anatomical coherence. To handle fine-grained occlusions, we propose
+*Authors contributed equally. †Corresponding author.
+Occlusion Boundary Enhancer Network that exploits depth edge signals with occlusion-focused training, and OcclusionAware Classifier-Free Guidance strategy that selectively reinforces conditioning in occluded regions without affecting unoccluded areas. PersonaCraft can seamlessly be combined with Face Identity ControlNet, achieving full-body multi-human personalization and thus marking a significant advancement beyond prior approaches that concentrate only on facial identity. Our dual-pathway body shape representation with SMPLx-based shape parameters and textual refinement, enables precise full-body personalization and flexible user-defined body shape adjustments. Extensive quantitative experiments and user studies demonstrate that PersonaCraft significantly outperforms existing methods in generating high-quality, multi-person images with accurate
+1
+arXiv:2411.18068v2 [cs.CV] 14 Mar 2025
+
+
+Figure 2. SMPLx-ControlNet (SCNet) with SMPLx depth and normal improves occlusion handling in pose generation compared to 2D OpenPose, though fine-grained occlusions remain challenging. Using our occlusion-focused methods, OccNet and OccCFG, we achieve superior pose consistency and anatomical coherence.
+personalization and robust occlusion handling.
+1. Introduction
+Recent advances in personalized image generation [2, 8, 1824, 30, 32, 50, 54, 60, 66, 67, 73, 73, 74, 78, 79, 81, 84, 88, 90, 92, 94–96] and controllable image generation [16, 28, 37, 51, 80, 91, 98], powered by diffusion models [13, 33, 39–42, 69, 75, 95], have paved the way for synthesizing multi-human scenes with explicitly defined poses. Despite these breakthroughs, generating images with multiple individuals in complex, occlusion-heavy environments remains a formidable challenge. Conventional approaches that rely on 2D skeleton-based conditioning lack the depth cues necessary to capture overlapping body parts and intricate inter-person interactions, often resulting in ambiguous occlusions and anatomical distortions. Although recent works [16, 55, 98] have begun exploring the use of 3D pose information, they are limited to single-person scenarios, thereby restricting their applicability to multi-person scenes. Furthermore, achieving full-body personalization remains a significant challenge. Most existing methods prioritize facial identity, often overlooking the distinct characteristics of body shape. Although several approaches [90, 97] have enabled full-body personalization using general image encoders [65], they often struggle to disentangle intrinsic body shape from clothing attributes. To address these challenges, we propose PersonaCraft, a framework for controllable and occlusion-robust full-body personalized image synthesis of multiple individuals in complex scenes. Firstly, our approach integrates diffusion models with 3D human modeling, employing SMPLx-ControlNet (SCNet), to utilize critical 3D geometric information to overcome the limitations of conventional 2D pose conditioning. Through careful exploration of 3D pose representations, we found that combining SMPLx depth and normal maps offers the most robust conditioning, ensuring high pose consistency and anatomical naturalness. However, despite the benefits of 3D-aware conditioning, handling complex, fine-grained occlusions still remains challenging, as shown in Fig. 2. Secondly, we propose the Occlusion Boundary Enhancer Net
+work (OccNet), which explicitly enhances occluded regions at a finer level by leveraging depth edge signals that highlight occlusion boundaries. Complemented by our OcclusionAware Classifier-Free Guidance (OccCFG) strategy, our OccNet adaptively reinforces conditioning in occlusion-heavy areas without compromising contrast in unoccluded regions. Together, these components ensure robust anatomical coherence, even in complex multi-human interactions with significant occlusions, as presented in Fig. 2. Another key advantage of our 3D-aware pose conditioning, beyond enhancing pose accuracy with improved occlusion handling and anatomical coherence, is its ability to encode body shape through SMPLx body shape coefficients. Our method can seamlessly be combined with Face Identity ControlNet [81] to achieve full-body multihuman personalization, representing a significant advancement beyond prior methods focused solely on facial identity [31, 43, 81, 85, 90, 93, 97]. Moreover, to overcome the limitations of SMPLx-based body representation, especially in challenging cases where body shape characteristics conflict, we introduce a dual-pathway approach where an optional textual pathway refines body shape. PersonaCraft enables fine-scale, user-defined body shape control through reference-based and interpolation/extrapolation-based adjustments. Through extensive quantitative and qualitative evaluations, including user studies, our PersonaCraft shows significant improvements in occlusion handling, pose consistency, setting a new benchmark for anatomically precise controllable and personalized multi-human image synthesis.
+2. Related Works
+Single-Concept Personalization. Text-to-image (T2I) diffusion models and applications [13, 33, 39–42, 69, 75, 95] enable single-concept personalization, adapting pretrained models for individual subjects. Early methods used optimization-based techniques [18, 21, 30, 32, 66, 67, 74] or textual embeddings [2, 22, 60, 78, 79, 92, 94]. LoRA methods [34, 77] reduced the need for many trainable parameters. Recent works [8, 19, 20, 23, 24, 50, 54, 73, 73, 81, 84, 88, 90, 95, 96] like IP-Adapter [90] and InstantID [81] adopt modular designs for fast personalization from a single reference image and human-centric modules. However, these methods face challenges in handling complex human poses, neglect body shape preservation, or fail to disentangle identity from clothing in personalized human image synthesis. Multi-Concept Personalization. Recent multi-concept personalization methods [9, 25, 29, 52] use cross-attention to prevent concept entanglement. Custom Diffusion [46] integrates models via joint training or constrained optimization. Mix-of-Show [27] employs gradient fusion for identity
+2
+
+
+Figure 3. Overview of our occlusion-aware 3D pose and shape conditioning. We generate SMPLx renderings for SMPLx-ControlNet (SCNet) and derive occlusion masks for the Occlusion Boundary Enhancer Network (OccNet) by counting intersected faces and masking depth edges. Combining SCNet and OccNet residuals with occlusion masks enables the base U-Net to handle occlusion-aware 3D pose and shape conditioning. Occlusion-aware classifier-free guidance (OccCFG) further improves anatomical coherence in occluded regions.
+preservation and regional sampling for attribute binding. Modular Customization [63] isolates concepts via orthogonal directions. FastComposer [85] enhances training-free personalization. OMG [43] propose 2-stage multi-concept personalization without training. StoryMaker [97] ensures multi-character consistency via segmentation-constrained cross-attention. UniPortrait [31] propose ID embeddings and routing modules for high fidelity and editability. IDPatch [93] mitigates ID leakage and ensures precise identityposition association introducing ID patches. However, existing methods still exhibit limitations in maintaining occlusion robustness and precise control over body shapes.
+Controllable Human Generation. Recent works, such as ControlNet [91] and HyperHuman [51], integrate T2I diffusion with 2D skeletons for controllable human synthesis. HumanSD [37] enhances skeleton-based generation with heatmap-guided denoising, while Stable-Pose [80] improves pose alignment using attention masking. DWpose [89] refines OpenPose [17] for better skeleton accuracy, and DensePose [28] maps RGB images to 3D surfaces. However, lacking depth cues, these methods struggle with occlusions in multi-human or complex pose scenarios. PODIA-3D [41] incorporates depth for pose guidance but not image synthesis. The SMPL [53] (Skinned Multi-Person Linear Model) and SMPLx [61] are parametric human body models that provide realistic 3D representations of human pose and shape. SMPL models the body using shape parameters and pose parameters with a differentiable blend skinning function, making it widely used in vision and graphics applications. SMPLx extends this by incorporating expressive facial and hand articulation, enabling more detailed human motion modeling. Recent works leverage SMPL for generative tasks:
+Champ [98] applies SMPL for single-human video synthesis, while HumanLDM [16] integrates SMPL with ControlNet for stable pose-conditioned human generation. However, these methods focus solely on single-human cases and do not address complex occlusions in multi-human scenarios.
+3. Proposed Method: PersonaCraft
+We propose PersonaCraft, a framework for controllable and occlusion-robust full-body personalized image synthesis of multiple individuals in complex scenes. PersonaCraft integrates diffusion models with 3D human modeling, leveraging SMPLx-ControlNet (SCNet) to incorporate 3D geometry, including depth and normal maps, for robust 3D-aware pose conditioning and enhanced anatomical coherence (Sec. 3.1). To handle fine-grained occlusions, we introduce the Occlusion Boundary Enhancer Network (OccNet), which exploits depth edge signals through occlusion-focused training, and the Occlusion-Aware Classifier-Free Guidance (OccCFG) strategy, which selectively reinforces conditioning in occluded regions without affecting unoccluded areas (Sec. 3.2). Furthermore, PersonaCraft seamlessly integrates with Face Identity ControlNet, enabling full-body multi-human personalization and surpassing prior approaches that focus solely on facial identity. Our dual-pathway body shape representation, combining SMPLx-based shape parameters with textual refinement, ensures precise full-body personalization and flexible user-defined body shape adjustments (Sec. 3.3). Existing methods rely on 2D skeleton-based ControlNets [91], which lack depth cues and fail to capture identityspecific body shapes in multi-human scenes. We propose a 3D-aware pose conditioning technique, SMPLx-ControlNet
+3
+
+
+Figure 4. Training of SMPLx-ControlNet (SCNet) and Occlusion Boundary Enhancer Network (OccNet). The networks are trained separately, with SMPLx depth, normal maps, and occlusion masks extracted from training images. The pretrained ControlNet [91] is fine-tuned with these 3D pose representations.
+(SCNet), that leverages SMPLx [61] to incorporate depth information, enabling occlusion-aware conditioning and body shape control.
+3.1. 3D-Aware Pose and Shape Conditioning for Multi-Human Generation
+Existing methods rely on 2D skeleton-based ControlNets [91], which lack depth cues and fail to capture identityspecific body shapes in multi-human scenes. We propose a 3D-aware pose conditioning technique using SMPLxControlNet (SCNet). By leveraging SMPLx [61], we represent pose with depth information, enabling occlusion and controlling body shape. As shown in Fig. 3, given 3D poses
+{p(i) }Nhuman
+i=1 , body shape parameters {β(i)}Nhuman
+i=1 , and camera parameters c, we construct a 3D human scene of Nhuman individuals with occlusions using SMPLx meshes. SMPLx renderings, like depth dSMPLx, serve as conditioning signals for the diffusion model, enabling high-fidelity image generation with improved identity preservation and occlusion handling. As presented in Fig. 4, we train SCNet ESC
+φ by leveraging the pretrained ControlNet [91] framework, with the following objective:
+Ex0 ,t,y,dSMPLx ,ε
+h
+ε − εθ xt, t, y, ESC
+φ (dSMPLx)
+2
+2
+i
+, (1)
+where ε ∼ N (0, 1), εθ is a base text-to-image diffusion model, t is the diffusion timesteps y is the text prompt, xt is the noisy latent representation of the image at timestep t, and it gets progressively refined during the denoising process. We evaluate different SMPLx renderings—depth, normal, and RGB—for conditioning and find that combining depth SCNet (SCNet-D, ESC
+φD , for occlusion cues) and normal SCNet (SCNet-N, ESC
+φN , for surface orientation) by integrating the residuals from each SCNet provides the most robust pose
+Figure 5. Full pipeline of PersonaCraft for multi-human full-body personalization. By integrating our method with face embeddings from InsightFace [1] and Face Identity ControlNet [81], we advance toward full-body multi-human personalization.
+consistency and anatomical coherence (see Tab. 5). Therefore, we adopt depth-normal as the default 3D representation for SCNet.
+3.2. Occlusion-Focused Generation
+Although 3D-aware pose conditioning improves handling occluded regions, generating small, detailed occlusions remains difficult due to inter-person contact and self-occlusion, which cause anatomical distortions. To address this, we introduce occlusion masks from SMPLx-rendered 3D scenes, marking pixels as occluded if covered by multiple surfaces, as shown in Fig. 3 (right). For each pixel (i, j), we count the number of faces nfaces(i, j) that a projected ray passes through. A pixel is considered occluded if the ray intersects more than two surfaces. The occlusion mask Mocc is defined as:
+Mocc(i, j) =
+(
+1, if nfaces(i, j) > 2
+0, otherwise (2)
+To reduce subtle occlusions and prevent overfitting, we filter small occlusions and refine the boundaries by dilating the mask’s edges. This improves the representation of occluded regions, especially in poses with inter-person contact and self-occlusion.
+Occlusion Boundary Enhancer Network. Using this occlusion mask, we introduce an Occlusion Boundary Enhancer Network (OccNet) by training the model to generate images based solely on SMPLx depth edges within the occlusion mask. The SMPLx depth edges, defined as eSMPLx =
+∂ dSMPLx
+∂x + ∂dSMPLx
+∂y > τ, where τ is the edge threshold, high
+light occlusion boundaries where depth changes abruptly. Although this information is limited due to the loss of 3D information inside the occluded regions, it serves as a crucial signal by highlighting the occlusion boundaries. As shown in Fig. 3, we provide only the depth edges within the occluded region and train the model to generate images based on this sparse signal, which enables the model to focus more on generating the occluded region while pre
+4
+
+
+Figure 6. Qualitative comparison of personalized multi-human scene generation. Blue arrows indicate failures in body shape personalization, while yellow arrows highlight unnatural anatomical structures, with yellow boxes providing zoomed-in views.
+Table 1. Quantitative evaluation of multi-human personalization across face identity, body shape preservation, pose accuracy, text alignment, and image quality. ‘Single’ denotes personalization for a single individual, while ‘Multi’ refers to cases with multiple identities (2–5), with ‘Total’ representing the averaged results.
+Multi-Human Personalization
+Face ID preservation↑ Body shape preservation↑ Pose Text Image quality
+Single Multi Total Single Multi Total MPJPE (3D)↓ AP-0.5 (2D)↑ CLIP sim ↑ IS ↑ KID ↓
+InstantID + OMG 0.369 0.199 0.227 0.520 0.345 0.374 112.6 0.258 0.267 3.923 0.101 IPAdapter+ OMG 0.228 0.129 0.142 0.565 0.376 0.401 116.3 0.244 0.266 4.133 0.102 IPA-Face + OMG 0.310 0.166 0.188 0.515 0.341 0.367 115.4 0.249 0.267 4.021 0.102 Ours 0.421 0.298 0.317 0.630 0.548 0.560 60.65 0.506 0.273 4.237 0.093
+Table 2. Top-1 preference rates from the user study on naturalness, face identity, body shape, and text-image correspondence in personalized multi-human scene generation.
+Top 1 (%) Natural.↑ Face ID↑ Body shape↑ Text corr.↑
+Textual Inversion 9.77 11.46 10.29 8.41 DreamBooth 15.4 11.13 13.33 13.01 InstantID + OMG 10.74 11.65 11.59 12.62 IPAdapter + OMG 12.75 11.78 12.62 14.3 IPA-Face + OMG 10.87 9.51 10.68 10.74 Ours 40.45 44.47 41.49 40.91
+serving its boundaries, compared to training with the full conditioning. As illustrated in Fig. 4, we train OccNet EωOcc using the following objective:
+Ex0,t,y,eSMPLx,Mocc,ε ε − εθ xt, t, y, EωOcc (eSMPLx ⊙ Mocc)
+2
+2
+.
+(3)
+Occlusion-Aware Classifier-Free Guidance. We observe that increasing classifier-free guidance (CFG) in occluded regions enhances anatomical consistency by strengthening 3D pose information, resolving local ambiguities. However, a uniformly high CFG strength induce over-saturation in non-occluded areas, as noted in prior works [47, 68, 69].
+This highlights the need for a spatially adaptive guidance strategy [72] tailored for occlusion in human scene scenarios. To this end, we introduce Occlusion-Aware Classifier-Free Guidance (OccCFG) as shown in Fig. 3:
+εˆ = εuncond + (koccMocc + kbase(1 − Mocc))(εcond − εuncond) (4)
+where kocc and kbase are CFG scales for occluded and nonoccluded regions, respectively, Mocc is the occlusion mask, εuncond is the unconditional noise prediction, and εcond is the conditional noise prediction.
+3.3. Full-Body Personalized Generation
+Another key advantage of SMPLx beyond its robust pose representation is its ability to encode body shape via shape coefficients, enabling a step forward in full-body multi-human personalization, in contrast to prior methods that focus solely on facial identity [31, 43, 81, 85, 90, 93, 97]. Furthermore, existing approaches struggle to disentangle garments from body shape, whereas ours explicitly isolates body shape as the true identity-defining feature. The overall process of full-body personalized image synthesis is illustrated in Fig.5. Given full-body refer
+5
+
+
+Figure 7. Comparison of personalized multi-human scene generation with the methods which are not direct baselines. Yellow arrows highlight anatomical inconsistencies in poses and occlusions, while Pink arrows indicate identity mixing or duplication in the baselines.
+Figure 8. Qualitative comparison of pose-controlled multi-human generation. yellow arrows highlight unnatural anatomical structures, with yellow boxes providing zoomed-in views.
+Table 3. Quantitative evaluation of pose-controlled human generation across pose accuracy, text alignment, and image quality.
+Pose-Controlled Human Generation
+Pose Text Image quality
+MPJPE (3D) ↓ AP-0.5 (2D) ↑ CLIP sim ↑ IS ↑ KID ↓
+T2I Adpater-SDXL 198.14 0.323 0.269 3.740 0.129 ControlNet-SDXL 114.93 0.291 0.285 3.062 0.138 ControlNet-Flux 102.64 0.393 0.218 3.651 0.107 HumanSD-SD2 103.62 0.357 0.261 3.610 0.082 Ours 62.647 0.495 0.274 4.113 0.091
+Table 4. Top-1 preference rates from the user study on naturalness, pose consistency, and text-image correspondence in pose-controlled multi-human scene generation.
+Top 1 (%) Natural.↑ Pose consistency↑ Text corr.↑
+T2I Adpater-SDXL 9.53 7.31 8.19 ControlNet-SDXL 17.72 18.19 19.36 Ours 72.75 74.50 72.46
+ence images {I(i)
+ref }Nhuman
+i=1 of Nhuman individuals, target poses
+{p(i) }Nhuman
+i=1 , and a text prompt y, our goal is to generate a personalized image IP that faithfully preserves both face and body identities while ensuring pose consistency. To achieve this, we use MultiHMR [12] to estimate SMPLx body shape parameters β(i) and InsightFace [1] to extract face embeddings f (i).
+We then leverage our depth-normal SCNet ESC
+φD -E SC
+φN , OccNet EωOcc, and face ControlNet IdentityNet [82] EID
+ψ . Let
+F (k)
+θ (·) denote the k-th neural block and s(k) the corre
+sponding input feature map. When Rsc = ESC
+φD (dSMPLx) + E SC
+φN (nSMPLx), Rocc = EωOcc(dSMPLx), and R(i)
+id = E ID
+ψ (f (i), p(i)
+face) are the residual features from each model,
+the next feature map s(k+1) is obtained by adding these residual features to the neural block output F (k)
+θ (s(k)), scaled by their respective conditioning weights αsc, αocc, and αid, and modulated by the face masks M (i)
+face and occlusion mask
+Mocc:
+s(k+1) = F (k)
+θ (s(k)) + αsc(1 − Mocc)Rsc
++ αoccMoccRocc + αid
+Nhuman X
+i=1
+M (i)
+face ∗ R(i)
+id .
+(5)
+Dual-Pathway Body Shape Personalization. We introduce a dual-pathway approach for body shape personalization, leveraging both SMPLx-based and text-based representations. Compared to textual descriptions of body shape, SMPLx-based representations provide more spatially finegrained encoding of the identity. However, they are lim
+6
+
+
+Figure 9. Effect of our occlusion-aware 3D pose & shape conditioning components. D and N denote the conditioning types of SCNet: depth, normal.
+Figure 10. Effect of our occlusion-aware CFG (OccCFG). Each label refers to the CFG scale applied to specific regions. "Base=3" means the CFG scale is 3 for all regions, while "Base=3, Seg=5" indicates that the CFG scale is 5 for the human segmentation region. "Occ" refers to the occlusion mask region.
+Table 5. Ablation study on SCNet, OccNet, and OccCFG for pose consistency. D, N, and R denote the conditioning types of SCNet: depth, normal, and RGB representations, respectively.
+Ablation Study
+Pose
+MPJPE (3D)↓ AP-0.5 (2D)↑
+SCNet-D 71.20 0.423 SCNet-N 79.30 0.398 SCNet-R 82.52 0.394 SCNet-D + SCNet-N 63.16 0.494
+SCNet-D + SCNet-N + OccNet 62.92 0.499 SCNet-D + SCNet-N + OccNet + OccCFG 62.64 0.495
+ited in accurately conveying body composition details, such as fat and muscle distribution [62]. In challenging cases where body shape characteristics conflict (e.g., a muscular physique with high body fat), our method optionally incorporates a textual pathway to enhance body shape representation. Specifically, a CLIP-based classifier [65] extracts body shape attributes in text, which are applied using regional prompting [10] and integrated with SCNet. Further details are provided in the supplementary material.
+4. Experiments
+Implementation Details. PersonaCraft is built on Stable Diffusion XL (SDXL)[64]. We extend the MPII dataset[7] with textual descriptions [38] and 3D human reconstructions from MultiHMR [12] using SMPLx [61]. SCNet and OccNet were fine-tuned on ControlNet [91] with a learning rate of 1e5, Adam optimizer, batch size of 2, for 50,000 iterations on an NVIDIA A100 GPU. We use 30 denoising steps. We set the base CFG scale to 3 (kbase = 3) and increased the scale for occluded regions to 5 (kocc = 5) to enhance occlusion handling. We set all conditioning scales (αsc, αocc, and αid) to 0.8 across all cases. Metrics. For personalized multi-human scene generation, face identity preservation is measured using FaceNet [71],
+following FastComposer [85]. Body shape preservation is evaluated via cosine similarity of SMPLx body shape parameters β. Pose consistency is assessed using MPJPE (3D)[35], while 2D pose estimation is evaluated with AP-0.5 (2D) by comparing the target pose to the estimated pose from generated images. Text-image alignment is measured via CLIPL/14 similarity. Image quality is quantified using Inception Score (IS)[70] and Kernel Inception Distance (KID) [14]. A user study evaluates perceptual quality. For pose-controlled multi-human scene generation, the same key metrics are applied: MPJPE (3D) and AP-0.5 (2D) for pose accuracy, CLIP similarity for text-image alignment, and IS/KID for image quality. Test Dataset. We test on the COCO-WholeBody dataset [36], containing 1∼5 people per image. A total of 1,000 images were selected (200 per group). Text prompts were extracted via BLIP [49]. MultiHMR [11] provided 2D poses and 3D conditioning. Additional details on experiments, results (including qualitative results), stylized artwork, PersonaCraft with LoRA and other face control modules, as well as ablation studies, are provided in the supplementary material.
+4.1. Personalized Multi-Human Scene Generation
+Baselines. We mainly compared PersonaCraft with baseline methods for single-shot, multi-identity, and pose-controllable synthesis, all implemented using SDXL [64]. Key baselines include OMG [43] with InstantID/IPAdapter/IPAdapter-Face (IPA-Face) [81, 90], and 2D pose ControlNet [91]. We also evaluated optimization-based methods like DreamBooth [66] and Texture Inversion [22]. Both qualitative and quantitative comparisons, as well as a user study, were conducted. Additionally, qualitative comparisons were made with UniPortrait [31], MS-Diffusion [83], and FastComposer [86]. Qualitative Results. As shown in Fig. 6, PersonaCraft surpasses baselines in multi-identity scene generation, particularly in identity preservation and occlusion handling. Our 3D-aware conditioning and occlusion-focussed generation enhance the preservation of body shapes and identity features, and ensures pose fidelity, producing realistic generations with fewer artifacts. Baseline methods struggle with occlusion and body shape accuracy, often leading to distorted identities and unrealistic compositions, especially in multi-subject scenes. PersonaCraft excels in occlusion-aware full-body personalization, maintaining consistent identities across varying poses. Quantitative Results. We evaluate PersonaCraft on face ID preservation, body shape, pose accuracy, text-image alignment, and image quality. As shown in Tab. 1, our method consistently outperforms baselines in identity and body shape preservation. It achieves the lowest MPJPE (3D) and highest AP (2D), indicating superior alignment with input poses.
+7
+
+
+Figure 11. Effectiveness of dual-pathway body shape personalization in challenging cases where body shape characteristics conflict (e.g., a muscular physique with high body fat).
+Figure 12. Result of PersonaCraft’s user-defined body shape control. (a) Reference-based body shape control. (b) Interpolation and extrapolation-based control, where γ controls the interpolation or extrapolation between the reference body shapes.
+Furthermore, PersonaCraft outperforms baselines in IS and KID, producing perceptually aligned generations. User Study. We conducted a user study evaluating naturalness, identity, body shape, and text-image correspondence across baselines and our method. With 18,540 responses from 103 participants, Tab. 2 shows our method achieved the highest Top-1 preference across all metrics, demonstrating superior perceptual quality in personalized multi-human scene generation.
+4.2. Pose-Controlled Multi-Human Scene Generation
+Baselines. Key baselines include ControlNet-SDXL [64, 91], T2I Adapter-SDXL [56], ControlNet-Flux [48, 91], and HumanSD [48]. Both qualitative and quantitative comparisons were conducted for all baselines. Additionally, a user study was performed specifically for SDXL-based baselines, including ControlNet-SDXL and T2I Adapter-SDXL. Qualitative Results. We evaluate pose-controlled multihuman scene generation by comparing PersonaCraft with existing methods in both single-human and multi-human settings (Fig. 8). Our method achieves superior pose alignment while preserving identity consistency and body shape
+fidelity. Baselines relying on 2D pose conditioning (e.g., T2IAdapter-SDXL [56], ControlNet-SDXL [64, 91]) struggle with occlusion handling, leading to misaligned poses and distorted structures. ControlNet-Flux [48, 91] exhibits instability: at a lower conditioning scale (0.8), it fails to maintain anatomical coherence, while at a higher scale (1.0), it improves pose accuracy but reduces image fidelity. HumanSD [37] lacks precise pose control, producing unrealistic compositions. In contrast, PersonaCraft balances pose accuracy, identity preservation, and body realism, demonstrating the efficacy of our 3D-aware pose conditioning. Quantitative Results. We evaluate pose-controlled multihuman scene generation in terms of pose accuracy, textimage correspondence, and image quality. As shown in Tab. 3, PersonaCraft achieves the lowest MPJPE (3D) and highest AP-0.5 (2D), demonstrating precise pose alignment and keypoint localization. Compared to ControlNet-based baselines, which suffer from structural inconsistencies and occlusion issues, our method maintains accurate pose fidelity while preserving identity and body shape. PersonaCraft also achieves the highest IS and lowest KID, indicating superior perceptual realism. While text-image correspondence scores are comparable across methods, prior studies [42, 45] highlight CLIP’s limitations in evaluating complex multi-human scenes. A user study further analyzes perceptual quality. User Study. We conducted a user study to assess naturalness, pose consistency, and text-image correspondence. Participants ranked their top three preferences among T2I Adapter-SDXL, ControlNet-SDXL, and PersonaCraft, collecting 15,390 responses from 114 participants. As shown in Tab. 4, PersonaCraft achieved the highest Top-1 preference across all metrics, excelling in naturalness (72.75%), pose consistency (74.50%), and text alignment (72.46%). These results confirm that our occlusion-aware 3D pose conditioning significantly improves perceptual quality, producing well-posed, visually coherent multi-human scenes.
+4.3. Ablation Studies and Analysis
+Comparison of 3D Pose Representations for SCNet. In Tab. 5, we evaluate different SMPLx renderings—depth, normal, and RGB—as conditioning inputs for SCNet. We find that depth yields the best pose consistency among these representations. Additionally, combining the depth and normal representations achieves the best performance. Therefore, we adopt this combination as the base conditioning for SCNet. Effectiveness of OccNet and OccCFG. In Tab. 5, we also evaluate the effectiveness of OccNet and OccCFG. We found that OccNet and OccCFG improves pose consistency. Also, as analyzed in Fig. 9, effect of our Occlusion-aware 3D pose & shape conditioning components. Using only 2D pose leads to front-back ambiguities and structural inconsistencies, while relying solely on 3D pose (SCNet) struggles with fine-grained occluded regions. Using only OccNet improves
+8
+
+
+occluded region synthesis but fails to maintain overall pose alignment. Our full model (SCNet + OccNet + OccCFG) effectively preserves pose structure while handling occlusions. In Fig. 10, we present a detailed analysis of OccCFG. We observe that increasing classifier-free guidance (CFG) in occluded regions improves anatomical consistency by leveraging stronger 3D pose information, effectively resolving local ambiguities. However, uniformly high CFG strength leads to over-saturation in non-occluded areas. We found that applying CFG only in the human segmentation region also results in high CFG, whereas our OccCFG avoids issues in unoccluded regions while maintaining effective guidance in occluded areas.
+Dual-Pathway Body Personalization. As shown in Fig 11, the SMPLx-based pathway captures fine-grained identity features but struggles with detailed body composition (e.g., muscle vs. fat distribution). The text-based pathway refines body shape using semantic attributes. Our approach combines both for more accurate and realistic personalization.
+4.4. User-Defined Body Shape Control
+A key feature of PersonaCraft is its user-defined body shape control, as shown in Fig. 12. Users can select a reference to adapt body characteristics for personalized images. The system also allows body proportions to be adjusted through interpolation or extrapolation between references, offering enhanced customization for precise body shape control.
+5. Limitations
+While our method is versatile and can be applied to other ControlNet models, the performance of our face personalization depends significantly on the underlying face identity network. Additionally, the accuracy of 3D human model fitting is dependent on the performance of the fitting algorithm used. Variations in the quality of the fitting process may impact the final output, especially in cases where the reference data is incomplete or inaccurate. Failure cases can be found in the supplementary material.
+6. Conclusion
+We present PersonaCraft, a framework for occlusion-robust, full-body personalized image synthesis in complex multihuman scenes. PersonaCraft integrates diffusion models with 3D human modeling, using SMPLx-ControlNet for enhanced pose conditioning. To address occlusions at a fine level, we introduce Occlusion Boundary Enhancer and OcclusionAware Classifier-Free Guidance strategy, improving conditioning in occluded areas. Seamlessly combined with Face Identity ControlNet, our approach enables full-body personalization beyond facial identity. Extensive experiments show PersonaCraft outperforms prior arts in personalization accuracy and occlusion robustness in complex scenes.
+Bibliography
+[1] Insightface: 2d and 3d face analysis project. Github, https: //github.com/deepinsight/insightface. 4, 6, 25 [2] Yuval Alaluf, Elad Richardson, Gal Metzer, and Daniel Cohen-Or. A neural space-time representation for text-toimage personalization. Transactions on Graphics, 42(6):1–10, 2023. 2 [3] Alvdansen. frosting-lane-lora-sdxl. Hugging Face, https: //huggingface.co/alvdansen/frosting-lane, . 13 [4] Alvdansen. gemini-anime-lora-sdxl. Hugging Face, https: //huggingface.co/alvdansen/geminianime, . 13 [5] Alvdansen. painting-light-lora-sdxl. Hugging Face, https : / / huggingface . co / alvdansen / paintinglight/tree/main, . 13
+[6] Alvdansen. softpastel-anime-lora-sdxl. Hugging Face, https : / / huggingface . co / alvdansen / softpastelanime, . 13
+[7] Mykhaylo Andriluka, Leonid Pishchulin, Peter Gehler, and Bernt Schiele. 2d human pose estimation: New benchmark and state of the art analysis. In CVPR, 2014. 7, 25 [8] Moab Arar, Rinon Gal, Yuval Atzmon, Gal Chechik, Daniel Cohen-Or, Ariel Shamir, and Amit H. Bermano. Domainagnostic tuning-encoder for fast personalization of text-toimage models. In SIGGRAPH Asia 2023, 2023. 2 [9] Omri Avrahami, Kfir Aberman, Ohad Fried, Daniel Cohen-Or, and Dani Lischinski. Break-a-scene: Extracting multiple concepts from a single image. arXiv preprint arXiv:2305.16311, 2023. 2 [10] Omer Bar-Tal, Lior Yariv, Yaron Lipman, and Tali Dekel. Multidiffusion: Fusing diffusion paths for controlled image generation. arXiv preprint arXiv:2302.08113, 2023. 7, 25 [11] Fabien Baradel*, Matthieu Armando, Salma Galaaoui, Romain Brégier, Philippe Weinzaepfel, Grégory Rogez, and Thomas Lucas*. Multi-hmr: Multi-person whole-body human mesh recovery in a single shot. In ECCV, 2024. 7, 25 [12] Fabien Baradel, Matthieu Armando, Salma Galaaoui, Romain Brégier, Philippe Weinzaepfel, Grégory Rogez, and Thomas Lucas. Multi-hmr: Multi-person whole-body human mesh recovery in a single shot. In ECCV, pages 202–218. Springer, 2025. 6, 7 [13] James Betker, Gabriel Goh, Li Jing, Tim Brooks, Jianfeng Wang, Linjie Li, Long Ouyang, Juntang Zhuang, Joyce Lee, Yufei Guo, et al. Improving image generation with better captions. Computer Science. https://cdn. openai. com/papers/dall-e-3. pdf, 2(3), 2023. 2
+[14] Mikołaj Bin ́kowski, Danica J Sutherland, Michael Arbel, and Arthur Gretton. Demystifying mmd gans. arXiv, 2018. 7 [15] Blink7630. graphic-novel-illustration-lora-sdxl. Hugging Face, https://huggingface.co/blink7630/ graphic-novel-illustration. 13
+[16] Benito Buchheim, Max Reimann, and Jürgen Döllner. Controlling human shape and pose in text-to-image diffusion mod
+9
+
+
+els via domain adaptation. arXiv preprint arXiv:2411.04724, 2024. 2, 3
+[17] Zhe Cao, Tomas Simon, Shih-En Wei, and Yaser Sheikh. Realtime multi-person 2d pose estimation using part affinity fields. In CVPR, 2017. 3
+[18] Daewon Chae, Nokyung Park, Jinkyu Kim, and Kimin Lee. Instructbooth: Instruction-following personalized text-to-image generation. arXiv preprint arXiv:2312.03011, 2023. 2
+[19] Wenhu Chen, Hexiang Hu, Yandong Li, Nataniel Rui, Xuhui Jia, Ming-Wei Chang, and William W Cohen. Subject-driven text-to-image generation via apprenticeship learning. arXiv preprint arXiv:2304.00186, 2023. 2
+[20] Xi Chen, Lianghua Huang, Yu Liu, Yujun Shen, Deli Zhao, and Hengshuang Zhao. Anydoor: Zero-shot object-level image customization. arXiv preprint arXiv:2307.09481, 2023. 2
+[21] Jooyoung Choi, Yunjey Choi, Yunji Kim, Junho Kim, and Sungroh Yoon. Custom-edit: Text-guided image editing with customized diffusion models. arXiv preprint arXiv:2305.15779, 2023. 2
+[22] Rinon Gal, Yuval Alaluf, Yuval Atzmon, Or Patashnik, Amit H Bermano, Gal Chechik, and Daniel Cohen-Or. An image is worth one word: Personalizing text-to-image generation using textual inversion. ICLR, 2022. 2, 7, 14, 26
+[23] Rinon Gal, Moab Arar, Yuval Atzmon, Amit H Bermano, Gal Chechik, and Daniel Cohen-Or. Designing an encoder for fast personalization of text-to-image models. arXiv preprint arXiv:2302.12228, 2023. 2
+[24] Rinon Gal, Moab Arar, Yuval Atzmon, Amit H Bermano, Gal Chechik, and Daniel Cohen-Or. Encoder-based domain tuning for fast personalization of text-to-image models. Transactions on Graphics, 42(4):1–13, 2023. 2
+[25] Yuan Gong, Youxin Pang, Xiaodong Cun, Menghan Xia, Haoxin Chen, Longyue Wang, Yong Zhang, Xintao Wang, Ying Shan, and Yujiu Yang. Talecrafter: Interactive story visualization with multiple characters. Siggraph Asia, 2023. 2
+[26] GoofyAI. 3d-render-style-lora-sdxl. Hugging Face, https : / / huggingface . co / goofyai / 3d _ render_style_xl. 13
+[27] Yuchao Gu, Xintao Wang, Jay Zhangjie Wu, Yujun Shi, Yunpeng Chen, Zihan Fan, Wuyou Xiao, Rui Zhao, Shuning Chang, Weijia Wu, et al. Mix-of-show: Decentralized lowrank adaptation for multi-concept customization of diffusion models. NeurIPS, 2023. 2
+[28] Rıza Alp Güler, Natalia Neverova, and Iasonas Kokkinos. Densepose: Dense human pose estimation in the wild. In CVPR, 2018. 2, 3
+[29] Ligong Han, Yinxiao Li, Han Zhang, Peyman Milanfar, Dimitris Metaxas, and Feng Yang. Svdiff: Compact parameter space for diffusion fine-tuning. arXiv preprint arXiv:2303.11305, 2023. 2
+[30] Shaozhe Hao, Kai Han, Shihao Zhao, and Kwan-Yee K Wong. Vico: Detail-preserving visual condition for personalized textto-image generation. arXiv preprint arXiv:2306.00971, 2023. 2
+[31] Junjie He, Yifeng Geng, and Liefeng Bo. Uniportrait: A unified framework for identity-preserving singleand multi-human image personalization. arXiv preprint arXiv:2408.05939, 2024. 2, 3, 5, 7, 13, 18 [32] Xingzhe He, Zhiwen Cao, Nicholas Kolkin, Lantao Yu, Helge Rhodin, and Ratheesh Kalarot. A data perspective on enhanced identity preservation for diffusion personalization. arXiv preprint arXiv:2311.04315, 2023. 2
+[33] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. NeurIPS, 2020. 2 [34] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. Lora: Low-rank adaptation of large language models. ICLR, 2021. 2, 26 [35] Catalin Ionescu, Dragos Papava, Vlad Olaru, and Cristian Sminchisescu. Human3. 6m: Large scale datasets and predictive methods for 3d human sensing in natural environments. IEEE transactions on pattern analysis and machine intelligence, 36(7):1325–1339, 2013. 7 [36] Sheng Jin, Lumin Xu, Jin Xu, Can Wang, Wentao Liu, Chen Qian, Wanli Ouyang, and Ping Luo. Whole-body human pose estimation in the wild. In ECCV, 2020. 7 [37] Xuan Ju, Ailing Zeng, Chenchen Zhao, Jianan Wang, Lei Zhang, and Qiang Xu. Humansd: A native skeleton-guided diffusion model for human image generation. In ICCV, pages 15988–15998, 2023. 2, 3, 8 [38] Muhammad Saif Ullah Khan, Muhammad Ferjad Naeem, Federico Tombari, Luc Van Gool, Didier Stricker, and Muhammad Zeshan Afzal. Focusclip: Multimodal subject-level guidance for zero-shot transfer in human-centric tasks, 2024. 7 [39] Gwanghyun Kim and Se Young Chun. Datid-3d: Diversitypreserved domain adaptation using text-to-image diffusion for 3d generative model. In CVPR, 2023. 2 [40] Gwanghyun Kim, Taesung Kwon, and Jong Chul Ye. Diffusionclip: Text-guided diffusion models for robust image manipulation. In CVPR, 2022. [41] Gwanghyun Kim, Ji Ha Jang, and Se Young Chun. Podia3d: Domain adaptation of 3d generative model across large domain gap using pose-preserved text-to-image diffusion. In CVPR, pages 22603–22612, 2023. 3 [42] Gwanghyun Kim, Hayeon Kim, Hoigi Seo, Dong Un Kang, and Se Young Chun. Beyondscene: Higher-resolution humancentric scene generation with pretrained diffusion. In ECCV, 2024. 2, 8 [43] Zhe Kong, Yong Zhang, Tianyu Yang, Tao Wang, Kaihao Zhang, Bizhu Wu, Guanying Chen, Wei Liu, and Wenhan Luo. Omg: Occlusion-friendly personalized multi-concept generation in diffusion models. In ECCV, 2024. 2, 3, 5, 7, 13, 14, 16, 17, 26 [44] Kongzhe. Inference code for omg + instantid. GitHub, https : / / github . com / kongzhecn / OMG / blob / master/inference_instantid.py, 2023. Accessed: 2024-11-20. 26 [45] Max Ku, Dongfu Jiang, Cong Wei, Xiang Yue, and Wenhu Chen. Viescore: Towards explainable metrics for conditional image synthesis evaluation. arXiv preprint arXiv:2312.14867, 2023. 8
+10
+
+
+[46] Nupur Kumari, Bingliang Zhang, Richard Zhang, Eli Shechtman, and Jun-Yan Zhu. Multi-concept customization of textto-image diffusion. In CVPR, pages 1931–1941, 2023. 2 [47] Tuomas Kynkäänniemi, Miika Aittala, Tero Karras, Samuli Laine, Timo Aila, and Jaakko Lehtinen. Applying guidance in a limited interval improves sample and distribution quality in diffusion models. Advances in Neural Information Processing Systems, 37:122458–122483, 2025. 5 [48] Black Forest Labs. Flux. https://github.com/ black-forest-labs/flux, 2024. 8, 13
+[49] Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. Blip2: Bootstrapping language-image pre-training with frozen image encoders and large language models. arXiv preprint arXiv:2301.12597, 2023. 7
+[50] Zhen Li, Mingdeng Cao, Xintao Wang, Zhongang Qi, MingMing Cheng, and Ying Shan. Photomaker: Customizing realistic human photos via stacked id embedding. arXiv preprint arXiv:2312.04461, 2023. 2, 13, 23
+[51] Xian Liu, Jian Ren, Aliaksandr Siarohin, Ivan Skorokhodov, Yanyu Li, Dahua Lin, Xihui Liu, Ziwei Liu, and Sergey Tulyakov. Hyperhuman: Hyper-realistic human generation with latent structural diffusion. arXiv preprint arXiv:2310.08579, 2023. 2, 3
+[52] Zhiheng Liu, Yifei Zhang, Yujun Shen, Kecheng Zheng, Kai Zhu, Ruili Feng, Yu Liu, Deli Zhao, Jingren Zhou, and Yang Cao. Cones 2: Customizable image synthesis with multiple subjects. arXiv preprint arXiv:2305.19327, 2023. 2
+[53] Matthew Loper, Naureen Mahmood, Javier Romero, Gerard Pons-Moll, and Michael J. Black. SMPL: A skinned multiperson linear model. ACM Transactions Graphics, 34(6): 248:1–248:16, 2015. 3 [54] Yiyang Ma, Huan Yang, Wenjing Wang, Jianlong Fu, and Jiaying Liu. Unified multi-modal latent diffusion for joint subject and text conditional image generation. arXiv preprint arXiv:2303.09319, 2023. 2
+[55] Yifang Men, Yuan Yao, Miaomiao Cui, and Liefeng Bo. Mimo: Controllable character video synthesis with spatial decomposed modeling. arXiv preprint arXiv:2409.16160, 2024. 2 [56] Chong Mou, Xintao Wang, Liangbin Xie, Yanze Wu, Jian Zhang, Zhongang Qi, Ying Shan, and Xiaohu Qie. T2iadapter: Learning adapters to dig out more controllable ability for text-to-image diffusion models. arXiv preprint arXiv:2302.08453, 2023. 8, 13
+[57] Nerijs. pixel-portraits-lora-sdxl. Hugging Face, https:// huggingface.co/nerijs/pixelportraits192XL-v1.0. 13
+[58] Norod78. jojo-style-lora-sdxl. Hugging Face, https:// huggingface.co/Norod78/SDXL- JojosoStyleLora-v2. 13
+[59] Ostris. crayon-style-lora-sdxl. Hugging Face, https:// huggingface.co/ostris/crayon_style_lora_ sdxl. 13
+[60] Lianyu Pang, Jian Yin, Haoran Xie, Qiping Wang, Qing Li, and Xudong Mao. Cross initialization for personalized textto-image generation. arXiv preprint arXiv:2312.15905, 2023. 2
+[61] Georgios Pavlakos, Vasileios Choutas, Nima Ghorbani, Timo Bolkart, Ahmed A. A. Osman, Dimitrios Tzionas, and Michael J. Black. Expressive body capture: 3d hands, face, and body from a single image. In CVPR, 2019. 3, 4, 7, 25 [62] MPI for Intelligent Systems Perceiving Systems Department. Smpl made simple faqs. 7 [63] Ryan Po, Guandao Yang, Kfir Aberman, and Gordon Wetzstein. Orthogonal adaptation for modular customization of diffusion models. arXiv preprint arXiv:2312.02432, 2023. 3 [64] Dustin Podell, Zion English, Kyle Lacey, Andreas Blattmann, Tim Dockhorn, Jonas Müller, Joe Penna, and Robin Rombach. Sdxl: Improving latent diffusion models for high-resolution image synthesis. arXiv preprint arXiv:2307.01952, 2023. 7, 8, 13, 26 [65] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In ICML. PMLR, 2021. 2, 7, 25 [66] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman. Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation. In CVPR, 2023. 2, 7, 13, 14, 17, 26 [67] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Wei Wei, Tingbo Hou, Yael Pritch, Neal Wadhwa, Michael Rubinstein, and Kfir Aberman. Hyperdreambooth: Hypernetworks for fast personalization of text-to-image models. arXiv preprint arXiv:2307.06949, 2023. 2
+[68] Seyedmorteza Sadat, Otmar Hilliges, and Romann M Weber. Eliminating oversaturation and artifacts of high guidance scales in diffusion models. In The Thirteenth International Conference on Learning Representations, 2024. 5
+[69] Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily L Denton, Kamyar Ghasemipour, Raphael Gontijo Lopes, Burcu Karagol Ayan, Tim Salimans, et al. Photorealistic text-to-image diffusion models with deep language understanding. NeurIPS, 2022. 2, 5 [70] Tim Salimans, Ian Goodfellow, Wojciech Zaremba, Vicki Cheung, Alec Radford, and Xi Chen. Improved techniques for training gans. NeurIPS, 29, 2016. 7 [71] Florian Schroff, Dmitry Kalenichenko, and James Philbin. Facenet: A unified embedding for face recognition and clustering. In CVPR, pages 815–823, 2015. 7, 25 [72] Dazhong Shen, Guanglu Song, Zeyue Xue, Fu-Yun Wang, and Yu Liu. Rethinking the spatial inconsistency in classifierfree diffusion guidance. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9370–9379, 2024. 5 [73] Jing Shi, Wei Xiong, Zhe Lin, and Hyun Joon Jung. Instantbooth: Personalized text-to-image generation without test-time finetuning. arXiv preprint arXiv:2304.03411, 2023. 2
+[74] James Seale Smith, Yen-Chang Hsu, Lingyu Zhang, Ting Hua, Zsolt Kira, Yilin Shen, and Hongxia Jin. Continual diffusion: Continual customization of text-to-image diffusion with c-lora. arXiv preprint arXiv:2304.06027, 2023. 2
+[75] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. In ICLR, 2020. 2
+11
+
+
+[76] sWizad. pokemon-trainer-sprite-pixelart-lora-sdxl. Hugging Face, https : / / huggingface . co / sWizad / pokemon-trainer-sprite-pixelart. 13
+[77] Yoad Tewel, Rinon Gal, Gal Chechik, and Yuval Atzmon. Key-locked rank one editing for text-to-image personalization. In ACM SIGGRAPH 2023 Conference Proceedings, pages 1–11, 2023. 2 [78] Yael Vinker, Andrey Voynov, Daniel Cohen-Or, and Ariel Shamir. Concept decomposition for visual exploration and inspiration. Transactions on Graphics, 2023. 2
+[79] Andrey Voynov, Qinghao Chu, Daniel Cohen-Or, and Kfir Aberman. p+: Extended textual conditioning in text-to-image generation. arXiv preprint arXiv:2303.09522, 2023. 2
+[80] Jiajun Wang, Morteza Ghahremani Boozandani, Yitong Li, Björn Ommer, and Christian Wachinger. Stable-pose: Leveraging transformers for pose-guided text-to-image generation. NeurIPS, 37:65670–65698, 2025. 2, 3 [81] Qixun Wang, Xu Bai, Haofan Wang, Zekui Qin, and Anthony Chen. Instantid: Zero-shot identity-preserving generation in seconds. arXiv preprint arXiv:2401.07519, 2024. 2, 4, 5, 7, 13, 16, 17, 23, 25, 26 [82] Qixun Wang, Xu Bai, Haofan Wang, Zekui Qin, Anthony Chen, Huaxia Li, Xu Tang, and Yao Hu. Instantid: Zero-shot identity-preserving generation in seconds, 2024. 6 [83] X Wang, Siming Fu, Qihan Huang, Wanggui He, and Hao Jiang. Ms-diffusion: Multi-subject zero-shot image personalization with layout guidance. arXiv preprint arXiv:2406.07209, 2024. 7, 13, 18
+[84] Yuxiang Wei, Yabo Zhang, Zhilong Ji, Jinfeng Bai, Lei Zhang, and Wangmeng Zuo. Elite: Encoding visual concepts into textual embeddings for customized text-to-image generation. arXiv preprint arXiv:2302.13848, 2023. 2
+[85] Guangxuan Xiao, Tianwei Yin, William T Freeman, Frédo Durand, and Song Han. Fastcomposer: Tuning-free multi-subject image generation with localized attention. arXiv preprint arXiv:2305.10431, 2023. 2, 3, 5, 7, 25
+[86] Guangxuan Xiao, Tianwei Yin, William T Freeman, Frédo Durand, and Song Han. Fastcomposer: Tuning-free multisubject image generation with localized attention. International Journal of Computer Vision, pages 1–20, 2024. 7, 13, 18 [87] Xinsir. Controlnet-union-sdxl-1.0. Hugging Face, https: / / huggingface . co / xinsir / controlnet union-sdxl-1.0, 2023. 25
+[88] Yuxuan Yan, Chi Zhang, Rui Wang, Yichao Zhou, Gege Zhang, Pei Cheng, Gang Yu, and Bin Fu. Facestudio: Put your face everywhere in seconds. arXiv preprint arXiv:2312.02663, 2023. 2 [89] Zhendong Yang, Ailing Zeng, Chun Yuan, and Yu Li. Effective whole-body pose estimation with two-stages distillation. In CVPR, 2023. 3 [90] Hu Ye, Jun Zhang, Sibo Liu, Xiao Han, and Wei Yang. Ipadapter: Text compatible image prompt adapter for text-toimage diffusion models. 2023. 2, 5, 7, 13, 16, 17, 23, 26 [91] Lvmin Zhang, Anyi Rao, and Maneesh Agrawala. Adding conditional control to text-to-image diffusion models. In CVPR, 2023. 2, 3, 4, 7, 8, 13, 26
+[92] Xu-Lu Zhang, Xiao-Yong Wei, Jin-Lin Wu, Tian-Yi Zhang, Zhao-Xiang Zhang, Zhen Lei, and Qing Li. Compositional inversion for stable diffusion models. arXiv preprint arXiv:2312.08048, 2023. 2
+[93] Yimeng Zhang, Tiancheng Zhi, Jing Liu, Shen Sang, Liming Jiang, Qing Yan, Sijia Liu, and Linjie Luo. Id-patch: Robust id association for group photo personalization. arXiv preprint arXiv:2411.13632, 2024. 2, 3, 5
+[94] Ruoyu Zhao, Mingrui Zhu, Shiyin Dong, Nannan Wang, and Xinbo Gao. Catversion: Concatenating embeddings for diffusion-based text-to-image personalization. arXiv preprint arXiv:2311.14631, 2023. 2
+[95] Yufan Zhou, Ruiyi Zhang, Jiuxiang Gu, and Tong Sun. Customization assistant for text-to-image generation. arXiv preprint arXiv:2312.03045, 2023. 2
+[96] Yufan Zhou, Ruiyi Zhang, Tong Sun, and Jinhui Xu. Enhancing detail preservation for customized text-to-image generation: A regularization-free approach. arXiv preprint arXiv:2305.13579, 2023. 2
+[97] Zhengguang Zhou, Jing Li, Huaxia Li, Nemo Chen, and Xu Tang. Storymaker: Towards holistic consistent characters in text-to-image generation. arXiv preprint arXiv:2409.12576, 2024. 2, 3, 5 [98] Shenhao Zhu, Junming Leo Chen, Zuozhuo Dai, Qingkun Su, Yinghui Xu, Xun Cao, Yao Yao, Hao Zhu, and Siyu Zhu. Champ: Controllable and consistent human image animation with 3d parametric guidance. arXiv preprint arXiv:2403.14781, 2024. 2, 3
+12
+
+
+PersonaCraft: Personalized and Controllable Full-Body Multi-Human Scene
+Generation Using Occlusion-Aware 3D-Conditioned Diffusion
+(Supplementary Material)
+A. Additional Results
+A.1. Personalized Multi-Human Scene Generation
+Additional Qualitative Comparison. As shown in Fig. S13 and S14, our proposed method demonstrates significant advantages over existing approaches. Notably, methods like InstantID+OMG [43, 81] and IPAdapter+OMG [43, 90], which rely on 2D skeleton-based pose conditioning, exhibit severe anatomical inaccuracies in challenging scenarios (highlighted by yellow arrows). These issues stem from the inherent limitations of 2D pose representations, which struggle to handle overlapping body parts and intricate interactions effectively. Blue arrows highlight cases for verifying correct body shape preservation, where our approach maintains accurate body structure and pose fidelity while delivering superior performance in both face identity preservation and body shape consistency. DreamBooth [66], on the other hand, suffers even more pronounced issues due to its lack of pose guidance. This leads to severe anatomical distortions and, in some cases, the complete omission of individuals in multi-person scenes. Additionally, DreamBooth struggles with clothing-body shape displacement, where clothing styles are directly transferred without adapting to the individual’s body shape. These findings further underscore the robustness and versatility of PersonaCraft, making it a state-of-the-art solution for personalized image generation in complex, real-world scenarios.
+Comparison with Additional Baselines. We compared PersonaCraft against other baselines, including, UniPortrait [31], MS-Diffusion [83], and FastComposer [86]. While these methods share similar capabilities, they are not fully suited for our benchmark, making direct comparisons challenging. As shown in (Fig.S15), yellow arrows highlight anatomical inconsistencies in complex poses and occluded scenarios due to reliance on 2D pose representations or the absence of pose control. PersonaCraft, in contrast, generates anatomically accurate and natural images under these conditions. Additionally, MS-Diffusion copies clothing directly from full-body references without proper displacement. PersonaCraft integrates personalized body shapes and clothing displacement, maintaining consistency and realism. These results highlight PersonaCraft’s superiority in gen
+erating accurate, identity-consistent images and handling occlusions and diverse poses with exceptional naturalness and customization.
+A.2. Pose-Controlled Multi-Human Scene Generation
+We assess pose-controlled multi-human scene generation by comparing PersonaCraft with existing methods in both single-human and multi-human contexts. As shown in Fig. S16, S17, and S18, our proposed method demonstrates significant advantages over existing approaches. Notably, methods that rely on 2D pose conditioning (e.g., T2IAdapterSDXL[56], ControlNet-SDXL [64, 91]) struggle with occlusion handling, resulting in misaligned poses and distorted structures. ControlNet-Flux [48, 91] shows instability: at a lower conditioning scale (0.8), it fails to preserve anatomical coherence, while at a higher scale (1.0), pose accuracy improves but image fidelity decreases. In contrast, PersonaCraft successfully balances pose accuracy, body realism, and image fidelity, highlighting the effectiveness of our 3D-aware pose conditioning.
+A.3. PersonaCraft with Stylization
+The proposed method is a plug-and-play approach, making it compatible with various style-specific LoRAs. To evaluate its effectiveness, we conducted experiments combining PersonaCraft with diverse style LoRAs, including Crayon [59], Pastel [6], 3D Render [26], Pixel Art [57], Illustration [5], Frosting Lane [3], Pokémon Trainer [76], JoJo [58], Graphic Novel [15], and Cartoon [4]. The results, shown in Fig. S19, highlight the method’s ability to adapt to different styles effectively. Notably, styles such as Pastel, Illustration, JoJo, and Pokémon Trainer introduce changes in facial and body characteristics, occasionally altering perceived identity, due to their bias. Nevertheless, the outcomes remain visually compelling and demonstrate the versatility of our approach.
+A.4. Versatility of SCNet
+To demonstrate the versatility of SCNet, we present results combining SCNet with various face identity personalization models, including InstantID [81], PhotoMaker V2 [50], and IPAdapter-Face [90]. As shown in Fig. S20, SCNet enables robust body shape personalization and pose control
+13
+
+
+when paired with these face models, achieving comprehensive full-body personalization and user-defined body shape adjustments. Notably, face personalization varies slightly depending on the chosen face module.
+A.5. Ablation Study on Conditioning Scale
+We analyze the effect of the conditioning scales of IdentityNet and SCNet on identity preservation when provided with face references and reference body shapes (SMPLx depth). As shown in Fig. S21, when the conditioning scale is set to 0 for both modules, the generated face and body shapes differ significantly from the reference. This indicates insufficient guidance from the reference inputs. As the conditioning scales for IdentityNet and SCNet increase, the generated images progressively resemble the reference face and body shape. This improvement demonstrates the critical role of conditioning strength in aligning the generated outputs with the given references. Optimal conditioning scales enable PersonaCraft to faithfully preserve both facial and body shape identities, ensuring high-quality personalization and consistency.
+A.6. Ablation Study on Body Shape Parameters
+For full-body personalized image generation, we extract the body shape parameters of the character to be personalized and use them for SMPLx rendering, which serves as the conditions for SCNet. In Tab. S6, we analyze the impact of incorporating the body shape parameters in this process. Using body shape parameters enhances body shape preservation during personalization. This indicates that leveraging the body shape parameters enables the generation of personalized images that more accurately reflect the character’s true physique.
+Table S6. Evaluation of body shape preservation with and without the use of the body shape parameter.
+Single Multi Total
+w/o body shape 0.615 0.520 0.539 w/ body shape 0.630 0.548 0.615
+A.7. Ablation Study on Occlusion-aware 3D pose & Shape conditioning
+Comparison of 3D Pose Representations for SCNet. In Fig. S22, we compare different combinations of SMPLx rendering-depth, normal, and RGB rendering-as conditioning inputs for SCNet. Using both depth and normal enables the model to leverage occlusion cues from depth and surface orientation information from normal. This leads to improved generation performance in occluded or complex body regions compared to using depth alone. However, incorporating RGB rendering in addition to depth and normal degrades image quality due to the use of multiple ControlNets for the
+same region. Therefore, we adopt the combination of depth and normal as base conditioning for SCNet.
+Effectiveness of OccNet and OccCFG. Also, the effect of our occlusion-aware 3D pose & shape conditioning components is analyzed in Fig. S22. Using only 2D pose leads to structural inconsistencies, while relying solely on 3D pose (SCNet) struggles with fine-grained occluded regions. Our full model (SCNet + OccNet + OccCFG) effectively preserves pose structure while handling occlusions.
+A.8. Efficiency Analysis
+As analyzed in Tab. S7, we compare the inference times for multi-identity personalized synthesis across different methods, specifically for generating images with three distinct identities. Textual Inversion [22] and DreamBooth [66], which rely on optimization-based personalization, require a batch size of 4 and 500 optimization steps per identity. This process results in significantly longer inference times, making these methods highly inefficient for real-time applications. On the other hand, methods based on OMG [43], which utilize a two-stage process to generate images, also require over twice the amount of time compared to our approach. In contrast, PersonaCraft performs inference efficiently, generating personalized images with substantially lower computation time while maintaining high-quality results. This stark difference highlights the efficiency advantage of our method, especially when generating multiple identities in a single synthesis process.
+Table S7. Inference times for multi-identity personalized synthesis.
+Method Total Time (secs)
+Text Inversion 1636.15 DreamBooth 770.713 InstantID + OMG 46.94 IPAdapter + OMG 44.62 IPA-Face + OMG 35.46 PersonaCraft (ours) 17.25
+A.9. Additional Results with Baselines Finetuned on our Training Dataset
+We further compare PersonaCraft with key baselines finetuned on our training dataset: InstantID + OMG, IPAdapter + OMG, and IPA-Face + OMG for personalized multi-human scene generation, and ControlNet-SDXL for pose-controlled multi-human scene generation.
+Personalized Multi-Human Scene Generation. Although the baselines are fine-tuned on our training dataset, Tab. S8 shows that our method consistently outperforms baselines in identity and body shape preservation. It achieves the lowest MPJPE (3D) and highest AP (2D), indicating superior alignment with input poses. Additionally, PersonaCraft surpasses baselines in IS and KID, demonstrating enhanced perceptual quality and text-image coherence.
+14
+
+
+Table S8. Additional comparison of baseline models fine-tuned on our training dataset (MPII). Quantitative evaluation of multi-human personalization across face identity, body shape preservation, pose accuracy, text alignment, and image quality. ‘Single’ denotes personalization for a single individual, while ‘Multi’ refers to cases with multiple identities (2–5), with ‘Total’ representing the averaged results. (*: fine-tuned on our training dataset.)
+Multi-Human Personalization
+Face ID preservation↑ Body shape preservation↑ Pose Text Image quality
+Single Multi Total Single Multi Total MPJPE (3D)↓ AP-0.5 (2D)↑ CLIP sim ↑ IS ↑ KID ↓
+InstantID + OMG∗ 0.418 0.220 0.252 0.563 0.427 0.448 85.624 0.333 0.264 3.809 0.0996 IPAdapter+ OMG∗ 0.204 0.155 0.162 0.606 0.45 0.472 84.893 0.362 0.267 3.736 0.0984 IPA-Face + OMG∗ 0.350 0.181 0.207 0.568 0.429 0.451 86.373 0.355 0.265 3.930 0.0974 Ours 0.421 0.298 0.317 0.630 0.548 0.560 60.654 0.506 0.273 4.238 0.0931
+Table S9. Additional comparison of the baseline fine-tuned on our training dataset (MPII). Quantitative evaluation of pose-controlled human generation in terms of pose accuracy, text alignment, and image quality. (*: fine-tuned on our training dataset.)
+Pose-Controlled Human Generation
+Pose Text Image quality
+MPJPE (3D) ↓ AP-0.5 (2D) ↑ CLIP sim ↑ IS ↑ KID ↓
+ControlNet-SDXL∗ 100.817 0.313 0.281 3.407 0.122 Ours 62.647 0.495 0.274 4.114 0.091
+Pose-Controlled Multi-Human Scene Generation. Although the baselines are fine-tuned on our training dataset, Tab. S9 shows that PersonaCraft achieves the lowest MPJPE (3D) and highest AP-0.5 (2D), demonstrating superior pose alignment and keypoint localization.
+A.10. Failure Cases
+While our method is versatile and can be applied to other ControlNet models, the performance of our face personalization depends significantly on the underlying face network. Additionally, the accuracy of 3D human model fitting is dependent on the performance of the fitting algorithm used. Variations in the quality of the fitting process may impact the final output, especially in cases where the reference data is incomplete or inaccurate as presented in Fig. S23. (Additional Experimental details are continued in Sec. B)
+15
+
+
+Figure S13. Additional comparison of generated images. Yellow arrows highlight anatomical issues due to 2D pose limitations. Blue arrows refer to the individuals evaluated for correct body shape preservation. PersonaCraft excels in identity, body shape consistency, and naturalness while being over twice as fast as OMG-based methods [43, 81, 90].
+16
+
+
+Figure S14. Additional comparison of generated images. Yellow arrows highlight anatomical issues in InstantID+OMG [43, 81] and IPAdapter+OMG [43, 90] due to 2D pose limitations. DreamBooth [66] shows severe distortions and clothing mismatches. PersonaCraft excels in face identity, body shape consistency, and naturalness while being over twice as fast as OMG-based methods [43, 81, 90].
+17
+
+
+Figure S15. Comparison of PersonaCraft with UniPortrait [31], MS-Diffusion [83], and FastComposer [86]. Yellow arrows show anatomical inconsistencies in poses and occlusions. MS-Diffusion copies clothing without proper adjustment.PersonaCraft excels in face identity, body shape consistency, and naturalness compared to the baselines.
+18
+
+
+Figure S16. Qualitative comparison of 3D-aware pose conditioning for multi-human generation, covering both single and multi-human scenarios. PersonaCraft achieves superior alignment with the input pose while effectively handling occlusions, allowing for natural human anatomy to be maintained even in complex multi-human interactions. Our method outperforms baselines in preserving identity, body shape, and overall human realism. yellow arrows highlight unnatural anatomical structures.
+19
+
+
+Figure S17. Qualitative comparison of 3D-aware pose conditioning for multi-human generation, covering both single and multi-human scenarios. PersonaCraft achieves superior alignment with the input pose while effectively handling occlusions, allowing for natural human anatomy to be maintained even in complex multi-human interactions. Our method outperforms baselines in preserving identity, body shape, and overall human realism. yellow arrows highlight unnatural anatomical structures.
+20
+
+
+Figure S18. Qualitative comparison of 3D-aware pose conditioning for multi-human generation, covering both single and multi-human scenarios. PersonaCraft achieves superior alignment with the input pose while effectively handling occlusions, allowing for natural human anatomy to be maintained even in complex multi-human interactions. Our method outperforms baselines in preserving identity, body shape, and overall human realism. yellow arrows highlight unnatural anatomical structures.
+21
+
+
+Figure S19. Results of combining PersonaCraft with various style LoRAs, showcasing adaptability to styles like Pastel, JoJo, and Pokémon Trainer. Some styles alter facial and body identities due to their bias, while producing visually impressive outcomes.
+22
+
+
+Figure S20. Integration of SCNet with face personalization models like InstantID [81], PhotoMaker V2 [50] and IPAdapter-Face [90] achieves robust full-body customization, with slight variations by face module.
+Figure S21. Ablation study on the conditioning scales of IdentityNet and SCNet, demonstrating improved identity preservation for face and body shape as the conditioning scales increase.
+23
+
+
+Figure S22. Ablation study on occlusion-aware 3D pose & shape conditioning. The combination of depth and normal as conditioning inputs for SCNet achieves the best generation performance in occluded or complex regions. While using SCNet faces issues preserving pose structure in fine-grained occluded regions, adding OccNet and OccCFG effectively addresses these problems.
+Figure S23. Failure cases. The accuracy of 3D human model fitting depends on the fitting algorithm used, and variations in fitting quality, particularly when the reference data is incomplete or inaccurate, can impact the final output.
+24
+
+
+B. Additional Experimental details
+B.1. Additional Implementation Details
+Additional Details on Training Dataset. To account for occlusion scenarios, we balance the MPII [7] dataset with a 2:1 ratio of single-person to multi-person images. Depth clipping is applied during depth rendering to retain only values below 5, ensuring consistent quality. After preprocessing, we curate a final dataset of 6,348 image-text-SMPLx-parameter pairs. This carefully curated dataset enables robust model training with diverse 3D human poses, complex interactions, and detailed human parameters such as body shape and pose conditioning.
+Details on Training of SCNet and OccNet. We base our SCNet on controlnet-union-sdxl-1.0 [87] and finetune it for SMPLx [61] depth-normal-ocluded edge conditioning. The architecture supports more than 10 control types for high-resolution text-to-image generation, with depth selected as the control type in our implementation. We utilize 3D poses represented by SMPLx parameters, which include 55 joints (22 body, 1 jaw, 2 eyes, and 30 hands) along with camera parameters (intrinsic and extrinsic). These parameters generate a vertex- and face-based mesh that we render as SMPLx depth maps. For depth edge extraction, we employed the Canny edge detector for more robust edge extraction instead of thresholding the spatial partial gradient of depth with τ , using a low threshold of 5 and a high threshold of 15.
+Details on Full-Body Personalized Image Synthesis. We adopt MultiHMR [11] as our SMPLx fitting method. MultiHMR is a single-shot model that reconstructs 3D human meshes from a single RGB image, leveraging the SMPLx parametric model to predict full-body meshes, including hands and facial expressions, with 3D localization in the camera coordinate system. The body shape parameters, β, are represented as 10-dimensional vectors, each scaled by orthonormal shape displacement components. For facial identity processing, we employ the antelopev2 facial detection and recognition models from InsightFace [1] to extract 512-dimensional face identity embeddings, f , from human images. To enhance the visual quality of human-centric scenes, we utilize the YamerMIX-v8 variant of SDXL. For face identity personalization, we incorporate IdentityNet from InstantID [81], which enables instant, zero-shot, identitypreserving image generation. IdentityNet enforces strong semantic and weak spatial conditions by integrating facial and landmark images with textual prompts to guide the generation process. Following InstantID, we use five key facial landmarks (two for the eyes, one for the nose, and two for the mouth) as spatial control signals, providing a more generalized constraint than detailed key points.
+Details on Dual-Pathway Body Shape Personalization. In this method, a CLIP [65] -based classifier is employed to extract body shape attributes in the form of text descriptions. These descriptions categorize the body type into various categories, such as "overweight," "muscular," "fat," etc. This is achieved by using a combination of CLIP, which bridges the gap between vision and text, and specific regional prompting techniques. The body shape information is then used in Regional Diffusion, a concept derived from MultiDiffusion [10], where each diffusion timestep involves conditioning on both the body pose and a corresponding text description about the individual’s body shape. The process operates on each person’s instance throughout multiple diffusion timesteps, ensuring that the shape-specific features are incorporated and aligned with the pose dynamics. Incorporating these shape attributes into the diffusion process allows the model to better represent personalized body shapes in the generation process, resulting in a more accurate and detailed synthesis of human shapes. This integration is achieved through the use of regional prompting, where at each timestep, the model is conditioned on both the body pose and the specific body shape description to refine the body shape in the generated instance. This process is further integrated with SCNet, a network that helps guide the shape refinement and personalization.
+User-Defined Body Shape Control. PersonaCraft enables user-defined body shape control, allowing adjustments based on user preferences: 1) Reference-based control: The target body shape parameter, βtarget, is obtained from a reference image via SMPLx fitting. 2) Interpolation/extrapolationbased control: Given two reference body shape parameters, β1 and β2, the target shape is computed as βtarget = γβ1 + (1 − γ)β2, where γ controls the interpolation/extrapolation ratio. The resulting βtarget .
+B.2. Details on Metrics
+Face identity preservation was measured for 1 ∼ 5 identities following FastComposer [85], using FaceNet [71] for identity similarity within the face mask. The identity similarity score is computed by averaging the non-negative cosine similarity over both the number of humans and the total number of images:
+Sface = 1
+Nimage
+Nimage X
+i=1
+1
+Nhuman,i
+Nhuman,i X
+j=1
+max 0, f (j)
+ref,i · f (j)
+gen,i ∥f (j)
+ref,i∥∥f (j)
+gen,i ∥
+!
+(S6) where f (j)
+ref,i and f (j)
+gen,i are the face embeddings for the j-th reference and generated identity in the i-th image, respectively. Nimage is the total number of images, and Nhuman,i is the number of humans in the i-th image. Body shape preservation was evaluated using cosine similarity between the SMPLx body shape parameters β from
+25
+
+
+the reference and generated instances. The score is averaged over both the number of humans and the total number of test images:
+Sbody = 1
+Nimage
+Nimage X
+i=1
+1
+Nhuman,i
+Nhuman,i X
+j=1
+β(j)
+ref,i · β(j)
+gen,i ∥β(j)
+ref,i ∥∥β (j )
+gen,i ∥
+(S7)
+where β(j)
+ref,i and β(j)
+gen,i are the body shape parameters for the j-th reference and generated instance in the i-th image, respectively. Nimage is the total number of images, and Nhuman,i is the number of humans in the i-th image. CLIP similarity was measured using the CLIP-L/14 model for image-text alignment. Cosine similarity was used to evaluate the alignment between the generated image and the textual description. The CLIP encoders Eimage and Etext were used for the image and text embeddings, respectively. The alignment score is averaged over all test images:
+SCLIP = 1
+Nimage
+Nimage X
+i=1
+Eimage(Igen,i) · Etext(yref,i)
+∥Eimage(Igen,i)∥∥Etext(yref,i)∥ (S8)
+where Eimage(Igen,i) is the generated image embedding for the i-th image, and Etext(yref,i) is the reference text embedding.
+B.3. Details on Baselines
+To evaluate PersonaCraft, we compared it with several baselines for single-shot, multi-identity, and pose-controllable image synthesis, all implemented using SDXL [64]. Key baselines include OMG [43] for multi-concept personalization, InstantID/IPAdapter [81, 90] for single-shot personalization, 2D pose ControlNet [91], and optimization-based methods like DreamBooth [66] and Texture Inversion [22]. OMG + InstantID/IPAdapter/IPA-Face. OMG [43] introduces a two-stage sampling solution for multi-concept personalization. The first stage handles layout generation and occlusion management, while the second stage integrates concepts using visual comprehension and noise blending. OMG can also be combined with single-concept models like InstantID without additional tuning. For OMG+InstantID, we follow the official inference code from the InstantID repository [44]. For OMG+InstantID and OMG+IPAdapter/IPAFace, we replace InstantID with IPAdapter and IPA-Face, respectively, to adapt the framework for different face identity modules. Textual Inversion. In original Textual Inversion [22], text embeddings are optimized for user-provided visual concepts, linking them to new pseudo-words that can be seamlessly incorporated into future prompts, effectively performing an inversion into the text-embedding space. To enable single-reference, multi-concept personalization, we optimize a unique text embedding V(i) for each concept derived from
+a single reference image. These embeddings are paired with unique identifiers, allowing for the dynamic integration of multiple concepts into prompts during inference, facilitating multi-concept personalization. DreamBooth. In original DreamBooth [66], the model is fine-tuned with images and text prompts using a unique identifier. A prior preservation loss is applied to encourage class diversity. For single-reference, multi-concept personalization, we adopt DreamBooth-LoRA [34, 66], where each reference image is associated with a unique M(i) and identifier V(i). These are fine-tuned based on the DreamBooth framework. During inference, both M and identifiers are used simultaneously, enabling personalized, concept-specific image generation from a single reference.
+B.4. Details on User study
+Personalized Multi-Human Scene Generation We conducted a user study to assess the naturalness, face identity preservation, body shape preservation, and text-image correspondence of images generated by three baseline methods (one from each group) and our method. Participants ranked the top three methods based on the following criteria: 1) Text Correspondence: Rank the images based on how closely they align with the textual description. 2) Face Identity Preservation: Rank the images in order of how well they reflect the face identity of the personalized character. 3) Body Shape Personalization: Rank the images based on how accurately they reflect the personalized character’s body shape. 4) Naturalness: Rank the images in order of the most naturallooking, considering factors such as physically impossible appearances, illogical features, inconsistencies, or lack of real-world physics and connections. The study collected a total of 18,540 responses from 103 participants across 15 cases, including both custom and COCO-Wholebody scenarios. We present illustrative example images from the user study in Fig. S24.
+Pose-Controlled Multi-Human Scene Generation We conducted a user study to assess the naturalness, face identity preservation, body shape preservation, and text-image correspondence of images generated by three baseline methods (one from each group) and our method. Participants ranked the top three methods based on the following criteria: 1) Text Correspondence: Rank the images based on how closely they align with the textual description. 2) Pose Consistency: Rank the images based on how well they reflect the given pose input. 3) Naturalness: Rank the images in order of the most natural-looking, considering factors such as physically impossible appearances, illogical features, inconsistencies, or lack of real-world physics and connections. The study collected a total of 15,390 responses from 114 participants across 15 cases, including both custom and COCOWholebody scenarios. We present illustrative example images from the user study in Fig. S25.
+26
+
+
+Figure S24. Example images from the user study for personalized multi-human scene generation.
+Figure S25. Example images from the user study for pose-controlled multi-human scene generation.
+27

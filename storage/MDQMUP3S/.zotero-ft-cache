@@ -1,0 +1,59 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2502.07802 (cs)
+[Submitted on 4 Feb 2025]
+Movie Weaver: Tuning-Free Multi-Concept Video Personalization with Anchored Prompts
+Feng Liang, Haoyu Ma, Zecheng He, Tingbo Hou, Ji Hou, Kunpeng Li, Xiaoliang Dai, Felix Juefei-Xu, Samaneh Azadi, Animesh Sinha, Peizhao Zhang, Peter Vajda, Diana Marculescu
+View PDF
+HTML (experimental)
+Video personalization, which generates customized videos using reference images, has gained significant attention. However, prior methods typically focus on single-concept personalization, limiting broader applications that require multi-concept integration. Attempts to extend these models to multiple concepts often lead to identity blending, which results in composite characters with fused attributes from multiple sources. This challenge arises due to the lack of a mechanism to link each concept with its specific reference image. We address this with anchored prompts, which embed image anchors as unique tokens within text prompts, guiding accurate referencing during generation. Additionally, we introduce concept embeddings to encode the order of reference images. Our approach, Movie Weaver, seamlessly weaves multiple concepts-including face, body, and animal images-into one video, allowing flexible combinations in a single model. The evaluation shows that Movie Weaver outperforms existing methods for multi-concept video personalization in identity preservation and overall quality.
+Comments:	Project page: this https URL
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Graphics (cs.GR); Machine Learning (cs.LG)
+Cite as:	arXiv:2502.07802 [cs.CV]
+ 	(or arXiv:2502.07802v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2502.07802
+Focus to learn more
+Submission history
+From: Feng Liang [view email]
+[v1] Tue, 4 Feb 2025 22:03:26 UTC (8,836 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2025-02
+Change to browse by: cs cs.GR cs.LG
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

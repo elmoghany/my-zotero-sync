@@ -1,0 +1,321 @@
+Movie Weaver: Tuning-Free Multi-Concept Video Personalization with
+Anchored Prompts
+Feng Liang* 1, Haoyu Ma2, Zecheng He2, Tingbo Hou2, Ji Hou2, Kunpeng Li2, Xiaoliang Dai2, Felix Juefei-Xu2, Samaneh Azadi2, Animesh Sinha2, Peizhao Zhang2, Peter Vajda2, Diana Marculescu1 1The University of Texas at Austin, Chandra Family Department of Electrical and Computer Engineering 2Meta GenAI
+{jeffliang,dianam}@utexas.edu, {haoyuma,zechengh,stzpz}@meta.com
+https://jeff-liangf.github.io/projects/movieweaver
+The video shows a young man [R1] holding a dog in his arms.
+The video shows a young man [R1][R2] holding a dog in his arms.
+The video shows a young man [R1][R2] holding a dog [R3] in his arms.
+Reference image pools
+A man[R1] and a woman [R2] are working in a data center.
+A man[R1][R2] and a woman [R3][R4] are working in a data center.
+Reference type
+face
+face_body
+face_body_animal
+two_face
+two_face_body
+[R1]
+[R1][R2]
+[R1][R2][R3]
+[R1][R2]
+[R1][R2][R3][R4]
+Personalized video with different reference combinations
+Figure 1. We introduce Movie Weaver, a video diffusion model for personalized multi-concept video creation. Besides text prompts, our model allows users to input different combinations of reference images, e.g., face, body, and animal images, to customize videos in a tuning-free manner. The left column displays different types of reference images, while the right column shows the generated videos, with anchored prompt listed beneath each video. We encourage readers to check our video results in the supplementary materials.
+1
+arXiv:2502.07802v1 [cs.CV] 4 Feb 2025
+
+
+Abstract
+Video personalization, which generates customized videos using reference images, has gained significant attention. However, prior methods typically focus on singleconcept personalization, limiting broader applications that require multi-concept integration. Attempts to extend these models to multiple concepts often lead to identity blending, which results in composite characters with fused attributes from multiple sources. This challenge arises due to the lack of a mechanism to link each concept with its specific reference image. We address this with anchored prompts, which embed image anchors as unique tokens within text prompts, guiding accurate referencing during generation. Additionally, we introduce concept embeddings to encode the order of reference images. Our approach, Movie Weaver, seamlessly weaves multiple concepts—including face, body, and animal images—into one video, allowing flexible combinations in a single model. The evaluation shows that Movie Weaver outperforms existing methods for multi-concept video personalization in identity preservation and overall quality.
+1. Introduction
+Foundational text-to-video generation models [3–6, 9, 17, 19, 24, 30, 31, 43, 51, 52, 54, 57, 66, 68] have made substantial progress in the past few years. Leveraging these advancements, personalized video generation enables users to create customized videos with their images, offering huge potential for applications like consistent storytelling. However, prior efforts [21, 48, 62] primarily support single concept (face or object) personalization, limiting their use in complex, real-world scenarios. Practical applications often require multi-concept compositions, like interactions between two people or between a person and a pet. To meet this need, we introduce Movie Weaver, a video diffusion model that weaves diverse image combinations and text prompts to create personalized multi-concept videos, as illustrated in Figure 1. Established video personalization methods [21, 27, 48, 62] typically extract vision tokens via an image encoder [49], then inject these tokens into diffusion models through cross attention. To support multiple face references, we extend this approach by directly feeding concatenated vision tokens from multiple references into the cross attention layer. While this direct extension works in some cases, it often encounters a severe identity blending issue [34, 63], generating composite characters that fuse attributes from both references. The issue is more severe when the character faces are close, i.e., from the same gender or race. This is because such a direct extension lacks
+*Work partially done during an internship at Meta GenAI.
+the ability to associate each reference image with their descriptions within the prompt. When vision tokens from different faces are similar, the model struggles to differentiate between them, resulting in identity blending.
+To address this issue, we explicitly build the association between the concept description and the corresponding reference image. We introduce anchored prompts by injecting unique text tokens ([R1]) after each concept description, as shown in Figure 1. Upon encountering [R1], the model links it with the matching reference image of [R1] and uses it as the visual supplement for the concept. This anchored prompt approach extends easily to multiple concepts by adding more anchors (e.g., [R2], [R3]) and corresponding images. Notably, anchored prompts only require input modifications without any architectural changes like identity-specific tuning [34, 36], predefined layout [18, 41] or masked attention [20, 28, 45, 63]. This preserves architectural simplicity and leverages scalability.
+With the anchored prompts established, the next question is how to distinguish the reference images of [R1] and [R2]. Our baseline architecture [21, 27, 48] concatenates the vision tokens with text tokens and feeds them together to the cross attention layer of diffusion models. However, since cross attention is order-agnostic, we must inject some information about the order of reference images. Inspired by positional encoding [13, 55], we introduce concept embedding, adding a unique embedding to each set of vision tokens from the reference image. This is different from traditional positional encoding, where different embeddings are assigned to individual tokens. Our method applies a uniform concept embedding to all tokens from the same image.
+We also propose an automatic data curation pipeline to get anchored prompts and ordered reference images. This pipeline supports diverse reference combinations (such as face, face-body, face-body-animal, two-face, and two-facebody) by leveraging a suite of foundations models [14, 29, 40, 49], yielding a dataset of 230K videos. Using the proposed anchored prompts and concept embeddings, we continue training Movie Weaver on a pre-trained single-face video personalization model [48]. As showcased in Figure 1, our model effectively generates high-quality videos with diverse reference combinations without additional tuning. Compared with proprietary Vidu 1.5 [56] and extended baseline, Movie Weaver exceeds in identity preservation and visual quality.
+Our contributions are three-fold: (1) Anchored Prompts: We introduce anchored prompts to link specific reference images with concept description, resolving identity blending in multi-concept video personalization without architectural changes. (2) Concept Embeddings: We use unique embeddings for each reference image to maintain identity and order in multi-reference settings. (3) Automatic Data Curation: We implement a pipeline to curate
+2
+
+
+training data with diverse reference combinations, enabling high-quality, tuning-free multi-concept video generation.
+2. Related Work
+Personalized image generation Personalized generation begins with identity-specific tuning methods that further finetune a text-to-image model on a set of reference images. For instance, Textual Inversion [16] finetunes special text tokens for the target identity. DreamBooth [50] further conducts end-to-end model finetuning besides tuning the special text tokens. Custom Diffusion [34] extends a parameter-efficient finetuning technique to incorporate multiple concepts. However, these tuning-based methods require separate optimizations for every concept, which does not scale well in real applications. Recent tuningfree methods train one base personalization model and then use it for arbitrary reference images in inference. For example, ELITE [60], PhotoMaker [37], PhotoVerse [8], IPAdapter [67] , InstantID [58], and Imagine Yourself [11, 22] all leverage a vision encoder to extract visual tokens from the reference image and inject them to the diffusion process. Our method Movie Weaver falls in the second tuning-free method which targets multi-concept personalization.
+Personalized video generation While personalized image generation has shown promising results, personalized video generation remains an unsolved problem. Compared to static images, personalized videos require more diverse and complex modifications on the reference image, e.g., turning the head, changing poses, and camera motion movements. Pioneering work VideoBooth [27], DisenStudio [7], Magic-Me [44], DreamVideo [61], CustomVideo [59], TweedieMix [35], MultiConceptVideo [33] and CustomCrafter [62] use identity-specific finetuning to inject identity into a video generation model. However, these methods require separate fine-tuning for every identity, which limits their applications. Another line of work includes tuningfree methods. ID-Animator [21], MovieGen [48] and Video Alchemist [10] train a vision encoder [49] to inject the reference image features into the diffusion models. Our Movie Weaver falls in the tuning-free setting with a special focus on multi-concept personalization.
+Multi-concept personalization Multi-concept personalization aims to generate harmonized content with multiple reference concepts. Identity-specific tuning methods, e.g., Custom Diffusion [34], Break-A-Scene [2], Concept Weaver [36] and MuDI [26], achieve multi-concept personalization by finetuning the multiple text embeddings and model weights. Tuning-free methods, e.g., FastComposer [63], MoA [45], InstantFamily [28] and UniPortrait [20], train on large-scale text-image datasets and inject
+...
+Text enc.
+A hand some man is ...
+TAE dec.
+Noise
+DiT
+Self Attn
+Cross Attn
+......
+Target
+Img enc.
+Figure 2. Single-concept personalization architecture. Building on a pre-trained text-to-video model, this approach adds an image encoder to process reference images. Image and text tokens are concatenated and fed into cross attention layer.
+multiple image embeddings directly into diffusion process during inference. Mix-of-show [18] and OMG [32] merge single-concept models but are limited by the availability of community models, primarily covering well-known intellectual property (IP) or celebrities. Unlike these methods that separate concepts using predefined layout [18, 41] or masked attention [28, 28, 45, 63] or word/image feature concatenation [10], our Movie Weaver proposes anchored prompts and concept embeddings to link concept with matched reference image without architectural change. Concurrent work ViMi [15] is the closest to our setting but requires complex data retrieval to curate data and an additional multimodal LLM [39] for the image-text process. In contrast, our data curation pipeline operates without supplementary retrieval data, while maintaining simplicity in architecture.
+3. Challenges in Extending Single-Concept to Multi-Concept Personalization
+3.1. Singe-concept video personalization
+Based on a pre-trained text-to-video diffusion model, prior single-concept video personalization methods [21, 27, 48, 62] typically introduce an additional CLIP image encoder [49, 64] to process reference images. As shown in Figure 2, given a dataset triplet {txt, img, vid}—representing text prompt, reference image, and target video—these methods extract text tokens T and image tokens I via text and image encoders. The tokens I and T are concatenated and then fed into the cross attention layer of the diffusion transformer [46].
+CrossAttn = softmax QZ [KT , KI ]T r
+√d
+!
+[VT , VI ] (1)
+Here, the query is derived from the video latent Z, and
+3
+
+
+Reference faces Frame from generated video
+Figure 3. Identity blending generates composite faces with characteristics from both references. Text prompt: "A woman in wheelchair discussing with a woman nurse."
+the key/value is derived from the concatenation of I and T . [·] and T r denotes the concatenation and transpose operation, respectively. Key and value are derived through linear projection, so [VT , VI ] = V[T,I]. For simplicity, we maintain formal notation without specifying this further.
+3.2. Naive extension to multi-concept
+To support multi-concept personalization, a straightforward approach is preparing image tokens from multiple reference images. We began by experimenting with two-face personalization. According to Equation 1, this results in KI = [KI1 , KI2 ] and VI = [VI1 , VI2 ], where I1 and I2 represents tokens of two different faces. This naive approach, however, led to severe identity blending [34, 63], where the characteristics of two faces would fuse together, resulting in a composite one as seen in Figure 3. The issue arises because the model cannot effectively link each concept description to its corresponding image. In cross attention, a query latent in QZ can attend to the entire prompt, including two text tokens of ”woman”, and cannot distinguish between vision tokens I1 and I2 due to order-agnostic processing. For accurate video generation, the model must link ”A woman in wheelchair” to the first image and ”a woman nurse” to the second image.
+4. Movie Weaver
+Unlike traditional approaches that require concept-specific tuning or architectural modifications, Movie Weaver aims to enable multi-concept video personalization with architectural simplicity and flexibility. Movie Weaver introduces two novel components, namely anchored prompts and concept embeddings, alongside an automatic data curation pipeline, all of which allow accurate, tuning-free multiconcept video generation.
+4.1. Anchored prompts
+The success of multi-concept personalization lies in accurately associating each concept with its corresponding image. Previous methods often rely on predefined layouts [18, 41] or complex masked attention modules [20, 28, 45, 63] to establish these associations, which increases model complexity and limits flexibility. Our Movie Weaver
+introduces a streamlined solution with anchored prompts. For prompt in Figure 3, we use Llama-3 [14] to identify the concept descriptions ”A woman in wheelchair” and ”a woman nurse”, we then append unique tokens (e.g., [R1], [R2]) after each description, creating the prompt ”A woman in wheelchair [R1] discussing with a woman nurse [R2].” Ordered reference images are then linked to these unique tokens, allowing the model to associate each description precisely with its reference image. This approach offers two key advantages: (1) Flexibility: anchored prompts can easily extend to different descriptions, such as body or animal descriptions. Moreover, it allows to append multiple references, such as face and body images, on the same person.; and (2) Simplicity: this approach requires only input modifications, allowing Movie Weaver to retain an architecture similar to single-concept models.
+4.2. Concept embeddings
+While anchored prompts establish explicit associations, we also need to encode the order information of reference images. The cross attention mechanism, as outlined in Equation 1, is inherently order-agnostic, i.e., swapping the order of two reference images yields identical results. To address this, Movie Weaver introduces concept embeddings, a novel adaptation of positional encoding [55] tailored to multi-concept personalization. Specifically, given I1 and I2 as image tokens from two different reference images, we add the same concept embedding P os1 and P os2 to each set of tokens, respectively:
+I′
+1 = I1 + P os1, I′
+2 = I2 + P os2, ... (2)
+Here, I1 and I2 have dimensions [N, C], while P os1 and P os2 are of shape [1, C], where N is the number of tokens and C is the feature dimension. Using the broadcasting of Pytorch, the same concept embedding is added to the entire set. This is different from traditional positional encoding where distinct embeddings are added to individual tokens. We also experimented with per-token positional encoding, but it produced less effective results compared to using a concept embedding for each set of vision tokens (see Section 5.3.1).
+4.3. Data curation pipeline
+Starting with text-video pairs, we curate data by leveraging a set of foundation models. We take the preparation of two-face configuration as an example in Figure 4 (a). We first use in-context learning of Llama-3 [14] to extract concept descriptions from the original prompt and get a rewritten anchored prompt. For the reference frame, typically the first frame of the video clip, we use a detection model Detic [69] and a segmentation model SAM [29] to extract the subject masks. Using the detection results, we can also tell
+4
+
+
+A woman in wheelchair discussing with a woman nurse.
+2 Detic +SAM
+1 Llama3
+3 CLIP
+video frame
+Original prompt Anchored prompt
+[R1]: A woman in wheelchair [R2]: A woman nurse Concept descriptions
+body masks face masks
+[R1]
+[R2]
+A woman in wheelchair [R1] discussing with a woman nurse [R2].
+[R1]
+[R2]
+Link concepts to images
+DiT
+Self Attn
+4 Face seg.
+Text enc.
+img enc.
+Reference faces
+Concept embeddings
++
++
+[R1]
+[R2]
+Cross Attn
+...
+...
+A woman in wheelchair [R1]
+discussing with a woman nurse [R2].
+(a). Data curation pipeline of Movie Weaver (b). Movie Weaver architecture
+Anchored prompt
+Figure 4. (a) Data curation. For a video-text pair, 1 concept descriptions and anchored prompts are generated via in-context learning with Llama-3. After 2 extracting body masks, 3 CLIP links each concept to its corresponding image. 4 Finally, face images are obtained using a face segmentation model. (b) Movie Weaver architecture. Compared to the single-concept baseline, reference images are arranged in a specific order for concept embedding, and anchored prompts are utilized. Shared components are omitted for simplicity.
+the number of people in the video and other objects in the video, which helps us filter the data. Then, a pre-trained CLIP [49] assigns the concept descriptions to the body images, establishing the link between [R] and reference images. Lastly, we use a face segmentation model to extract face masks from body images. While this example only illustrates the two-face scenarios, the approach can be naturally extended to other combinations with more [R]s and reference images. More examples can be found in the supplementary materials. With ordered reference images and rewritten anchored prompts prepared, our Movie Weaver architecture is illustrated in Figure 4(b). Compared with single-concept architecture in Figure 2, our model requires reference images in a specific order to apply concept embeddings effectively. We also need to have corresponding anchored prompts to strengthen the results.
+5. Experiments
+5.1. Implementation details
+Pretraining data Our Movie Weaver supports 5 configurations: face, face-body, face-body-animal, two-face and two-face-body, as showcase in Figure 1. We collect all our videos from Shutterstock Video [1]. For the face and face-body configurations, we curated 100K videos featuring only a single person performing various activities. In the two-face and two-face-body configurations, videos were selected based on the presence of exactly two individuals, verified via a detection model, resulting in a dataset comprising 118K videos. For the face-body-animal setup, we found it more challenging to source videos featuring both a person and an animal, ultimately assembling a collection of 10K videos. We conduct mix-pretraining, where we equally sample examples for each configuration using data resampling. More information can be found in Section 5.3.2.
+Finetuning data Existing research [11, 23, 48] suggests that further finetuning on a small-scale, very high quality data significantly enhances visual quality and subject motion. We follow this principle by manually selecting videos with large human motion, rich human iterations, and high visual aesthetic. Same as pretraining data, we source different videos for our different configurations. In summary, our finetuning set has 291 videos for face and face-body, 175 videos for two-face and two-face-body, and 185 videos for face-body-animal.
+Model details We adopt the Movie Gen architecture [48], with two versions: a 4B parameter model for the ablation study and a 30B parameter model for the final results. Unless specified otherwise, Movie Weaver refers to the 30B model. Movie Weaver uses MetaCLIP [64] as image encoder and uses three text encoders: MetaCLIP [64], ByT5 [65] and UL2 [53]. We implement concept embeddings (CE) using learnable nn.Embedding in PyTorch, applied only to image embeddings. The diffusion model contains 48 layers of diffusion transformers [46]. The temporal VAE has a compression rate of 8 × 8 × 8, represents 8× dimension reduce for spatial height/width and temporal frame. Using an additional 2 × 2 × 1 patchification, we compressed each 128-frame landscape video with 544×960 resolution into a token sequence of length 32K.
+Training hyperparameters We initialize Movie Weaver from a pre-trained single-face personalization Movie Gen checkpoint. The model is trained with a learning rate of 1e5 using the AdamW [42] optimizer for 20K iterations with a batch size of 32. The training objective is flow matching [38] with optimal transport path. It took around 5 days to do pretraining on a cluster of 256 H100 GPUs. Following this, we performed supervised finetuning with a reduced learning rate of 2e-6 for an additional 2K iterations.
+Test data Our test set has 5 configurations with 300+
+5
+
+
+Reference images Personalized video with different reference combinations
+Anchored Prompt: A man[R1] and a man [R2] Hard Hat Walking, Talking, and Using Tablet Computer.
+Anchored Prompt: a woman[R1][R2] and a man [R3][R4] eating salad after fitness workout on beach.
+Anchored Prompt: a man[R1][R2] and a dog [R3] sitting at a table with a Christmas tree in the back.
+[R1] [R2] [R3]
+[R1] [R2] [R3]
+[R1] [R2]
+[R1] [R2] [R3] [R4]
+[R1] [R2] [R3] [R4]
+[R1] [R2]
+Figure 5. Qualitative results of Movie Weaver. Movie Weaver supports different combinations of reference images and can generate high-quality videos with high identity preservation. We encourage readers to check our video results in the supplementary materials.
+reference-prompt pairs each, covering diverse ethics, human genders, animal types, and prompt styles. Human images are generated via text-to-image models EMU [11], while animal images are from external datasets (not in our training) like DreamBooth [50]. Prompts are generated via LLM in-context learning.
+5.2. Results
+5.2.1 Performance highlight
+We demonstrate three configurations of Movie Weaver: face-body-animal, two-face, and two-face-body, in Figure 5. For the same text prompt, we generate two different videos with two different sets of reference images. Notably, no facial, clothing, or dog descriptions are included in the prompts; all identity information is derived solely from the reference images. We highlight key features of our Movie
+Weaver: (1) Identity Preservation: Face, body, and animal details are accurately maintained in the generated videos. Even small clothing details, such as the logo on the gray Tshirt in the first video and the tear on the white T-shirt in the sixth, are faithfully preserved. In challenging two-face scenarios with same-gender, same-race pairs, Movie Weaver effectively retains each identity. (2) Flexibility with References: Movie Weaver can adapt reference images to match the prompt without having to strictly follow. For instance, in the second video, the reference body image shows a man standing, yet the prompt requires him to sit. Our Movie Weaver selectively uses the upper body to align with the prompt. Also for the fifth video, the standing woman body reference image is adapted to appear seated on a beach. (3) Rich iteration between subjects: Beyond preserving identity, the generated videos capture dynamic interactions between subjects. In the first and second videos, the person
+6
+
+
+Anchored Prompt: A man[R1][R2] and a man [R3][R4] working and taking notes together in table of a little office.
+[R1] [R2] [R3] [R4]
+[R1] [R2] [R3]
+Anchored Prompt: The video shows a woman sitting [R1][R2] on a bench in a park, petting a dog [R3].
+Vidu 1.5
+Movie
+Weaver Vidu 1.5
+Movie
+Weaver
+Method Reference images
+Prompt: The video shows a woman sitting on a bench in a park, petting a dog.
+Prompt: A man and a man working and taking notes together in table of a little office.
+Personalized video with different reference combinations
+Figure 6. Comparison with state-of-the-art multi-concept video methods. Compared to proprietary Vidu 1.5, Movie Weaver demonstrates superior identity preservation for both human and animal reference images.
+interacts well with the dog, while in third through sixth videos, the two people display rich engagement.
+5.2.2 Comparison with existing methods
+Multi-concept video personalization. We compare Movie Weaver with the proprietary Vidu 1.5 [56], which is the state-of-the-art model that supports multi-concept video personalization. We observed their demos use cropped images, so we prepared the reference images without masking. In the first face-body-animal example of Figure 6, Movie Weaver shows better identity preservation for both the African American woman and the dog. While Vidu 1.5 correctly identifies the dog as a Corgi, it fails to reconstruct the distinctive white spots on the dog’s face, which are crucial to the dog’s identity. In the second two-face-body example, because Vidu 1.5 supports a maximum of 3 reference images, we only input the face of the first character. Vidu 1.5 suffers from severe identity blending issues with the two generated characters looking and wearing similarly to each other, whereas Movie Weaver maintains clear distinctions between the two individuals.
+Multi-concept image personalization. We also compare with representative multi-concept image personalization methods. For Tweediemix [35], we first fine-tune the base SDXL [47] model for each reference concept using LORA [25], then conduct multi-concpet sampling using
+(a). Movie Weaver (ours)
+(b). TweedieMix (c). FreeCustom
+a man [R1] and a woman [R2]
+are working in the garden
+Refs.
+Text
+Figure 7. Comparison with multi-concept image methods. Movie Weaver has a better identity preserving and visual quality.
+Tweedie’s formula. Because Tweediemix requires background reference, we select one of its pretrained garden LORA weights. Freecustom [12] is a tuning-free method, so we follow its practice by preparing two reference faces. We select the first frame of our Movie Weaver to compare with these image methods. As shown in Figure 7, our Movie Weaver preserves a much better identity and has higher visual quality when compared with TweedieMix and FreeCustom.
+7
+
+
+Method CLIP-T CLIP-I DINO-I Tem. Cons.
+DreamVideo 0.282 0.498 0.246 0.956 ID-Animator 0.274 0.642 0.405 0.985 Movie Weaver (ours) 0.293 0.659 0.421 0.997
+Table 1. Quantitative comparison of single-face video personalization. Movie Weaver excels in four metrics.
+Reference faces Baseline: w/o AP, w/o CE
+Case (1): w/o AP, w/ CE Case (2): w/ AP, w/ CE
+Prompt: A man[R1] and a man[R2] in auto repair.
+Case Modules Human study metrics
+AP CE sep yes↑ face1 sim↑ face2 sim↑
+Baseline 42.9 3.4 3.0 (1) ✓ 98.2 58.8 41.9 (2) ✓ ✓ 99.3 66.8 66.1
+Figure 8. Ablation study of Anchored Prompts (AP) and Concept Embeddings (CE). The top part shows the effect of AP and CE, while the bottom presents results from a human study. Metric sep yes indicates the percentage of cases where the two generated faces are distinguishable (i.e., no identity blending), face1 sim and face2 sim represent where a similar face to the left or right reference face, respectively, is found in the generated video.
+Single-concept video personalization. Although our Movie Weaver targets at multi-concept, it can perform well on single-concept setting. We compare with IDAnimator [21] and DreamVideo [61], using 97 single-face personalization data. Following DreamVideo, we use four metrics, CLIP-T, CLIP-I, DINO-I, and Temporal Consistency. As we can see in Table 1, our Movie Weaver excels in all the metrics.
+5.3. Ablation study
+5.3.1 Anchored prompts and concept embeddings
+In this section, we analyze the effects of the proposed Anchored Prompts (AP) and Concept Embeddings (CE). Identity blending was less apparent in “face-body-animal” configurations because human animal embeddings are distinct. Thus, we conduct a human study on a two-face personalization evaluation dataset with 300 image pairs. As in the top part of Figure 8, the baseline suffers from the identity blending issue, reflected by a low sep yes score, which indicates percentage of cases where the two generated faces are sepa
+Table 2. Ablation study of mixed training with multiple reference configurations. 1F, 2F and F-B-A represents one-face, twoface and face-body-animal data, respectively. The metric face sim and face cons represents the similarity of character to the reference face and face consistency throughout the video.
+Case Pretraining data Human study metrics
+1F 2F F-B-A face sim↑ face cons↑
+1 ✓ 13.1 70 2 ✓ ✓ 29.5 81.3 3 ✓ ✓ ✓ 46 91
+rable. Introducing concept embeddings, as seen in case (1), raises the sep yes score from 42.9% to 98.2%. In case (2), anchored prompts further enhance identity preservation, increasing face1 sim and face2 sim scores. These scores represent the percentage of cases where a similar face to the left (face1) and right (face2) reference face is identifiable in the video. Ablation with “two-face-body” configuration can be found in Appendix A.3.1 and more details about human study can be found in Appendix A.2.1. When comparing CE with positional embeddings (PE), using the same setting as Figure 8 Case (1), PE achieves 90.5% sep yes score while CE achieves 98.2%.
+5.3.2 Mixed training
+Our Movie Weaver is trained on various combinations of reference images, and this section examines the impact of this mixed training approach. For a fair comparison, instead of initializing from a single-face personalization checkpoint, we start with a text-to-video base model. As shown in Table 2, we try different data configurations (1F: one-face, 2F: two-face and F-B-A: face-body-animal) and evaluate with a single-face personalization human study, which comprises 300 datapoints. Compared to case (1), which uses only one-face data, mixed training with additional configurations improves both face sim (similarity of the generated character to the reference face) and face cons (consistency of the face throughout the video). We attribute this improvement to the increased data diversity provided by mixed training.
+5.4. Limitations
+While Movie Weaver demonstrates strong multi-concept personalization capabilities, it has certain limitations. Firstly, the personalized videos often have limited overall motion compared to the results of base text-to-video model, and we sometimes see ’big-face’ videos where faces occupy a large portion of the video frame. We believe this occurs because the reference images can dominate the generation, leading to reduced motion and poor prompt alignment. For instance, in the first example in Figure 9, we
+8
+
+
+A man[R1][R2] and another man[R3][R4] are playing basketball.
+[R1] [R2] [R3] [R4]
+Limitation 2: Movie Weaver struggles to generalize to configurations not seen during training.
+A man[R1] in white T-shirt, a man[R2] in black leather jacket and a man[R3] in yellow shirt are talking.
+[R1] [R2] [R3]
+Limitation 1: Reference images can dominate the generation, leading to reduced motion and poor prompt alignment.
+Figure 9. Limitations of Movie Weaver. Reference images can dominate generation, resulting in ’big-face’ videos. Our model also struggles to generalize to configurations not seen during training.
+provide two half-body reference images with a prompt involving playing basketball. The generated video reproduces the half-bodies but fails to align well with the action described in the prompt. The underlying reason is Movie Weaver struggles to balance influence of reference images and text prompts when they are mismatched. During training, videos of sports activities like basketball typically include full-body references, whereas during inference, users may provide less aligned inputs. Addressing the balance between reference images and prompts remains an area for future improvement. Secondly, Movie Weaver struggles to generalize to configurations not seen during training. In the second example in Figure 9, the goal is to generate a video with three people talking, but the result only features two people. This is because we don’t have any training videos that contain more than two people. Addressing this issue will require incorporating additional data configurations during pretraining, which we identify as a direction for future work.
+6. Conclusion
+We present Movie Weaver to support tuning-free multiconcept video personalization. We alleviate the identity blending issue by explicitly associating the concept descriptions with reference images. With the pursuit of architectural simplicity and flexibility, we propose anchored prompts to inject unique tokens within text prompts and concept embeddings to encode the order of reference images. Our results show that Movie Weaver can generate high quality personalized videos with diverse reference types, including face, body and animal images.
+Acknowledgments
+This research was supported in part by ONR Minerva program, NSF CCF Grant No. 2107085, iMAGiNE - the Intelligent Machine Engineering Consortium at UT Austin, and
+a UT Cockrell School of Engineering Doctoral Fellowship.
+References
+[1] Stock footage video, royalty-free hd, 4k video clips, 2023. 5 [2] Omri Avrahami, Kfir Aberman, Ohad Fried, Daniel CohenOr, and Dani Lischinski. Break-a-scene: Extracting multiple concepts from a single image. In SIGGRAPH Asia 2023 Conference Papers, pages 1–12, 2023. 3
+[3] Omer Bar-Tal, Hila Chefer, Omer Tov, Charles Herrmann, Roni Paiss, Shiran Zada, Ariel Ephrat, Junhwa Hur, Guanghui Liu, Amit Raj, et al. Lumiere: A spacetime diffusion model for video generation. arXiv preprint arXiv:2401.12945, 2024. 2
+[4] Andreas Blattmann, Robin Rombach, Huan Ling, Tim Dockhorn, Seung Wook Kim, Sanja Fidler, and Karsten Kreis. Align your latents: High-resolution video synthesis with latent diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 22563–22575, 2023. [5] Tim Brooks, Bill Peebles, Connor Holmes, Will DePue, Yufei Guo, Li Jing, David Schnurr, Joe Taylor, Troy Luhman, Eric Luhman, et al. Video generation models as world simulators, 2024. [6] Haoxin Chen, Menghan Xia, Yingqing He, Yong Zhang, Xiaodong Cun, Shaoshu Yang, Jinbo Xing, Yaofang Liu, Qifeng Chen, Xintao Wang, et al. Videocrafter1: Open diffusion models for high-quality video generation. arXiv preprint arXiv:2310.19512, 2023. 2
+[7] Hong Chen, Xin Wang, Yipeng Zhang, Yuwei Zhou, Zeyang Zhang, Siao Tang, and Wenwu Zhu. Disenstudio: Customized multi-subject text-to-video generation with disentangled spatial control. arXiv preprint arXiv:2405.12796, 2024. 3 [8] Li Chen, Mengyi Zhao, Yiheng Liu, Mingxu Ding, Yangyang Song, Shizun Wang, Xu Wang, Hao Yang, Jing Liu, Kang Du, et al. PhotoVerse: Tuning-free image customization with text-to-image diffusion models. arXiv preprint arXiv:2309.05793, 2023. 3
+[9] Shoufa Chen, Mengmeng Xu, Jiawei Ren, Yuren Cong, Sen He, Yanping Xie, Animesh Sinha, Ping Luo, Tao Xiang,
+9
+
+
+and Juan-Manuel Perez-Rua. Gentron: Diffusion transformers for image and video generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6441–6451, 2024. 2 [10] Tsai-Shien Chen, Aliaksandr Siarohin, Willi Menapace, Yuwei Fang, Kwot Sin Lee, Ivan Skorokhodov, Kfir Aberman, Jun-Yan Zhu, Ming-Hsuan Yang, and Sergey Tulyakov. Multi-subject open-set personalization in video generation. arXiv preprint arXiv:2501.06187, 2025. 3
+[11] Xiaoliang Dai, Ji Hou, Chih-Yao Ma, Sam Tsai, Jialiang Wang, Rui Wang, Peizhao Zhang, Simon Vandenhende, Xiaofang Wang, Abhimanyu Dubey, et al. Emu: Enhancing image generation models using photogenic needles in a haystack. arXiv preprint arXiv:2309.15807, 2023. 3, 5, 6
+[12] Ganggui Ding, Canyu Zhao, Wen Wang, Zhen Yang, Zide Liu, Hao Chen, and Chunhua Shen. Freecustom: Tuningfree customized image generation for multi-concept composition. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 9089–9098, 2024. 7 [13] Alexey Dosovitskiy. An image is worth 16x16 words: Transformers for image recognition at scale. arXiv preprint arXiv:2010.11929, 2020. 2
+[14] Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Amy Yang, Angela Fan, et al. The llama 3 herd of models. arXiv preprint arXiv:2407.21783, 2024. 2, 4, 12 [15] Yuwei Fang, Willi Menapace, Aliaksandr Siarohin, TsaiShien Chen, Kuan-Chien Wang, Ivan Skorokhodov, Graham Neubig, and Sergey Tulyakov. Vimi: Grounding video generation through multi-modal instruction. arXiv preprint arXiv:2407.06304, 2024. 3
+[16] Rinon Gal, Yuval Alaluf, Yuval Atzmon, Or Patashnik, Amit H Bermano, Gal Chechik, and Daniel CohenOr. An image is worth one word: Personalizing text-toimage generation using textual inversion. arXiv preprint arXiv:2208.01618, 2022. 3
+[17] Rohit Girdhar, Mannat Singh, Andrew Brown, Quentin Duval, Samaneh Azadi, Sai Saketh Rambhatla, Akbar Shah, Xi Yin, Devi Parikh, and Ishan Misra. Emu video: Factorizing text-to-video generation by explicit image conditioning. arXiv preprint arXiv:2311.10709, 2023. 2
+[18] Yuchao Gu, Xintao Wang, Jay Zhangjie Wu, Yujun Shi, Yunpeng Chen, Zihan Fan, Wuyou Xiao, Rui Zhao, Shuning Chang, Weijia Wu, et al. Mix-of-show: Decentralized lowrank adaptation for multi-concept customization of diffusion models. Advances in Neural Information Processing Systems, 36, 2024. 2, 3, 4 [19] Yuwei Guo, Ceyuan Yang, Anyi Rao, Zhengyang Liang, Yaohui Wang, Yu Qiao, Maneesh Agrawala, Dahua Lin, and Bo Dai. Animatediff: Animate your personalized textto-image diffusion models without specific tuning. arXiv preprint arXiv:2307.04725, 2023. 2
+[20] Junjie He, Yifeng Geng, and Liefeng Bo. Uniportrait: A unified framework for identity-preserving singleand multi-human image personalization. arXiv preprint arXiv:2408.05939, 2024. 2, 3, 4
+[21] Xuanhua He, Quande Liu, Shengju Qian, Xin Wang, Tao Hu, Ke Cao, Keyu Yan, Man Zhou, and Jie Zhang. Id-animator: Zero-shot identity-preserving human video generation. arXiv preprint arXiv:2404.15275, 2024. 2, 3, 8
+[22] Zecheng He, Bo Sun, Felix Juefei-Xu, Haoyu Ma, Ankit Ramchandani, Vincent Cheung, Siddharth Shah, Anmol Kalia, Harihar Subramanyam, Alireza Zareian, Li Chen, Ankit Jain, Ning Zhang, Peizhao Zhang, Roshan Sumbaly, Peter Vajda, and Animesh Sinha. Imagine yourself: Tuning-free personalized image generation. arXiv preprint arXiv:2409.13346, 2024. 3
+[23] Zecheng He, Bo Sun, Felix Juefei-Xu, Haoyu Ma, Ankit Ramchandani, Vincent Cheung, Siddharth Shah, Anmol Kalia, Harihar Subramanyam, Alireza Zareian, et al. Imagine yourself: Tuning-free personalized image generation. arXiv preprint arXiv:2409.13346, 2024. 5
+[24] Jonathan Ho, William Chan, Chitwan Saharia, Jay Whang, Ruiqi Gao, Alexey Gritsenko, Diederik P Kingma, Ben Poole, Mohammad Norouzi, David J Fleet, et al. Imagen video: High definition video generation with diffusion models. arXiv preprint arXiv:2210.02303, 2022. 2
+[25] Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan AllenZhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. LoRA: Low-rank adaptation of large language models. arXiv preprint arXiv:2106.09685, 2021. 7
+[26] Sangwon Jang, Jaehyeong Jo, Kimin Lee, and Sung Ju Hwang. Identity decoupling for multi-subject personalization of text-to-image models. arXiv preprint arXiv:2404.04243, 2024. 3
+[27] Yuming Jiang, Tianxing Wu, Shuai Yang, Chenyang Si, Dahua Lin, Yu Qiao, Chen Change Loy, and Ziwei Liu. Videobooth: Diffusion-based video generation with image prompts. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 66896700, 2024. 2, 3 [28] Chanran Kim, Jeongin Lee, Shichang Joung, Bongmo Kim, and Yeul-Min Baek. Instantfamily: Masked attention for zero-shot multi-id image generation. arXiv preprint arXiv:2404.19427, 2024. 2, 3, 4
+[29] Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete Xiao, Spencer Whitehead, Alexander C Berg, Wan-Yen Lo, et al. Segment anything. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 4015–4026, 2023. 2, 4 [30] KlingAI. Kling AI, 2024. 2 [31] Dan Kondratyuk, Lijun Yu, Xiuye Gu, Jose ́ Lezama, Jonathan Huang, Grant Schindler, Rachel Hornung, Vighnesh Birodkar, Jimmy Yan, Ming-Chang Chiu, et al. Videopoet: A large language model for zero-shot video generation. arXiv preprint arXiv:2312.14125, 2023. 2
+[32] Zhe Kong, Yong Zhang, Tianyu Yang, Tao Wang, Kaihao Zhang, Bizhu Wu, Guanying Chen, Wei Liu, and Wenhan Luo. Omg: Occlusion-friendly personalized multiconcept generation in diffusion models. arXiv preprint arXiv:2403.10983, 2024. 3
+[33] Divya Kothandaraman, Kihyuk Sohn, Ruben Villegas, Paul Voigtlaender, Dinesh Manocha, and Mohammad
+10
+
+
+Babaeizadeh. Text prompting for multi-concept video customization by autoregressive generation. arXiv preprint arXiv:2405.13951, 2024. 3
+[34] Nupur Kumari, Bingliang Zhang, Richard Zhang, Eli Shechtman, and Jun-Yan Zhu. Multi-concept customization of text-to-image diffusion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 1931–1941, 2023. 2, 3, 4 [35] Gihyun Kwon and Jong Chul Ye. Tweediemix: Improving multi-concept fusion for diffusion-based image/video generation. arXiv preprint arXiv:2410.05591, 2024. 3, 7
+[36] Gihyun Kwon, Simon Jenni, Dingzeyu Li, Joon-Young Lee, Jong Chul Ye, and Fabian Caba Heilbron. Concept weaver: Enabling multi-concept fusion in text-to-image models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 8880–8889, 2024. 2, 3
+[37] Zhen Li, Mingdeng Cao, Xintao Wang, Zhongang Qi, MingMing Cheng, and Ying Shan. PhotoMaker: Customizing realistic human photos via stacked ID embedding. arXiv preprint arXiv:2312.04461, 2023. 3
+[38] Yaron Lipman, Ricky TQ Chen, Heli Ben-Hamu, Maximilian Nickel, and Matt Le. Flow matching for generative modeling. arXiv preprint arXiv:2210.02747, 2022. 5
+[39] Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. Advances in neural information processing systems, 36, 2024. 3
+[40] Shilong Liu, Zhaoyang Zeng, Tianhe Ren, Feng Li, Hao Zhang, Jie Yang, Qing Jiang, Chunyuan Li, Jianwei Yang, Hang Su, et al. Grounding dino: Marrying dino with grounded pre-training for open-set object detection. arXiv preprint arXiv:2303.05499, 2023. 2
+[41] Zhiheng Liu, Yifei Zhang, Yujun Shen, Kecheng Zheng, Kai Zhu, Ruili Feng, Yu Liu, Deli Zhao, Jingren Zhou, and Yang Cao. Cones 2: Customizable image synthesis with multiple subjects. In Proceedings of the 37th International Conference on Neural Information Processing Systems, pages 57500–57519, 2023. 2, 3, 4 [42] I Loshchilov. Decoupled weight decay regularization. arXiv preprint arXiv:1711.05101, 2017. 5 [43] LumaLabs. Dream Machine, 2024. 2 [44] Ze Ma, Daquan Zhou, Chun-Hsiao Yeh, Xue-She Wang, Xiuyu Li, Huanrui Yang, Zhen Dong, Kurt Keutzer, and Jiashi Feng. Magic-me: Identity-specific video customized diffusion. arXiv preprint arXiv:2402.09368, 2024. 3
+[45] Daniil Ostashev, Yuwei Fang, Sergey Tulyakov, Kfir Aberman, et al. MoA: Mixture-of-attention for subject-context disentanglement in personalized image generation. arXiv preprint arXiv:2404.11565, 2024. 2, 3, 4
+[46] William Peebles and Saining Xie. Scalable diffusion models with transformers. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 4195–4205, 2023. 3, 5 [47] Dustin Podell, Zion English, Kyle Lacey, Andreas Blattmann, Tim Dockhorn, Jonas Mu ̈ller, Joe Penna, and Robin Rombach. Sdxl: Improving latent diffusion models for high-resolution image synthesis. arXiv preprint arXiv:2307.01952, 2023. 7
+[48] Adam Polyak, Amit Zohar, Andrew Brown, Andros Tjandra, Animesh Sinha, Ann Lee, Apoorv Vyas, Bowen Shi, ChihYao Ma, Ching-Yao Chuang, et al. Movie gen: A cast of media foundation models. arXiv preprint arXiv:2410.13720, 2024. 2, 3, 5, 12, 13 [49] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In International conference on machine learning, pages 8748–8763. PMLR, 2021. 2, 3, 5 [50] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman. Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 2250022510, 2023. 3, 6 [51] RunwayML. Gen-3 Alpha, 2024. 2 [52] Uriel Singer, Adam Polyak, Thomas Hayes, Xi Yin, Jie An, Songyang Zhang, Qiyuan Hu, Harry Yang, Oron Ashual, Oran Gafni, et al. Make-a-video: Text-to-video generation without text-video data. arXiv preprint arXiv:2209.14792, 2022. 2 [53] Yi Tay, Mostafa Dehghani, Vinh Q Tran, Xavier Garcia, Jason Wei, Xuezhi Wang, Hyung Won Chung, Siamak Shakeri, Dara Bahri, Tal Schuster, et al. Ul2: Unifying language learning paradigms. arXiv preprint arXiv:2205.05131, 2022. 5
+[54] Genmo Team. Mochi 1: A new sota in open-source video generation. https://github.com/genmoai/ models, 2024. 2
+[55] A Vaswani. Attention is all you need. Advances in Neural Information Processing Systems, 2017. 2, 4
+[56] VIDU Studio. Character2Video, 2024. Accessed: 2024-1114. 2, 7 [57] Ruben Villegas, Mohammad Babaeizadeh, Pieter-Jan Kindermans, Hernan Moraldo, Han Zhang, Mohammad Taghi Saffar, Santiago Castro, Julius Kunze, and Dumitru Erhan. Phenaki: Variable length video generation from open domain textual descriptions. In International Conference on Learning Representations, 2022. 2
+[58] Qixun Wang, Xu Bai, Haofan Wang, Zekui Qin, and Anthony Chen. InstantID: Zero-shot identity-preserving generation in seconds. arXiv preprint arXiv:2401.07519, 2024. 3
+[59] Zhao Wang, Aoxue Li, Enze Xie, Lingting Zhu, Yong Guo, Qi Dou, and Zhenguo Li. Customvideo: Customizing textto-video generation with multiple subjects. arXiv preprint arXiv:2401.09962, 2024. 3
+[60] Yuxiang Wei, Yabo Zhang, Zhilong Ji, Jinfeng Bai, Lei Zhang, and Wangmeng Zuo. Elite: Encoding visual concepts into textual embeddings for customized text-to-image generation. In Proceedings of the IEEE/CVF International Conference on Computer Vision, pages 15943–15953, 2023. 3
+[61] Yujie Wei, Shiwei Zhang, Zhiwu Qing, Hangjie Yuan, Zhiheng Liu, Yu Liu, Yingya Zhang, Jingren Zhou, and Hongming Shan. Dreamvideo: Composing your dream videos
+11
+
+
+with customized subject and motion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 6537–6549, 2024. 3, 8 [62] Tao Wu, Yong Zhang, Xintao Wang, Xianpan Zhou, Guangcong Zheng, Zhongang Qi, Ying Shan, and Xi Li. Customcrafter: Customized video generation with preserving motion and concept composition abilities. arXiv preprint arXiv:2408.13239, 2024. 2, 3
+[63] Guangxuan Xiao, Tianwei Yin, William T Freeman, Fr ́edo Durand, and Song Han. Fastcomposer: Tuning-free multisubject image generation with localized attention. International Journal of Computer Vision, pages 1–20, 2024. 2, 3, 4
+[64] Hu Xu, Saining Xie, Xiaoqing Ellen Tan, Po-Yao Huang, Russell Howes, Vasu Sharma, Shang-Wen Li, Gargi Ghosh, Luke Zettlemoyer, and Christoph Feichtenhofer. Demystifying clip data. arXiv preprint arXiv:2309.16671, 2023. 3, 5
+[65] Linting Xue, Aditya Barua, Noah Constant, Rami Al-Rfou, Sharan Narang, Mihir Kale, Adam Roberts, and Colin Raffel. Byt5: Towards a token-free future with pre-trained byteto-byte models. Transactions of the Association for Computational Linguistics, 10:291–306, 2022. 5
+[66] Zhuoyi Yang, Jiayan Teng, Wendi Zheng, Ming Ding, Shiyu Huang, Jiazheng Xu, Yuanming Yang, Wenyi Hong, Xiaohan Zhang, Guanyu Feng, et al. Cogvideox: Text-to-video diffusion models with an expert transformer. arXiv preprint arXiv:2408.06072, 2024. 2
+[67] Hu Ye, Jun Zhang, Sibo Liu, Xiao Han, and Wei Yang. IPAdapter: Text compatible image prompt adapter for text-toimage diffusion models. arXiv preprint arXiv:2308.06721, 2023. 3 [68] Daquan Zhou, Weimin Wang, Hanshu Yan, Weiwei Lv, Yizhe Zhu, and Jiashi Feng. Magicvideo: Efficient video generation with latent diffusion models. arXiv preprint arXiv:2211.11018, 2022. 2
+[69] Xingyi Zhou, Rohit Girdhar, Armand Joulin, Philipp Kr ̈ahenbu ̈hl, and Ishan Misra. Detecting twenty-thousand classes using image-level supervision. In European Conference on Computer Vision, pages 350–368. Springer, 2022. 4, 12
+A. Appendix
+A.1. Data curation
+Video processing and filtering. For a given video, we uniformly sample five frames and apply a large-vocabulary object detector [69] to each frame. The intersection of all detected objects across these frames is used to determine the objects present throughout the video. Using these detection results, we filter videos based on specific criteria. For example, to select videos featuring two people, we require two ’person’ bounding boxes in the detection results. Similarly, for videos with one person and an animal, we ensure there is exactly one ’person’ bounding box along with a ’dog’ or ’cat’ bounding box.
+Two-face data curation. After obtaining the two-person video data, we utilize a suite of foundational models to generate anchored prompts and ordered reference images, as described in Section 4.3 of the main paper. Building on the approach of Movie Gen [48], we first employ the LLaMa3-Video [14] model to produce detailed text prompts for the video clips. These prompts follow a structured format, enabling the use of in-context learning to extract concept descriptions. For example, given the input prompt: Dentist Appointment. Senior woman smiling listening to her dentist during consultation., the outputs are two concept phrases: [Senior woman smiling, her dentist] and the anchored prompt: Dentist Appointment. Senior woman smiling <ID1> listening to her dentist <ID2>
+during consultation. Additional examples can be found in in context twoface.txt. Here, <ID1> and <ID2> represent [R1] and [R2], respectively. We further refine the output by ensuring that the concept phrases contain exactly two items and that both <ID1> and <ID2> appear in the anchored prompt.
+Two-facebody data curation. After generating the twoface anchored prompt, creating the two-facebody prompt is straightforward. This involves replacing the original <ID2> with <ID3> <ID4> and <ID1> with <ID2> <ID2>. Additionally, we prepare the ordered two-facebody reference images to align with the updated prompt structure.
+Face-body-animal data curation. We filter videos that feature one person with a pet (dog or cat). We use in-context examples to add three anchors to the original prompt. Examples can be found in in context facebodyanimal.txt
+A.2. Human evaluation
+A.2.1 Two-face human evaluation
+We conduct a human evaluation with 300 evaluation samples to ablate the effectiveness of the proposed anchored prompts and concept embeddings in Section 5.3.1. We provide the evaluation guidance as below. Besides the text guideline, we also include some visual examples to better help the annotators to judge.
+Guidance. This document describes how to do Movie Weaver two-face character consistency evaluation on generated video and their reference faces. The focus is on personalized video generation, where two reference faces are used to create a video, and the evaluation assesses how well the two generated characters maintain a consistent visual
+12
+
+
+appearance compared to the two reference faces. We will be primarily focused on human characters (realistic or stylized).
+Task description. Annotators will be shown a set of twofaces and a generated video. They are then asked to rate the character consistency level on the set of generated frames based on a few different questions related to the visual appearance of the person(s) in the reference image(s).
+Questions
+- In the worst frame (they are not separable), are the two faces separable in the generated video (no fusion within two faces): 1 - Totally separable 2 - Somewhat separable 3 - Not separable 4 - Only one face or no face or more than two faces generated or visible Note: In the specific example in Figure 3, annotators are expected to give the answer “not separable” - For the LEFT face in the reference, how well does the best aligned generated character’s face capture the person likeness? (Please first try the best to locate the best aligned character for the left reference face): 1 - Really similar 2 - Somewhat similar 3 - Not similar 4 - Only one face or no face or more than two faces generated or visible Note: In this specific example in Figure 3, annotators are expected to give the answer “Not similar” - For the RIGHT face in the reference, how well does the best aligned generated character’s face capture the person likeness? (Please first try the best to locate the best aligned character for the right reference face): 1 - Really similar 2 - Somewhat similar 3 - Not similar 4 - Only one face or no face or more than two faces generated or visible Note: In this specific example in Figure 3, annotators are expected to give the answer “Not similar”
+A.2.2 One-face human evaluation
+We perform a human evaluation with 300 samples to assess the effectiveness of mixed training, as discussed in Section 5.3.2. The evaluation protocol closely follows that of single-face personalized Movie Gen [48]. Specifically, annotators are provided with a reference image and a generated video clip and asked to rate two aspects: Face similarity (face sim): How well the generated character’s face
+Case Modules Human study metrics
+AP CE sep yes↑ human1 sim↑ human2 sim↑
+Baseline 54.8 12.3 16.5 (1) ✓ 98.8 66.7 69.4 (2) ✓ ✓ 98.0 72.3 71.1
+Table 3. Ablation study of Anchored Prompts (AP) and Concept Embeddings (CE) on “two-face-body” config.
+matches the reference person in the best frame. Face Consistency Score (face cons): How visually consistent the faces are across all frames containing the reference person. Ratings are given on an absolute scale: “really similar,” “somewhat similar,” and “not similar” for identity, and “really consistent,” “somewhat consistent,” and “not consistent” for face consistency. Annotators are trained to adhere to specific labeling guidelines and are continuously audited to ensure quality and reliability.
+A.3. Additional results
+A.3.1 Ablation on two-face-body configuration
+As shown in Table 3, ablation with “two-face-body” showed similar trends to “two-face” configurations. However, clothing details, like small logos in Figure 1, are harder to retain, likely due to the 256px reference resolution. Higherresolution references may enhance clothing detail preservation.
+A.3.2 Order of reference images
+In this section, we examine how the order of reference images influences the final output. Since the order information is incorporated through concept embeddings, altering the sequence of reference images results in different videos, even with the same prompt. This effect is illustrated in Figure 10.
+13
+
+
+Reference images Sample frame from personalized video
+Anchored Prompt: A man wearing a black leather jacket [R1] is sitting on a motorcycle next to a man in a yellow T-shirt [R2].
+[R1] [R2]
+[R1] [R2]
+[R1] [R2]
+[R1] [R2]
+Figure 10. By changing the order of reference images, we can assign certain face to certain attributes.
+14
