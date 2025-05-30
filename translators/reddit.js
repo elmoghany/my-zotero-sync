@@ -9,7 +9,7 @@
 	"priority": 100,
 	"inRepository": true,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2025-04-07 15:00:00"
+	"lastUpdated": "2025-05-01 14:55:00"
 }
 
 /*
@@ -173,8 +173,8 @@ var testCases = [
 				"url": "https://www.reddit.com/r/zotero/comments/j7ityb/zotero_ipad_bookmarklet_not_working/",
 				"attachments": [
 					{
-						"title": "Reddit Post Snapshot",
-						"mimetype": "text/html"
+						"title": "Snapshot",
+						"mimeType": "text/html"
 					}
 				],
 				"tags": [],
@@ -198,8 +198,8 @@ var testCases = [
 				"url": "www.reddit.com/r/zotero/comments/j7ityb/zotero_ipad_bookmarklet_not_working/g88zfcp/",
 				"attachments": [
 					{
-						"title": "Reddit Comment Snapshot",
-						"mimetype": "text/html"
+						"title": "Snapshot",
+						"mimeType": "text/html"
 					}
 				],
 				"tags": [],
@@ -227,8 +227,8 @@ var testCases = [
 				"url": "https://www.reddit.com/r/Professors/comments/o5pixw/for_tt_t_professors_why_exactly_is_vacation_and/",
 				"attachments": [
 					{
-						"title": "Reddit Post Snapshot",
-						"mimetype": "text/html"
+						"title": "Snapshot",
+						"mimeType": "text/html"
 					}
 				],
 				"tags": [],
@@ -261,8 +261,8 @@ var testCases = [
 				"url": "https://www.reddit.com/r/zotero/comments/plh1kr/firefox_google_docs_reimplementation/",
 				"attachments": [
 					{
-						"title": "Reddit Post Snapshot",
-						"mimetype": "text/html"
+						"title": "Snapshot",
+						"mimeType": "text/html"
 					}
 				],
 				"tags": [],

@@ -8,7 +8,7 @@
 	"maxVersion": null,
 	"priority": 100,
 	"inRepository": true,
-	"lastUpdated": "2025-03-29 04:40:00"
+	"lastUpdated": "2025-05-16 07:20:00"
 }
 
 /*
@@ -66,10 +66,10 @@ async function doSearch(items) {
 async function processDOI(doi) {
 	// TEMP: Use Crossref REST for Crossref DOIs during Crossref outage
 	let currentDate = new Date();
-	// Outage: 29 March 2025, 11:00–14:00 UTC
-	// Start 1 hour before (10:00 UTC) and end 2 hours after (16:00 UTC)
-	let startDate = new Date(Date.UTC(2025, 2, 29, 10, 0, 0));
-	let endDate   = new Date(Date.UTC(2025, 2, 29, 16, 0, 0));
+	// Outage: 17 May 2025, 14:00–15:00 UTC
+	// Start 1 hour before (13:00 UTC) and end 2 hours after (17:00 UTC)
+	let startDate = new Date(Date.UTC(2025, 4, 17, 13, 0, 0));
+	let endDate   = new Date(Date.UTC(2025, 4, 17, 17, 0, 0));
 	if (currentDate >= startDate && currentDate <= endDate) {
 		try {
 			let raJSON = await requestJSON(

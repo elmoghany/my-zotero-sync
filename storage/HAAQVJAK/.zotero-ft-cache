@@ -1,0 +1,58 @@
+Skip to main content
+Computer Science > Information Retrieval
+arXiv:2502.01549 (cs)
+[Submitted on 3 Feb 2025]
+VideoRAG: Retrieval-Augmented Generation with Extreme Long-Context Videos
+Xubin Ren, Lingrui Xu, Long Xia, Shuaiqiang Wang, Dawei Yin, Chao Huang
+View PDF
+HTML (experimental)
+Retrieval-Augmented Generation (RAG) has demonstrated remarkable success in enhancing Large Language Models (LLMs) through external knowledge integration, yet its application has primarily focused on textual content, leaving the rich domain of multi-modal video knowledge predominantly unexplored. This paper introduces VideoRAG, the first retrieval-augmented generation framework specifically designed for processing and understanding extremely long-context videos. Our core innovation lies in its dual-channel architecture that seamlessly integrates (i) graph-based textual knowledge grounding for capturing cross-video semantic relationships, and (ii) multi-modal context encoding for efficiently preserving visual features. This novel design empowers VideoRAG to process unlimited-length videos by constructing precise knowledge graphs that span multiple videos while maintaining semantic dependencies through specialized multi-modal retrieval paradigms. Through comprehensive empirical evaluation on our proposed LongerVideos benchmark-comprising over 160 videos totaling 134+ hours across lecture, documentary, and entertainment categories-VideoRAG demonstrates substantial performance compared to existing RAG alternatives and long video understanding methods. The source code of VideoRAG implementation and the benchmark dataset are openly available at: this https URL.
+Subjects:	Information Retrieval (cs.IR); Artificial Intelligence (cs.AI); Computer Vision and Pattern Recognition (cs.CV)
+Cite as:	arXiv:2502.01549 [cs.IR]
+ 	(or arXiv:2502.01549v1 [cs.IR] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2502.01549
+Focus to learn more
+Submission history
+From: Xubin Ren [view email]
+[v1] Mon, 3 Feb 2025 17:30:19 UTC (6,625 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.IR
+< prev next >
+
+newrecent2025-02
+Change to browse by: cs cs.AI cs.CV
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

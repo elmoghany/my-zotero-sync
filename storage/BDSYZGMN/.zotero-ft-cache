@@ -1,0 +1,60 @@
+Skip to main content
+Computer Science > Artificial Intelligence
+arXiv:2408.11788 (cs)
+[Submitted on 21 Aug 2024]
+DreamFactory: Pioneering Multi-Scene Long Video Generation with a Multi-Agent Framework
+Zhifei Xie, Daniel Tang, Dingwei Tan, Jacques Klein, Tegawend F. Bissyand, Saad Ezzini
+View PDF
+HTML (experimental)
+Current video generation models excel at creating short, realistic clips, but struggle with longer, multi-scene videos. We introduce \texttt{DreamFactory}, an LLM-based framework that tackles this challenge. \texttt{DreamFactory} leverages multi-agent collaboration principles and a Key Frames Iteration Design Method to ensure consistency and style across long videos. It utilizes Chain of Thought (COT) to address uncertainties inherent in large language models. \texttt{DreamFactory} generates long, stylistically coherent, and complex videos. Evaluating these long-form videos presents a challenge. We propose novel metrics such as Cross-Scene Face Distance Score and Cross-Scene Style Consistency Score. To further research in this area, we contribute the Multi-Scene Videos Dataset containing over 150 human-rated videos.
+Comments:	13 pages, 8 figures
+Subjects:	Artificial Intelligence (cs.AI); Computation and Language (cs.CL); Computer Vision and Pattern Recognition (cs.CV); Software Engineering (cs.SE)
+MSC classes:	TsingHua University
+Cite as:	arXiv:2408.11788 [cs.AI]
+ 	(or arXiv:2408.11788v1 [cs.AI] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2408.11788
+Focus to learn more
+Submission history
+From: Xie Zhifei [view email]
+[v1] Wed, 21 Aug 2024 17:21:13 UTC (29,571 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.AI
+< prev next >
+
+newrecent2024-08
+Change to browse by: cs cs.CL cs.CV cs.SE
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

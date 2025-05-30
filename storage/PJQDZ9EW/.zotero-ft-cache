@@ -1,0 +1,60 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2408.06072 (cs)
+[Submitted on 12 Aug 2024 (v1), last revised 26 Mar 2025 (this version, v3)]
+CogVideoX: Text-to-Video Diffusion Models with An Expert Transformer
+Zhuoyi Yang, Jiayan Teng, Wendi Zheng, Ming Ding, Shiyu Huang, Jiazheng Xu, Yuanming Yang, Wenyi Hong, Xiaohan Zhang, Guanyu Feng, Da Yin, Yuxuan Zhang, Weihan Wang, Yean Cheng, Bin Xu, Xiaotao Gu, Yuxiao Dong, Jie Tang
+View PDF
+We present CogVideoX, a large-scale text-to-video generation model based on diffusion transformer, which can generate 10-second continuous videos aligned with text prompt, with a frame rate of 16 fps and resolution of 768 * 1360 pixels. Previous video generation models often had limited movement and short durations, and is difficult to generate videos with coherent narratives based on text. We propose several designs to address these issues. First, we propose a 3D Variational Autoencoder (VAE) to compress videos along both spatial and temporal dimensions, to improve both compression rate and video fidelity. Second, to improve the text-video alignment, we propose an expert transformer with the expert adaptive LayerNorm to facilitate the deep fusion between the two modalities. Third, by employing a progressive training and multi-resolution frame pack technique, CogVideoX is adept at producing coherent, long-duration, different shape videos characterized by significant motions. In addition, we develop an effective text-video data processing pipeline that includes various data preprocessing strategies and a video captioning method, greatly contributing to the generation quality and semantic alignment. Results show that CogVideoX demonstrates state-of-the-art performance across both multiple machine metrics and human evaluations. The model weight of both 3D Causal VAE, Video caption model and CogVideoX are publicly available at this https URL.
+Comments:	Accepted by ICLR2025
+Subjects:	Computer Vision and Pattern Recognition (cs.CV)
+Cite as:	arXiv:2408.06072 [cs.CV]
+ 	(or arXiv:2408.06072v3 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2408.06072
+Focus to learn more
+Submission history
+From: Zhuoyi Yang [view email]
+[v1] Mon, 12 Aug 2024 11:47:11 UTC (27,248 KB)
+[v2] Tue, 8 Oct 2024 06:28:19 UTC (32,741 KB)
+[v3] Wed, 26 Mar 2025 08:33:10 UTC (29,715 KB)
+
+Access Paper:
+View PDFTeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2024-08
+Change to browse by: cs
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack
