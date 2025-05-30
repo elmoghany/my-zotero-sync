@@ -1,3 +1,13 @@
+@misc{446South2nd,
+  title = {446 {{South}} 2nd {{Street}}, {{San Jose}}, {{CA}} 95113 - {{Google Search}}},
+  urldate = {2025-04-23},
+  howpublished = {https://www.google.com/search?q=446+South+2nd+Street\%2C+San+Jose\%2C+CA+95113\&rlz=1C1CHBD\_en-GBEG1020EG1020\&sourceid=chrome\&ie=UTF-8},
+  timestamp = {2025-04-23T06:17:54Z},
+  file = {446 South 2nd Street, San Jose, CA 95113 - Google Search:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\8EDUP9S4\\search.html:text/html}
+}
+% == BibTeX quality report for 446South2nd:
+% ? Title looks like it was stored in title-case in Zotero
+
 @misc{ararPALPPromptAligned2024,
   title = {{{PALP}}: {{Prompt Aligned Personalization}} of {{Text-to-Image Models}}},
   shorttitle = {{{PALP}}},
@@ -68,6 +78,29 @@
 % == BibTeX quality report for biCustomTTTMotionAppearance2024:
 % ? Title looks like it was stored in title-case in Zotero
 % ? unused Url ("http://arxiv.org/abs/2412.15646")
+
+@misc{blattmannStableVideoDiffusion2023,
+  title = {Stable {{Video Diffusion}}: {{Scaling Latent Video Diffusion Models}} to {{Large Datasets}}},
+  shorttitle = {Stable {{Video Diffusion}}},
+  author = {Blattmann, Andreas and Dockhorn, Tim and Kulal, Sumith and Mendelevitch, Daniel and Kilian, Maciej and Lorenz, Dominik and Levi, Yam and English, Zion and Voleti, Vikram and Letts, Adam and Jampani, Varun and Rombach, Robin},
+  year = {2023},
+  month = nov,
+  number = {arXiv:2311.15127},
+  eprint = {2311.15127},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2311.15127},
+  urldate = {2025-04-24},
+  abstract = {We present Stable Video Diffusion - a latent video diffusion model for high-resolution, state-of-the-art text-to-video and image-to-video generation. Recently, latent diffusion models trained for 2D image synthesis have been turned into generative video models by inserting temporal layers and finetuning them on small, high-quality video datasets. However, training methods in the literature vary widely, and the field has yet to agree on a unified strategy for curating video data. In this paper, we identify and evaluate three different stages for successful training of video LDMs: text-to-image pretraining, video pretraining, and high-quality video finetuning. Furthermore, we demonstrate the necessity of a well-curated pretraining dataset for generating high-quality videos and present a systematic curation process to train a strong base model, including captioning and filtering strategies. We then explore the impact of finetuning our base model on high-quality data and train a text-to-video model that is competitive with closed-source video generation. We also show that our base model provides a powerful motion representation for downstream tasks such as image-to-video generation and adaptability to camera motion-specific LoRA modules. Finally, we demonstrate that our model provides a strong multi-view 3D-prior and can serve as a base to finetune a multi-view diffusion model that jointly generates multiple views of objects in a feedforward fashion, outperforming image-based methods at a fraction of their compute budget. We release code and model weights at https://github.com/Stability-AI/generative-models .},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  groups = {Z-To-read-later},
+  timestamp = {2025-04-24T14:55:16Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\I8MU7HH2\\Blattmann et al. - 2023 - Stable Video Diffusion Scaling Latent Video Diffusion Models to Large Datasets.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\9674CY62\\2311.html:text/html}
+}
+% == BibTeX quality report for blattmannStableVideoDiffusion2023:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2311.15127")
 
 @misc{chenDocumentHaystacksVisionLanguage2024,
   title = {Document {{Haystacks}}: {{Vision-Language Reasoning Over Piles}} of 1000+ {{Documents}}},
@@ -185,6 +218,30 @@
 % ? Title looks like it was stored in title-case in Zotero
 % ? unused Url ("http://arxiv.org/abs/2411.17949")
 
+@misc{guROICtrlBoostingInstance2024a,
+  title = {{{ROICtrl}}: {{Boosting Instance Control}} for {{Visual Generation}}},
+  shorttitle = {{{ROICtrl}}},
+  author = {Gu, Yuchao and Zhou, Yipin and Ye, Yunfan and Nie, Yixin and Yu, Licheng and Ma, Pingchuan and Lin, Kevin Qinghong and Shou, Mike Zheng},
+  year = {2024},
+  month = nov,
+  number = {arXiv:2411.17949},
+  eprint = {2411.17949},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2411.17949},
+  urldate = {2025-04-24},
+  abstract = {Natural language often struggles to accurately associate positional and attribute information with multiple instances, which limits current text-based visual generation models to simpler compositions featuring only a few dominant instances. To address this limitation, this work enhances diffusion models by introducing regional instance control, where each instance is governed by a bounding box paired with a free-form caption. Previous methods in this area typically rely on implicit position encoding or explicit attention masks to separate regions of interest (ROIs), resulting in either inaccurate coordinate injection or large computational overhead. Inspired by ROI-Align in object detection, we introduce a complementary operation called ROI-Unpool. Together, ROI-Align and ROI-Unpool enable explicit, efficient, and accurate ROI manipulation on high-resolution feature maps for visual generation. Building on ROI-Unpool, we propose ROICtrl, an adapter for pretrained diffusion models that enables precise regional instance control. ROICtrl is compatible with community-finetuned diffusion models, as well as with existing spatial-based add-ons ({\textbackslash}eg, ControlNet, T2I-Adapter) and embedding-based add-ons ({\textbackslash}eg, IP-Adapter, ED-LoRA), extending their applications to multi-instance generation. Experiments show that ROICtrl achieves superior performance in regional instance control while significantly reducing computational costs.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Project page at https://roictrl.github.io/},
+  groups = {Z-To-read-later},
+  timestamp = {2025-04-24T15:00:07Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\CDXDWXB6\\Gu et al. - 2024 - ROICtrl Boosting Instance Control for Visual Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\H57TYKL2\\2411.html:text/html}
+}
+% == BibTeX quality report for guROICtrlBoostingInstance2024a:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2411.17949")
+
 @misc{heAnyStoryUnifiedSingle2025,
   title = {{{AnyStory}}: {{Towards Unified Single}} and {{Multiple Subject Personalization}} in {{Text-to-Image Generation}}},
   shorttitle = {{{AnyStory}}},
@@ -201,6 +258,24 @@
   archiveprefix = {arXiv},
   keywords = {Computer Science - Computer Vision and Pattern Recognition},
   note = {Comment: Tech report; Project page: https://aigcdesigngroup.github.io/AnyStory/
+\par
+Dataset: 
+\par
+1) Laion
+\par
+[53] Christoph Schuhmann, Richard Vencu, Romain Beaumont, Robert Kaczmarczyk, Clayton Mullis, Aarush Katta, Theo Coombes, Jenia Jitsev, and Aran Komatsuzaki. Laion-400m: Open dataset of clip-filtered 400 million image-text pairs. arXiv preprint arXiv:2111.02114, 2021. 6
+\par
+[54] Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Wortsman, et al. Laion-5b: An open large-scale dataset for training next generation image-text models. In NeurIPS, pages 25278--25294, 2022. 6
+\par
+2) DeepFashion
+\par
+[17] Yuying Ge, Ruimao Zhang, Xiaogang Wang, Xiaoou Tang, and Ping Luo. Deepfashion2: A versatile benchmark for detection, pose estimation, segmentation and re-identification of clothing images. In CVPR, pages 5337--5345, 2019. 6
+\par
+3) Objaverse
+\par
+Objaverse: A universe of annotated 3d objects. In CVPR, pages 1314213153, 2023
+\par
+``3D data (about 5,600k) is obtained from the Objaverse [11]'' (He et al., 2025, p. 6)
 \par
 No Code},
   groups = {Story-Visualization},
@@ -226,7 +301,19 @@ No Code},
   abstract = {Story visualization aims to create visually compelling images or videos corresponding to textual narratives. Despite recent advances in diffusion models yielding promising results, existing methods still struggle to create a coherent sequence of subject-consistent frames based solely on a story. To this end, we propose DreamStory, an automatic open-domain story visualization framework by leveraging the LLMs and a novel multi-subject consistent diffusion model. DreamStory consists of (1) an LLM acting as a story director and (2) an innovative Multi-Subject consistent Diffusion model (MSD) for generating consistent multi-subject across the images. First, DreamStory employs the LLM to generate descriptive prompts for subjects and scenes aligned with the story, annotating each scene's subjects for subsequent subject-consistent generation. Second, DreamStory utilizes these detailed subject descriptions to create portraits of the subjects, with these portraits and their corresponding textual information serving as multimodal anchors (guidance). Finally, the MSD uses these multimodal anchors to generate story scenes with consistent multi-subject. Specifically, the MSD includes Masked Mutual Self-Attention (MMSA) and Masked Mutual Cross-Attention (MMCA) modules. MMSA and MMCA modules ensure appearance and semantic consistency with reference images and text, respectively. Both modules employ masking mechanisms to prevent subject blending. To validate our approach and promote progress in story visualization, we established a benchmark, DS-500, which can assess the overall performance of the story visualization framework, subject-identification accuracy, and the consistency of the generation model. Extensive experiments validate the effectiveness of DreamStory in both subjective and objective evaluations. Please visit our project homepage at https://dream-xyz.github.io/dreamstory.},
   archiveprefix = {arXiv},
   keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Multimedia},
-  note = {No Code},
+  note = {Datasets
+\par
+1) Story
+\par
+``free-short-stories 2, and 50 short stories generated by ChatGPT'' (He et al., 2025, p. 7)
+\par
+2) Training-free
+\par
+``training-free approach effectively leverages existing large, high-quality datasets (e.g., LAION-5B [45]'' (He et al., 2025, p. 12)
+\par
+LAION-5B: An open large-scale dataset for training next generation image-text models,'' arXiv preprint arXiv:2210.08402, 2022.
+\par
+No Code},
   groups = {Story-Visualization},
   timestamp = {2025-03-20T14:13:32Z},
   file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\R4AY38PC\\He et al. - 2025 - DreamStory Open-Domain Story Visualization by LLM-Guided Multi-Subject Consistent Diffusion.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\DRCX7T46\\2407.html:text/html}
@@ -331,6 +418,52 @@ Comment: Tech report; Project page: https://aigcdesigngroup.github.io/UniPortrai
 % ? Title looks like it was stored in title-case in Zotero
 % ? unused Url ("http://arxiv.org/abs/2503.06505")
 
+@misc{huStoryAgentCustomizedStorytelling2024,
+  title = {{{StoryAgent}}: {{Customized Storytelling Video Generation}} via {{Multi-Agent Collaboration}}},
+  shorttitle = {{{StoryAgent}}},
+  author = {Hu, Panwen and Jiang, Jin and Chen, Jianqi and Han, Mingfei and Liao, Shengcai and Chang, Xiaojun and Liang, Xiaodan},
+  year = {2024},
+  month = nov,
+  number = {arXiv:2411.04925},
+  eprint = {2411.04925},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2411.04925},
+  urldate = {2025-04-24},
+  abstract = {The advent of AI-Generated Content (AIGC) has spurred research into automated video generation to streamline conventional processes. However, automating storytelling video production, particularly for customized narratives, remains challenging due to the complexity of maintaining subject consistency across shots. While existing approaches like Mora and AesopAgent integrate multiple agents for Story-to-Video (S2V) generation, they fall short in preserving protagonist consistency and supporting Customized Storytelling Video Generation (CSVG). To address these limitations, we propose StoryAgent, a multi-agent framework designed for CSVG. StoryAgent decomposes CSVG into distinct subtasks assigned to specialized agents, mirroring the professional production process. Notably, our framework includes agents for story design, storyboard generation, video creation, agent coordination, and result evaluation. Leveraging the strengths of different models, StoryAgent enhances control over the generation process, significantly improving character consistency. Specifically, we introduce a customized Image-to-Video (I2V) method, LoRA-BE, to enhance intra-shot temporal consistency, while a novel storyboard generation pipeline is proposed to maintain subject consistency across shots. Extensive experiments demonstrate the effectiveness of our approach in synthesizing highly consistent storytelling videos, outperforming state-of-the-art methods. Our contributions include the introduction of StoryAgent, a versatile framework for video generation tasks, and novel techniques for preserving protagonist consistency.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Multiagent Systems},
+  groups = {Z-To-read-later},
+  timestamp = {2025-04-24T14:39:22Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\N9PWR5TL\\Hu et al. - 2024 - StoryAgent Customized Storytelling Video Generation via Multi-Agent Collaboration.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\6ZLLE2KH\\2411.html:text/html}
+}
+% == BibTeX quality report for huStoryAgentCustomizedStorytelling2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2411.04925")
+
+@misc{jeongVideoRAGRetrievalAugmentedGeneration2025,
+  title = {{{VideoRAG}}: {{Retrieval-Augmented Generation}} over {{Video Corpus}}},
+  shorttitle = {{{VideoRAG}}},
+  author = {Jeong, Soyeong and Kim, Kangsan and Baek, Jinheon and Hwang, Sung Ju},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2501.05874},
+  eprint = {2501.05874},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2501.05874},
+  urldate = {2025-04-22},
+  abstract = {Retrieval-Augmented Generation (RAG) is a powerful strategy for improving the factual accuracy of models by retrieving external knowledge relevant to queries and incorporating it into the generation process. However, existing approaches primarily focus on text, with some recent advancements considering images, and they largely overlook videos, a rich source of multimodal knowledge capable of representing contextual details more effectively than any other modality. While very recent studies explore the use of videos in response generation, they either predefine query-associated videos without retrieval or convert videos into textual descriptions losing multimodal richness. To tackle these, we introduce VideoRAG, a framework that not only dynamically retrieves videos based on their relevance with queries but also utilizes both visual and textual information. The operation of VideoRAG is powered by recent Large Video Language Models (LVLMs), which enable the direct processing of video content to represent it for retrieval and the seamless integration of retrieved videos jointly with queries for response generation. Also, inspired by that the context size of LVLMs may not be sufficient to process all frames in extremely long videos and not all frames are equally important, we introduce a video frame selection mechanism to extract the most informative subset of frames, along with a strategy to extract textual information from videos (as it can aid the understanding of video content) when their subtitles are not available. We experimentally validate the effectiveness of VideoRAG, showcasing that it is superior to relevant baselines. Code is available at https://github.com/starsuzi/VideoRAG.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computation and Language,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Information Retrieval,Computer Science - Machine Learning},
+  groups = {AV-RAG},
+  timestamp = {2025-04-22T19:23:14Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\WFLMNF9D\\Jeong et al. - 2025 - VideoRAG Retrieval-Augmented Generation over Video Corpus.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\RWF2PHXW\\2501.html:text/html}
+}
+% == BibTeX quality report for jeongVideoRAGRetrievalAugmentedGeneration2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2501.05874")
+
 @misc{jiangAniSoraExploringFrontiers2024,
   title = {{{AniSora}}: {{Exploring}} the {{Frontiers}} of {{Animation Video Generation}} in the {{Sora Era}}},
   shorttitle = {{{AniSora}}},
@@ -424,6 +557,53 @@ Comment: Tech report; Project page: https://aigcdesigngroup.github.io/UniPortrai
 % ? Title looks like it was stored in title-case in Zotero
 % ? unused Url ("http://arxiv.org/abs/2503.08605")
 
+@misc{kondratyukVideoPoetLargeLanguage2024,
+  title = {{{VideoPoet}}: {{A Large Language Model}} for {{Zero-Shot Video Generation}}},
+  shorttitle = {{{VideoPoet}}},
+  author = {Kondratyuk, Dan and Yu, Lijun and Gu, Xiuye and Lezama, Jos{\'e} and Huang, Jonathan and Schindler, Grant and Hornung, Rachel and Birodkar, Vighnesh and Yan, Jimmy and Chiu, Ming-Chang and Somandepalli, Krishna and Akbari, Hassan and Alon, Yair and Cheng, Yong and Dillon, Josh and Gupta, Agrim and Hahn, Meera and Hauth, Anja and Hendon, David and Martinez, Alonso and Minnen, David and Sirotenko, Mikhail and Sohn, Kihyuk and Yang, Xuan and Adam, Hartwig and Yang, Ming-Hsuan and Essa, Irfan and Wang, Huisheng and Ross, David A. and Seybold, Bryan and Jiang, Lu},
+  year = {2024},
+  month = jun,
+  number = {arXiv:2312.14125},
+  eprint = {2312.14125},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2312.14125},
+  urldate = {2025-04-24},
+  abstract = {We present VideoPoet, a language model capable of synthesizing high-quality video, with matching audio, from a large variety of conditioning signals. VideoPoet employs a decoder-only transformer architecture that processes multimodal inputs -- including images, videos, text, and audio. The training protocol follows that of Large Language Models (LLMs), consisting of two stages: pretraining and task-specific adaptation. During pretraining, VideoPoet incorporates a mixture of multimodal generative objectives within an autoregressive Transformer framework. The pretrained LLM serves as a foundation that can be adapted for a range of video generation tasks. We present empirical results demonstrating the model's state-of-the-art capabilities in zero-shot video generation, specifically highlighting VideoPoet's ability to generate high-fidelity motions. Project page: http://sites.research.google/videopoet/},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: To appear at ICML 2024; Project page: http://sites.research.google/videopoet/},
+  timestamp = {2025-04-24T14:56:56Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\NIT7ITHL\\Kondratyuk et al. - 2024 - VideoPoet A Large Language Model for Zero-Shot Video Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\5STHV2XT\\2312.html:text/html}
+}
+% == BibTeX quality report for kondratyukVideoPoetLargeLanguage2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2312.14125")
+
+@misc{kondratyukVideoPoetLargeLanguage2024a,
+  title = {{{VideoPoet}}: {{A Large Language Model}} for {{Zero-Shot Video Generation}}},
+  shorttitle = {{{VideoPoet}}},
+  author = {Kondratyuk, Dan and Yu, Lijun and Gu, Xiuye and Lezama, Jos{\'e} and Huang, Jonathan and Schindler, Grant and Hornung, Rachel and Birodkar, Vighnesh and Yan, Jimmy and Chiu, Ming-Chang and Somandepalli, Krishna and Akbari, Hassan and Alon, Yair and Cheng, Yong and Dillon, Josh and Gupta, Agrim and Hahn, Meera and Hauth, Anja and Hendon, David and Martinez, Alonso and Minnen, David and Sirotenko, Mikhail and Sohn, Kihyuk and Yang, Xuan and Adam, Hartwig and Yang, Ming-Hsuan and Essa, Irfan and Wang, Huisheng and Ross, David A. and Seybold, Bryan and Jiang, Lu},
+  year = {2024},
+  month = jun,
+  number = {arXiv:2312.14125},
+  eprint = {2312.14125},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2312.14125},
+  urldate = {2025-04-24},
+  abstract = {We present VideoPoet, a language model capable of synthesizing high-quality video, with matching audio, from a large variety of conditioning signals. VideoPoet employs a decoder-only transformer architecture that processes multimodal inputs -- including images, videos, text, and audio. The training protocol follows that of Large Language Models (LLMs), consisting of two stages: pretraining and task-specific adaptation. During pretraining, VideoPoet incorporates a mixture of multimodal generative objectives within an autoregressive Transformer framework. The pretrained LLM serves as a foundation that can be adapted for a range of video generation tasks. We present empirical results demonstrating the model's state-of-the-art capabilities in zero-shot video generation, specifically highlighting VideoPoet's ability to generate high-fidelity motions. Project page: http://sites.research.google/videopoet/},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: To appear at ICML 2024; Project page: http://sites.research.google/videopoet/},
+  groups = {Z-To-read-later},
+  timestamp = {2025-04-24T14:57:29Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\2BQBIGDG\\Kondratyuk et al. - 2024 - VideoPoet A Large Language Model for Zero-Shot Video Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\TJNFMLY6\\2312.html:text/html}
+}
+% == BibTeX quality report for kondratyukVideoPoetLargeLanguage2024a:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2312.14125")
+
 @misc{kongHunyuanVideoSystematicFramework2025,
   title = {{{HunyuanVideo}}: {{A Systematic Framework For Large Video Generative Models}}},
   shorttitle = {{{HunyuanVideo}}},
@@ -444,6 +624,29 @@ Comment: Tech report; Project page: https://aigcdesigngroup.github.io/UniPortrai
   file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\AQKXTXFY\\Kong et al. - 2025 - HunyuanVideo A Systematic Framework For Large Video Generative Models.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\U48IT7SK\\2412.html:text/html}
 }
 % == BibTeX quality report for kongHunyuanVideoSystematicFramework2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2412.03603")
+
+@misc{kongHunyuanVideoSystematicFramework2025a,
+  title = {{{HunyuanVideo}}: {{A Systematic Framework For Large Video Generative Models}}},
+  shorttitle = {{{HunyuanVideo}}},
+  author = {Kong, Weijie and Tian, Qi and Zhang, Zijian and Min, Rox and Dai, Zuozhuo and Zhou, Jin and Xiong, Jiangfeng and Li, Xin and Wu, Bo and Zhang, Jianwei and Wu, Kathrina and Lin, Qin and Yuan, Junkun and Long, Yanxin and Wang, Aladdin and Wang, Andong and Li, Changlin and Huang, Duojun and Yang, Fang and Tan, Hao and Wang, Hongmei and Song, Jacob and Bai, Jiawang and Wu, Jianbing and Xue, Jinbao and Wang, Joey and Wang, Kai and Liu, Mengyang and Li, Pengyu and Li, Shuai and Wang, Weiyan and Yu, Wenqing and Deng, Xinchi and Li, Yang and Chen, Yi and Cui, Yutao and Peng, Yuanbo and Yu, Zhentao and He, Zhiyu and Xu, Zhiyong and Zhou, Zixiang and Xu, Zunnan and Tao, Yangyu and Lu, Qinglin and Liu, Songtao and Zhou, Dax and Wang, Hongfa and Yang, Yong and Wang, Di and Liu, Yuhong and Jiang, Jie and Zhong, Caesar},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2412.03603},
+  eprint = {2412.03603},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2412.03603},
+  urldate = {2025-04-24},
+  abstract = {Recent advancements in video generation have significantly impacted daily life for both individuals and industries. However, the leading video generation models remain closed-source, resulting in a notable performance gap between industry capabilities and those available to the public. In this report, we introduce HunyuanVideo, an innovative open-source video foundation model that demonstrates performance in video generation comparable to, or even surpassing, that of leading closed-source models. HunyuanVideo encompasses a comprehensive framework that integrates several key elements, including data curation, advanced architectural design, progressive model scaling and training, and an efficient infrastructure tailored for large-scale model training and inference. As a result, we successfully trained a video generative model with over 13 billion parameters, making it the largest among all open-source models. We conducted extensive experiments and implemented a series of targeted designs to ensure high visual quality, motion dynamics, text-video alignment, and advanced filming techniques. According to evaluations by professionals, HunyuanVideo outperforms previous state-of-the-art models, including Runway Gen-3, Luma 1.6, and three top-performing Chinese video generative models. By releasing the code for the foundation model and its applications, we aim to bridge the gap between closed-source and open-source communities. This initiative will empower individuals within the community to experiment with their ideas, fostering a more dynamic and vibrant video generation ecosystem. The code is publicly available at https://github.com/Tencent/HunyuanVideo.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  groups = {Z-To-read-later},
+  timestamp = {2025-04-24T14:56:27Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\N2HX2NW5\\Kong et al. - 2025 - HunyuanVideo A Systematic Framework For Large Video Generative Models.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\MJW6HFEK\\2412.html:text/html}
+}
+% == BibTeX quality report for kongHunyuanVideoSystematicFramework2025a:
 % ? Title looks like it was stored in title-case in Zotero
 % ? unused Url ("http://arxiv.org/abs/2412.03603")
 
@@ -518,6 +721,53 @@ Comment: Tech report; Project page: https://aigcdesigngroup.github.io/UniPortrai
 % ? Title looks like it was stored in title-case in Zotero
 % ? unused Url ("http://arxiv.org/abs/2401.01256")
 
+@misc{luoVideoRAGVisuallyalignedRetrievalAugmented2024,
+  title = {Video-{{RAG}}: {{Visually-aligned Retrieval-Augmented Long Video Comprehension}}},
+  shorttitle = {Video-{{RAG}}},
+  author = {Luo, Yongdong and Zheng, Xiawu and Yang, Xiao and Li, Guilin and Lin, Haojia and Huang, Jinfa and Ji, Jiayi and Chao, Fei and Luo, Jiebo and Ji, Rongrong},
+  year = {2024},
+  month = dec,
+  number = {arXiv:2411.13093},
+  eprint = {2411.13093},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2411.13093},
+  urldate = {2025-04-22},
+  abstract = {Existing large video-language models (LVLMs) struggle to comprehend long videos correctly due to limited context. To address this problem, fine-tuning long-context LVLMs and employing GPT-based agents have emerged as promising solutions. However, fine-tuning LVLMs would require extensive high-quality data and substantial GPU resources, while GPT-based agents would rely on proprietary models (e.g., GPT-4o). In this paper, we propose Video Retrieval-Augmented Generation (Video-RAG), a training-free and cost-effective pipeline that employs visually-aligned auxiliary texts to help facilitate cross-modality alignment while providing additional information beyond the visual content. Specifically, we leverage open-source external tools to extract visually-aligned information from pure video data (e.g., audio, optical character, and object detection), and incorporate the extracted information into an existing LVLM as auxiliary texts, alongside video frames and queries, in a plug-and-play manner. Our Video-RAG offers several key advantages: (i) lightweight with low computing overhead due to single-turn retrieval; (ii) easy implementation and compatibility with any LVLM; and (iii) significant, consistent performance gains across long video understanding benchmarks, including Video-MME, MLVU, and LongVideoBench. Notably, our model demonstrates superior performance over proprietary models like Gemini-1.5-Pro and GPT-4o when utilized with a 72B model.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: 10 pages, 6 figures},
+  groups = {AV-RAG},
+  timestamp = {2025-04-22T19:23:03Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\RJEGAHZP\\Luo et al. - 2024 - Video-RAG Visually-aligned Retrieval-Augmented Long Video Comprehension.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\9GFHI9DI\\2411.html:text/html}
+}
+% == BibTeX quality report for luoVideoRAGVisuallyalignedRetrievalAugmented2024:
+% ? unused Url ("http://arxiv.org/abs/2411.13093")
+
+@misc{maMagicMeIdentitySpecificVideo2024,
+  title = {Magic-{{Me}}: {{Identity-Specific Video Customized Diffusion}}},
+  shorttitle = {Magic-{{Me}}},
+  author = {Ma, Ze and Zhou, Daquan and Yeh, Chun-Hsiao and Wang, Xue-She and Li, Xiuyu and Yang, Huanrui and Dong, Zhen and Keutzer, Kurt and Feng, Jiashi},
+  year = {2024},
+  month = mar,
+  number = {arXiv:2402.09368},
+  eprint = {2402.09368},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2402.09368},
+  urldate = {2025-04-24},
+  abstract = {Creating content with specified identities (ID) has attracted significant interest in the field of generative models. In the field of text-to-image generation (T2I), subject-driven creation has achieved great progress with the identity controlled via reference images. However, its extension to video generation is not well explored. In this work, we propose a simple yet effective subject identity controllable video generation framework, termed Video Custom Diffusion (VCD). With a specified identity defined by a few images, VCD reinforces the identity characteristics and injects frame-wise correlation at the initialization stage for stable video outputs. To achieve this, we propose three novel components that are essential for high-quality identity preservation and stable video generation: 1) a noise initialization method with 3D Gaussian Noise Prior for better inter-frame stability; 2) an ID module based on extended Textual Inversion trained with the cropped identity to disentangle the ID information from the background 3) Face VCD and Tiled VCD modules to reinforce faces and upscale the video to higher resolution while preserving the identity's features. We conducted extensive experiments to verify that VCD is able to generate stable videos with better ID over the baselines. Besides, with the transferability of the encoded identity in the ID module, VCD is also working well with personalized text-to-image models available publicly. The codes are available at https://github.com/Zhen-Dong/Magic-Me.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Project Page at https://magic-me-webpage.github.io},
+  groups = {Z-To-read-later},
+  timestamp = {2025-04-24T14:59:16Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\BYPXS4BL\\Ma et al. - 2024 - Magic-Me Identity-Specific Video Customized Diffusion.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\EB583WQ9\\2402.html:text/html}
+}
+% == BibTeX quality report for maMagicMeIdentitySpecificVideo2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2402.09368")
+
 @misc{mengAniDocAnimationCreation2025,
   title = {{{AniDoc}}: {{Animation Creation Made Easier}}},
   shorttitle = {{{AniDoc}}},
@@ -589,6 +839,52 @@ Comment: Tech report; Project page: https://aigcdesigngroup.github.io/UniPortrai
 % == BibTeX quality report for patashnikNestedAttentionSemanticaware2025:
 % ? unused Url ("http://arxiv.org/abs/2501.01407")
 
+@misc{polyakMovieGenCast2025,
+  title = {Movie {{Gen}}: {{A Cast}} of {{Media Foundation Models}}},
+  shorttitle = {Movie {{Gen}}},
+  author = {Polyak, Adam and Zohar, Amit and Brown, Andrew and Tjandra, Andros and Sinha, Animesh and Lee, Ann and Vyas, Apoorv and Shi, Bowen and Ma, Chih-Yao and Chuang, Ching-Yao and Yan, David and Choudhary, Dhruv and Wang, Dingkang and Sethi, Geet and Pang, Guan and Ma, Haoyu and Misra, Ishan and Hou, Ji and Wang, Jialiang and Jagadeesh, Kiran and Li, Kunpeng and Zhang, Luxin and Singh, Mannat and Williamson, Mary and Le, Matt and Yu, Matthew and Singh, Mitesh Kumar and Zhang, Peizhao and Vajda, Peter and Duval, Quentin and Girdhar, Rohit and Sumbaly, Roshan and Rambhatla, Sai Saketh and Tsai, Sam and Azadi, Samaneh and Datta, Samyak and Chen, Sanyuan and Bell, Sean and Ramaswamy, Sharadh and Sheynin, Shelly and Bhattacharya, Siddharth and Motwani, Simran and Xu, Tao and Li, Tianhe and Hou, Tingbo and Hsu, Wei-Ning and Yin, Xi and Dai, Xiaoliang and Taigman, Yaniv and Luo, Yaqiao and Liu, Yen-Cheng and Wu, Yi-Chiao and Zhao, Yue and Kirstain, Yuval and He, Zecheng and He, Zijian and Pumarola, Albert and Thabet, Ali and Sanakoyeu, Artsiom and Mallya, Arun and Guo, Baishan and Araya, Boris and Kerr, Breena and Wood, Carleigh and Liu, Ce and Peng, Cen and Vengertsev, Dimitry and Schonfeld, Edgar and Blanchard, Elliot and {Juefei-Xu}, Felix and Nord, Fraylie and Liang, Jeff and Hoffman, John and Kohler, Jonas and Fire, Kaolin and Sivakumar, Karthik and Chen, Lawrence and Yu, Licheng and Gao, Luya and Georgopoulos, Markos and Moritz, Rashel and Sampson, Sara K. and Li, Shikai and Parmeggiani, Simone and Fine, Steve and Fowler, Tara and Petrovic, Vladan and Du, Yuming},
+  year = {2025},
+  month = feb,
+  number = {arXiv:2410.13720},
+  eprint = {2410.13720},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2410.13720},
+  urldate = {2025-04-24},
+  abstract = {We present Movie Gen, a cast of foundation models that generates high-quality, 1080p HD videos with different aspect ratios and synchronized audio. We also show additional capabilities such as precise instruction-based video editing and generation of personalized videos based on a user's image. Our models set a new state-of-the-art on multiple tasks: text-to-video synthesis, video personalization, video editing, video-to-audio generation, and text-to-audio generation. Our largest video generation model is a 30B parameter transformer trained with a maximum context length of 73K video tokens, corresponding to a generated video of 16 seconds at 16 frames-per-second. We show multiple technical innovations and simplifications on the architecture, latent spaces, training objectives and recipes, data curation, evaluation protocols, parallelization techniques, and inference optimizations that allow us to reap the benefits of scaling pre-training data, model size, and training compute for training large scale media generation models. We hope this paper helps the research community to accelerate progress and innovation in media generation models. All videos from this paper are available at https://go.fb.me/MovieGenResearchVideos.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Machine Learning,Electrical Engineering and Systems Science - Image and Video Processing},
+  groups = {Z-To-read-later},
+  timestamp = {2025-04-24T14:39:42Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\FNNU7FP7\\Polyak et al. - 2025 - Movie Gen A Cast of Media Foundation Models.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\VEQ3Q44B\\2410.html:text/html}
+}
+% == BibTeX quality report for polyakMovieGenCast2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2410.13720")
+
+@misc{renVideoRAGRetrievalAugmentedGeneration2025,
+  title = {{{VideoRAG}}: {{Retrieval-Augmented Generation}} with {{Extreme Long-Context Videos}}},
+  shorttitle = {{{VideoRAG}}},
+  author = {Ren, Xubin and Xu, Lingrui and Xia, Long and Wang, Shuaiqiang and Yin, Dawei and Huang, Chao},
+  year = {2025},
+  month = feb,
+  number = {arXiv:2502.01549},
+  eprint = {2502.01549},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2502.01549},
+  urldate = {2025-04-28},
+  abstract = {Retrieval-Augmented Generation (RAG) has demonstrated remarkable success in enhancing Large Language Models (LLMs) through external knowledge integration, yet its application has primarily focused on textual content, leaving the rich domain of multi-modal video knowledge predominantly unexplored. This paper introduces VideoRAG, the first retrieval-augmented generation framework specifically designed for processing and understanding extremely long-context videos. Our core innovation lies in its dual-channel architecture that seamlessly integrates (i) graph-based textual knowledge grounding for capturing cross-video semantic relationships, and (ii) multi-modal context encoding for efficiently preserving visual features. This novel design empowers VideoRAG to process unlimited-length videos by constructing precise knowledge graphs that span multiple videos while maintaining semantic dependencies through specialized multi-modal retrieval paradigms. Through comprehensive empirical evaluation on our proposed LongerVideos benchmark-comprising over 160 videos totaling 134+ hours across lecture, documentary, and entertainment categories-VideoRAG demonstrates substantial performance compared to existing RAG alternatives and long video understanding methods. The source code of VideoRAG implementation and the benchmark dataset are openly available at: https://github.com/HKUDS/VideoRAG.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Information Retrieval},
+  groups = {AV-RAG},
+  timestamp = {2025-04-28T08:41:48Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\XV9HNZSN\\Ren et al. - 2025 - VideoRAG Retrieval-Augmented Generation with Extreme Long-Context Videos.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\HAAQVJAK\\2502.html:text/html}
+}
+% == BibTeX quality report for renVideoRAGRetrievalAugmentedGeneration2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2502.01549")
+
 @misc{shenStoryGPTVLargeLanguage2023,
   title = {{{StoryGPT-V}}: {{Large Language Models}} as {{Consistent Story Visualizers}}},
   shorttitle = {{{StoryGPT-V}}},
@@ -633,6 +929,15 @@ Comment: Tech report; Project page: https://aigcdesigngroup.github.io/UniPortrai
 }
 % == BibTeX quality report for shinLargeScaleTexttoImageModel2024:
 % ? unused Url ("http://arxiv.org/abs/2411.15466")
+
+@misc{ShowlabMovieAgentMovieAgent,
+  title = {Showlab/{{MovieAgent}}: {{MovieAgent}}: {{Automated Movie Generation}} via {{Multi-Agent CoT Planning}}},
+  urldate = {2025-04-22},
+  howpublished = {https://github.com/showlab/MovieAgent/tree/main},
+  groups = {Video-Gen},
+  timestamp = {2025-04-22T20:17:57Z},
+  file = {showlab/MovieAgent\: MovieAgent\: Automated Movie Generation via Multi-Agent CoT Planning:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\5TXHGPZ8\\main.html:text/html}
+}
 
 @misc{songMoMAMultimodalLLM2024,
   title = {{{MoMA}}: {{Multimodal LLM Adapter}} for {{Fast Personalized Image Generation}}},
@@ -787,11 +1092,33 @@ Comment: Tech report; Project page: https://aigcdesigngroup.github.io/UniPortrai
   abstract = {Text-to-image models offer a new level of creative flexibility by allowing users to guide the image generation process through natural language. However, using these models to consistently portray the same subject across diverse prompts remains challenging. Existing approaches fine-tune the model to teach it new words that describe specific user-provided subjects or add image conditioning to the model. These methods require lengthy per-subject optimization or large-scale pre-training. Moreover, they struggle to align generated images with text prompts and face difficulties in portraying multiple subjects. Here, we present ConsiStory, a training-free approach that enables consistent subject generation by sharing the internal activations of the pretrained model. We introduce a subject-driven shared attention block and correspondence-based feature injection to promote subject consistency between images. Additionally, we develop strategies to encourage layout diversity while maintaining subject consistency. We compare ConsiStory to a range of baselines, and demonstrate state-of-the-art performance on subject consistency and text alignment, without requiring a single optimization step. Finally, ConsiStory can naturally extend to multi-subject scenarios, and even enable training-free personalization for common objects.},
   archiveprefix = {arXiv},
   note = {Comment: Accepted to journal track of SIGGRAPH 2024 (TOG). Project page is at https://consistory-paper.github.io},
-  groups = {Consistency},
   timestamp = {2025-03-10T10:07:38Z},
   file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\RF26FHQD\\Tewel et al. - 2024 - Training-Free Consistent Text-to-Image Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\XM64MDMS\\2402.html:text/html}
 }
 % == BibTeX quality report for tewelTrainingFreeConsistentTexttoImage2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2402.03286")
+
+@misc{tewelTrainingFreeConsistentTexttoImage2024a,
+  title = {Training-{{Free Consistent Text-to-Image Generation}}},
+  author = {Tewel, Yoad and Kaduri, Omri and Gal, Rinon and Kasten, Yoni and Wolf, Lior and Chechik, Gal and Atzmon, Yuval},
+  year = {2024},
+  month = may,
+  number = {arXiv:2402.03286},
+  eprint = {2402.03286},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2402.03286},
+  urldate = {2025-04-25},
+  abstract = {Text-to-image models offer a new level of creative flexibility by allowing users to guide the image generation process through natural language. However, using these models to consistently portray the same subject across diverse prompts remains challenging. Existing approaches fine-tune the model to teach it new words that describe specific user-provided subjects or add image conditioning to the model. These methods require lengthy per-subject optimization or large-scale pre-training. Moreover, they struggle to align generated images with text prompts and face difficulties in portraying multiple subjects. Here, we present ConsiStory, a training-free approach that enables consistent subject generation by sharing the internal activations of the pretrained model. We introduce a subject-driven shared attention block and correspondence-based feature injection to promote subject consistency between images. Additionally, we develop strategies to encourage layout diversity while maintaining subject consistency. We compare ConsiStory to a range of baselines, and demonstrate state-of-the-art performance on subject consistency and text alignment, without requiring a single optimization step. Finally, ConsiStory can naturally extend to multi-subject scenarios, and even enable training-free personalization for common objects.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Graphics,Computer Science - Machine Learning},
+  note = {Comment: Accepted to journal track of SIGGRAPH 2024 (TOG). Project page is at https://consistory-paper.github.io},
+  groups = {Consistency},
+  timestamp = {2025-04-25T15:18:30Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\MIYJTG9T\\Tewel et al. - 2024 - Training-Free Consistent Text-to-Image Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\KQS2F9UN\\2402.html:text/html}
+}
+% == BibTeX quality report for tewelTrainingFreeConsistentTexttoImage2024a:
 % ? Title looks like it was stored in title-case in Zotero
 % ? unused Url ("http://arxiv.org/abs/2402.03286")
 
@@ -1000,7 +1327,9 @@ Comment: Tech report; Project page: https://aigcdesigngroup.github.io/UniPortrai
   keywords = {Computer Science - Computer Vision and Pattern Recognition},
   note = {Code Included
 \par
-Comment: The code and project website are available at: https://github.com/showlab/MovieAgent and https://weijiawu.github.io/MovieAgent},
+Comment: The code and project website are available at: https://github.com/showlab/MovieAgent and https://weijiawu.github.io/MovieAgent
+\par
+Very good paper. MUST USE!},
   groups = {Video-Gen},
   timestamp = {2025-03-20T09:11:15Z},
   file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\7R3X982A\\Wu et al. - 2025 - Automated Movie Generation via Multi-Agent CoT Planning.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\WYC5ZQGX\\2503.html:text/html}
@@ -1033,6 +1362,30 @@ Comment: The code and project website are available at: https://github.com/showl
 % ? Title looks like it was stored in title-case in Zotero
 % ? unused Url ("http://arxiv.org/abs/2412.05263")
 
+@misc{wuMovieBenchHierarchicalMovie2025,
+  title = {{{MovieBench}}: {{A Hierarchical Movie Level Dataset}} for {{Long Video Generation}}},
+  shorttitle = {{{MovieBench}}},
+  author = {Wu, Weijia and Liu, Mingyu and Zhu, Zeyu and Xia, Xi and Feng, Haoen and Wang, Wen and Lin, Kevin Qinghong and Shen, Chunhua and Shou, Mike Zheng},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2411.15262},
+  eprint = {2411.15262},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2411.15262},
+  urldate = {2025-04-24},
+  abstract = {Recent advancements in video generation models, like Stable Video Diffusion, show promising results, but primarily focus on short, single-scene videos. These models struggle with generating long videos that involve multiple scenes, coherent narratives, and consistent characters. Furthermore, there is no publicly available dataset tailored for the analysis, evaluation, and training of long video generation models. In this paper, we present MovieBench: A Hierarchical Movie-Level Dataset for Long Video Generation, which addresses these challenges by providing unique contributions: (1) movie-length videos featuring rich, coherent storylines and multi-scene narratives, (2) consistency of character appearance and audio across scenes, and (3) hierarchical data structure contains high-level movie information and detailed shot-level descriptions. Experiments demonstrate that MovieBench brings some new insights and challenges, such as maintaining character ID consistency across multiple scenes for various characters. The dataset will be public and continuously maintained, aiming to advance the field of long video generation. Data can be found at: https://weijiawu.github.io/MovieBench/.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: The project website is at: https://weijiawu.github.io/MovieBench/. Code: https://github.com/showlab/MovieBecnh},
+  groups = {Z-To-read-later},
+  timestamp = {2025-04-24T14:40:06Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\Q932FCQ2\\Wu et al. - 2025 - MovieBench A Hierarchical Movie Level Dataset for Long Video Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\VW523BLL\\2411.html:text/html}
+}
+% == BibTeX quality report for wuMovieBenchHierarchicalMovie2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2411.15262")
+
 @misc{xiaoOmniGenUnifiedImage2024,
   title = {{{OmniGen}}: {{Unified Image Generation}}},
   shorttitle = {{{OmniGen}}},
@@ -1056,6 +1409,30 @@ Comment: The code and project website are available at: https://github.com/showl
 % == BibTeX quality report for xiaoOmniGenUnifiedImage2024:
 % ? Title looks like it was stored in title-case in Zotero
 % ? unused Url ("http://arxiv.org/abs/2409.11340")
+
+@misc{xieDreamFactoryPioneeringMultiScene2024,
+  title = {{{DreamFactory}}: {{Pioneering Multi-Scene Long Video Generation}} with a {{Multi-Agent Framework}}},
+  shorttitle = {{{DreamFactory}}},
+  author = {Xie, Zhifei and Tang, Daniel and Tan, Dingwei and Klein, Jacques and Bissyand, Tegawend F. and Ezzini, Saad},
+  year = {2024},
+  month = aug,
+  number = {arXiv:2408.11788},
+  eprint = {2408.11788},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2408.11788},
+  urldate = {2025-04-24},
+  abstract = {Current video generation models excel at creating short, realistic clips, but struggle with longer, multi-scene videos. We introduce {\textbackslash}texttt\{DreamFactory\}, an LLM-based framework that tackles this challenge. {\textbackslash}texttt\{DreamFactory\} leverages multi-agent collaboration principles and a Key Frames Iteration Design Method to ensure consistency and style across long videos. It utilizes Chain of Thought (COT) to address uncertainties inherent in large language models. {\textbackslash}texttt\{DreamFactory\} generates long, stylistically coherent, and complex videos. Evaluating these long-form videos presents a challenge. We propose novel metrics such as Cross-Scene Face Distance Score and Cross-Scene Style Consistency Score. To further research in this area, we contribute the Multi-Scene Videos Dataset containing over 150 human-rated videos.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computation and Language,Computer Science - Computer Vision and Pattern Recognition,Computer Science - Software Engineering},
+  note = {Comment: 13 pages, 8 figures},
+  groups = {Z-To-read-later},
+  timestamp = {2025-04-24T14:41:11Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\2GT7K276\\Xie et al. - 2024 - DreamFactory Pioneering Multi-Scene Long Video Generation with a Multi-Agent Framework.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\BDSYZGMN\\2408.html:text/html}
+}
+% == BibTeX quality report for xieDreamFactoryPioneeringMultiScene2024:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2408.11788")
 
 @article{xingToonCrafterGenerativeCartoon2024,
   title = {{{ToonCrafter}}: {{Generative Cartoon Interpolation}}},
@@ -1082,6 +1459,77 @@ Comment: The code and project website are available at: https://github.com/showl
 % ? unused Library catalog ("DOI.org (Crossref)")
 % ? unused Publication title ("ACM Transactions on Graphics")
 % ? unused Url ("https://dl.acm.org/doi/10.1145/3687761")
+
+@misc{yangCogVideoXTexttoVideoDiffusion2025,
+  title = {{{CogVideoX}}: {{Text-to-Video Diffusion Models}} with {{An Expert Transformer}}},
+  shorttitle = {{{CogVideoX}}},
+  author = {Yang, Zhuoyi and Teng, Jiayan and Zheng, Wendi and Ding, Ming and Huang, Shiyu and Xu, Jiazheng and Yang, Yuanming and Hong, Wenyi and Zhang, Xiaohan and Feng, Guanyu and Yin, Da and Zhang, Yuxuan and Wang, Weihan and Cheng, Yean and Xu, Bin and Gu, Xiaotao and Dong, Yuxiao and Tang, Jie},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2408.06072},
+  eprint = {2408.06072},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2408.06072},
+  urldate = {2025-04-24},
+  abstract = {We present CogVideoX, a large-scale text-to-video generation model based on diffusion transformer, which can generate 10-second continuous videos aligned with text prompt, with a frame rate of 16 fps and resolution of 768 * 1360 pixels. Previous video generation models often had limited movement and short durations, and is difficult to generate videos with coherent narratives based on text. We propose several designs to address these issues. First, we propose a 3D Variational Autoencoder (VAE) to compress videos along both spatial and temporal dimensions, to improve both compression rate and video fidelity. Second, to improve the text-video alignment, we propose an expert transformer with the expert adaptive LayerNorm to facilitate the deep fusion between the two modalities. Third, by employing a progressive training and multi-resolution frame pack technique, CogVideoX is adept at producing coherent, long-duration, different shape videos characterized by significant motions. In addition, we develop an effective text-video data processing pipeline that includes various data preprocessing strategies and a video captioning method, greatly contributing to the generation quality and semantic alignment. Results show that CogVideoX demonstrates state-of-the-art performance across both multiple machine metrics and human evaluations. The model weight of both 3D Causal VAE, Video caption model and CogVideoX are publicly available at https://github.com/THUDM/CogVideo.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Accepted by ICLR2025},
+  groups = {Z-To-read-later},
+  timestamp = {2025-04-24T14:57:30Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\X6P55RIB\\Yang et al. - 2025 - CogVideoX Text-to-Video Diffusion Models with An Expert Transformer.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\D2N4DC9Y\\2408.html:text/html}
+}
+% == BibTeX quality report for yangCogVideoXTexttoVideoDiffusion2025:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2408.06072")
+
+@misc{yangCogVideoXTexttoVideoDiffusion2025a,
+  title = {{{CogVideoX}}: {{Text-to-Video Diffusion Models}} with {{An Expert Transformer}}},
+  shorttitle = {{{CogVideoX}}},
+  author = {Yang, Zhuoyi and Teng, Jiayan and Zheng, Wendi and Ding, Ming and Huang, Shiyu and Xu, Jiazheng and Yang, Yuanming and Hong, Wenyi and Zhang, Xiaohan and Feng, Guanyu and Yin, Da and Zhang, Yuxuan and Wang, Weihan and Cheng, Yean and Xu, Bin and Gu, Xiaotao and Dong, Yuxiao and Tang, Jie},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2408.06072},
+  eprint = {2408.06072},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2408.06072},
+  urldate = {2025-04-24},
+  abstract = {We present CogVideoX, a large-scale text-to-video generation model based on diffusion transformer, which can generate 10-second continuous videos aligned with text prompt, with a frame rate of 16 fps and resolution of 768 * 1360 pixels. Previous video generation models often had limited movement and short durations, and is difficult to generate videos with coherent narratives based on text. We propose several designs to address these issues. First, we propose a 3D Variational Autoencoder (VAE) to compress videos along both spatial and temporal dimensions, to improve both compression rate and video fidelity. Second, to improve the text-video alignment, we propose an expert transformer with the expert adaptive LayerNorm to facilitate the deep fusion between the two modalities. Third, by employing a progressive training and multi-resolution frame pack technique, CogVideoX is adept at producing coherent, long-duration, different shape videos characterized by significant motions. In addition, we develop an effective text-video data processing pipeline that includes various data preprocessing strategies and a video captioning method, greatly contributing to the generation quality and semantic alignment. Results show that CogVideoX demonstrates state-of-the-art performance across both multiple machine metrics and human evaluations. The model weight of both 3D Causal VAE, Video caption model and CogVideoX are publicly available at https://github.com/THUDM/CogVideo.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Accepted by ICLR2025},
+  groups = {Inbetweening Interpolation},
+  timestamp = {2025-04-24T15:38:11Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\ANENJFC6\\Yang et al. - 2025 - CogVideoX Text-to-Video Diffusion Models with An Expert Transformer.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\PJQDZ9EW\\2408.html:text/html}
+}
+% == BibTeX quality report for yangCogVideoXTexttoVideoDiffusion2025a:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2408.06072")
+
+@misc{yangCogVideoXTexttoVideoDiffusion2025b,
+  title = {{{CogVideoX}}: {{Text-to-Video Diffusion Models}} with {{An Expert Transformer}}},
+  shorttitle = {{{CogVideoX}}},
+  author = {Yang, Zhuoyi and Teng, Jiayan and Zheng, Wendi and Ding, Ming and Huang, Shiyu and Xu, Jiazheng and Yang, Yuanming and Hong, Wenyi and Zhang, Xiaohan and Feng, Guanyu and Yin, Da and Zhang, Yuxuan and Wang, Weihan and Cheng, Yean and Xu, Bin and Gu, Xiaotao and Dong, Yuxiao and Tang, Jie},
+  year = {2025},
+  month = mar,
+  number = {arXiv:2408.06072},
+  eprint = {2408.06072},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2408.06072},
+  urldate = {2025-05-01},
+  abstract = {We present CogVideoX, a large-scale text-to-video generation model based on diffusion transformer, which can generate 10-second continuous videos aligned with text prompt, with a frame rate of 16 fps and resolution of 768 * 1360 pixels. Previous video generation models often had limited movement and short durations, and is difficult to generate videos with coherent narratives based on text. We propose several designs to address these issues. First, we propose a 3D Variational Autoencoder (VAE) to compress videos along both spatial and temporal dimensions, to improve both compression rate and video fidelity. Second, to improve the text-video alignment, we propose an expert transformer with the expert adaptive LayerNorm to facilitate the deep fusion between the two modalities. Third, by employing a progressive training and multi-resolution frame pack technique, CogVideoX is adept at producing coherent, long-duration, different shape videos characterized by significant motions. In addition, we develop an effective text-video data processing pipeline that includes various data preprocessing strategies and a video captioning method, greatly contributing to the generation quality and semantic alignment. Results show that CogVideoX demonstrates state-of-the-art performance across both multiple machine metrics and human evaluations. The model weight of both 3D Causal VAE, Video caption model and CogVideoX are publicly available at https://github.com/THUDM/CogVideo.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computer Vision and Pattern Recognition},
+  note = {Comment: Accepted by ICLR2025},
+  timestamp = {2025-05-01T07:30:34Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\95QXPWUS\\Yang et al. - 2025 - CogVideoX Text-to-Video Diffusion Models with An Expert Transformer.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\IHTV77EC\\2408.html:text/html}
+}
+% == BibTeX quality report for yangCogVideoXTexttoVideoDiffusion2025b:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2408.06072")
 
 @misc{yangSEEDStoryMultimodalLong2024,
   title = {{{SEED-Story}}: {{Multimodal Long Story Generation}} with {{Large Language Model}}},
@@ -1162,6 +1610,29 @@ Dataset:
 % == BibTeX quality report for yesiltepeMotionShopZeroShotMotion2024:
 % ? Title looks like it was stored in title-case in Zotero
 % ? unused Url ("http://arxiv.org/abs/2412.05355")
+
+@misc{yinNUWAXLDiffusionDiffusion2023,
+  title = {{{NUWA-XL}}: {{Diffusion}} over {{Diffusion}} for {{eXtremely Long Video Generation}}},
+  shorttitle = {{{NUWA-XL}}},
+  author = {Yin, Shengming and Wu, Chenfei and Yang, Huan and Wang, Jianfeng and Wang, Xiaodong and Ni, Minheng and Yang, Zhengyuan and Li, Linjie and Liu, Shuguang and Yang, Fan and Fu, Jianlong and Ming, Gong and Wang, Lijuan and Liu, Zicheng and Li, Houqiang and Duan, Nan},
+  year = {2023},
+  month = mar,
+  number = {arXiv:2303.12346},
+  eprint = {2303.12346},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2303.12346},
+  urldate = {2025-04-24},
+  abstract = {In this paper, we propose NUWA-XL, a novel Diffusion over Diffusion architecture for eXtremely Long video generation. Most current work generates long videos segment by segment sequentially, which normally leads to the gap between training on short videos and inferring long videos, and the sequential generation is inefficient. Instead, our approach adopts a ``coarse-to-fine'' process, in which the video can be generated in parallel at the same granularity. A global diffusion model is applied to generate the keyframes across the entire time range, and then local diffusion models recursively fill in the content between nearby frames. This simple yet effective strategy allows us to directly train on long videos (3376 frames) to reduce the training-inference gap, and makes it possible to generate all segments in parallel. To evaluate our model, we build FlintstonesHD dataset, a new benchmark for long video generation. Experiments show that our model not only generates high-quality long videos with both global and local coherence, but also decreases the average inference time from 7.55min to 26s (by 94.26{\textbackslash}\%) at the same hardware setting when generating 1024 frames. The homepage link is {\textbackslash}url\{https://msra-nuwa.azurewebsites.net/\}},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computer Vision and Pattern Recognition},
+  groups = {Z-To-read-later},
+  timestamp = {2025-04-24T14:40:39Z},
+  file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\BHV4QGLL\\Yin et al. - 2023 - NUWA-XL Diffusion over Diffusion for eXtremely Long Video Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\39FWH3L5\\2303.html:text/html}
+}
+% == BibTeX quality report for yinNUWAXLDiffusionDiffusion2023:
+% ? Title looks like it was stored in title-case in Zotero
+% ? unused Url ("http://arxiv.org/abs/2303.12346")
 
 @misc{yuanIdentityPreservingTexttoVideoGeneration2025,
   title = {Identity-{{Preserving Text-to-Video Generation}} by {{Frequency Decomposition}}},
@@ -1247,7 +1718,9 @@ Dataset:
   abstract = {Tuning-free personalized image generation methods have achieved significant success in maintaining facial consistency, i.e., identities, even with multiple characters. However, the lack of holistic consistency in scenes with multiple characters hampers these methods' ability to create a cohesive narrative. In this paper, we introduce StoryMaker, a personalization solution that preserves not only facial consistency but also clothing, hairstyles, and body consistency, thus facilitating the creation of a story through a series of images. StoryMaker incorporates conditions based on face identities and cropped character images, which include clothing, hairstyles, and bodies. Specifically, we integrate the facial identity information with the cropped character images using the Positional-aware Perceiver Resampler (PPR) to obtain distinct character features. To prevent intermingling of multiple characters and the background, we separately constrain the cross-attention impact regions of different characters and the background using MSE loss with segmentation masks. Additionally, we train the generation network conditioned on poses to promote decoupling from poses. A LoRA is also employed to enhance fidelity and quality. Experiments underscore the effectiveness of our approach. StoryMaker supports numerous applications and is compatible with other societal plug-ins. Our source codes and model weights are available at https://github.com/RedAIGC/StoryMaker.},
   archiveprefix = {arXiv},
   keywords = {Computer Science - Computer Vision and Pattern Recognition},
-  note = {Comment: 12 pages, 5 figures},
+  note = {Code included!
+\par
+Comment: 12 pages, 5 figures},
   groups = {Story-Visualization},
   timestamp = {2025-04-11T12:11:03Z},
   file = {Preprint PDF:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\YQ4FQHLP\\Zhou et al. - 2024 - StoryMaker Towards Holistic Consistent Characters in Text-to-image Generation.pdf:application/pdf;Snapshot:D\:\\mydata-2024\\zotero\\my-zotero-sync\\storage\\QWARZ8YV\\2409.html:text/html}
@@ -1266,5 +1739,6 @@ Dataset:
 1 StaticGroup:Story-Visualization\;0\;1\;0x8a8a8aff\;\;;
 1 StaticGroup:Video-Gen\;0\;1\;0x8a8a8aff\;\;;
 1 StaticGroup:Video-to-Video\;0\;1\;0x8a8a8aff\;\;;
+1 StaticGroup:Z-Must-Read\;0\;1\;0x8a8a8aff\;\;;
 1 StaticGroup:Z-To-read-later\;0\;1\;0x8a8a8aff\;\;;
 }
