@@ -1,0 +1,57 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2309.13274 (cs)
+[Submitted on 23 Sep 2023]
+GLOBER: Coherent Non-autoregressive Video Generation via GLOBal Guided Video DecodER
+Mingzhen Sun, Weining Wang, Zihan Qin, Jiahui Sun, Sihan Chen, Jing Liu
+View PDF
+Video generation necessitates both global coherence and local realism. This work presents a novel non-autoregressive method GLOBER, which first generates global features to obtain comprehensive global guidance and then synthesizes video frames based on the global features to generate coherent videos. Specifically, we propose a video auto-encoder, where a video encoder encodes videos into global features, and a video decoder, built on a diffusion model, decodes the global features and synthesizes video frames in a non-autoregressive manner. To achieve maximum flexibility, our video decoder perceives temporal information through normalized frame indexes, which enables it to synthesize arbitrary sub video clips with predetermined starting and ending frame indexes. Moreover, a novel adversarial loss is introduced to improve the global coherence and local realism between the synthesized video frames. Finally, we employ a diffusion-based video generator to fit the global features outputted by the video encoder for video generation. Extensive experimental results demonstrate the effectiveness and efficiency of our proposed method, and new state-of-the-art results have been achieved on multiple benchmarks.
+Subjects:	Computer Vision and Pattern Recognition (cs.CV)
+Cite as:	arXiv:2309.13274 [cs.CV]
+ 	(or arXiv:2309.13274v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2309.13274
+Focus to learn more
+Submission history
+From: Mingzhen Sun [view email]
+[v1] Sat, 23 Sep 2023 06:04:57 UTC (22,217 KB)
+
+Access Paper:
+View PDFTeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2023-09
+Change to browse by: cs
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

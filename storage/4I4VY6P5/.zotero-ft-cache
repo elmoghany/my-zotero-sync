@@ -1,0 +1,189 @@
+MovieFactory: Automatic Movie Creation from Text using Large Generative Models for Language and Images
+Junchen Zhu1, Huan Yang2, Huiguo He2, Wenjing Wang2, Zixi Tuo2, Wen-Huang Cheng3, Lianli Gao1, Jingkuan Song1, Jianlong Fu2
+Center for Future Media, University of Electronic Science and Technology of China1 Microsoft Research2 National Taiwan University3 junchen.zhu@hotmail.com {huayan, v-huiguohe, v-wenjiwang, v-zixituo, jianf}@microsoft.com wenhuang@csie.ntu.edu.tw lianli.gao@uestc.edu.cn jingkuan.song@gmail.com
+ABSTRACT
+In this paper, we present MovieFactory, a powerful framework to generate cinematic-picture (3072×1280), film-style (multi-scene), and multi-modality (sounding) movies on the demand of natural languages. As the first fully automated movie generation model to the best of our knowledge, our approach empowers users to create captivating movies with smooth transitions using simple text inputs, surpassing existing methods that produce soundless videos limited to a single scene of modest quality. To facilitate this distinctive functionality, we leverage ChatGPT to expand user-provided text into detailed sequential scripts for movie generation. Then we bring scripts to life visually and acoustically through vision generation and audio retrieval. To generate videos, we extend the capabilities of a pretrained text-to-image diffusion model through a two-stage process. Firstly, we employ spatial finetuning to bridge the gap between the pretrained image model and the new video dataset. Subsequently, we introduce temporal learning to capture object motion. In terms of audio, we leverage sophisticated retrieval models to select and align audio elements that correspond to the plot and visual content of the movie. Extensive experiments demonstrate that our MovieFactory produces movies with realistic visuals, diverse scenes, and seamlessly fitting audio, offering users a novel and immersive experience. Generated samples can be found in YouTube/Bilibili (1080P).
+CCS CONCEPTS
+• Computing methodologies → Computer vision.
+KEYWORDS
+Movie Generation, Diffusion Model
+1 INTRODUCTION
+“The cinema has everything in front of it, and no other medium has the same possibilities for getting it known quickly to the greatest number of people.” - by Cesare Zavattini
+Movies, considered one of the most esteemed artistic mediums, have enraptured audiences for well over a century. However, the allure of the silver screen comes hand in hand with substantial expenses, as the creation of exceptional films necessitates top-tier equipment and a considerable production team. For instance, the cinematic masterpiece "Avatar: The Way of Water" required a 12year production process, accompanied by a budget estimated at
+around 400 million dollars. Despite the industry’s persistent ambition to simplify the film production process, current techniques merely offer basic assistance in combining video and audio clips for editing purposes [29, 31]. Consequently, the notion of generating movies autonomously from scratch and empowering individuals in filmmaking continues to exist as an unattainable fantasy. Automatic visual content generation has attracted considerable research attention over the years. Early methods, employing variational auto-encoders [12] or adversarial learning [6], are limited in their ability to generate complex scenes. Leveraging diffusion models [5, 9] and multi-model training, DALL-E 2 [23] first achieves substantial advancements in open-domain text-to-image generation. To further mitigate the computational cost associated with diffusion models, Latent Diffusion [25] employs a variational auto-encoder to compress images into a down-sampled latent space. Building upon this, Stable Diffusion [33] achieves notable performance by training with extensive data [30]. Recent works also focus on improving text-to-image generation for high resolution [28], language alignment [2], controllability [45], and customization options [27]. With the remarkable achievements in image generation [17, 18, 34, 43, 47], researchers have ventured into the realm of video generation. A number of studies [10, 38, 40, 44] adopt Transformer-based architectures [37] to synthesize videos either in an autoregressive or non-autoregressive manner. Other approaches draw inspiration from image generation frameworks and utilize diffusion models. To mitigate the training cost associated with starting from scratch, text-to-video generation models often extend from pretrained textto-image models [7, 8, 16, 32, 46]. One of the keys to video generation lies in establishing coherent connections across different frames. Inherited from Stable Diffusion, Video LDM [3] introduces temporal convolution and attention layers after each corresponding spatial layer, thereby addressing the out-of-distribution problem through fine-tuning each pre-trained model on videos. Despite significant advancements in video generation, achieving the desired standards of picture quality, audiovisual effects, and automation in generating movies remains a considerable challenge. Firstly, existing large-scale video datasets often exhibit subpar quality, which introduces artifacts like watermarks and hinders the model’s adaptation to the cinematic ultrawide format. Secondly, owing to the scarcity of research on the co-modeling of audio and video, current joint audio generation models [15, 26] fall short in producing content that meets satisfactory standards. Lastly, current models lack the ability to adjust user-provided text inputs, which becomes particularly challenging when generating multiple scenes
+arXiv:2306.07257v1 [cs.CV] 12 Jun 2023
+
+
+Zhu et al.
+for a movie. Expecting users to provide detailed descriptions of sequential scripts is both unrealistic and user-unfriendly. To tackle the above issues, we present MovieFactory, a text-tomovie framework capable of producing cinematic-picture (3072× 1280), film-style (multi-scene), multi-modality (sounding) movies, offering users a novel and immersive experience. First, to enable the automatic generation of multiple scenes, we leverage the capabilities of ChatGPT [20] to expand concise user descriptions into detailed scripts that collectively form the complete movie, with each script corresponding to a distinct scene. Second, considering the inherent limitations entailed in generating audio content from scratch, we adopt an alternative approach by retrieving correspondingly aligned audio from a comprehensive database. Third, to enhance the picture quality of generated videos, we propose a two-stage learning strategy comprising video-by-frame pretraining and video training. Adapting pretrained text-to-image models to the video domain presents challenges due to the visual domain shift between the pretrained image dataset and target video datasets. To overcome this, we employ fine-tuning on independent video frames, incorporating domain-aware normalizations and additional spatial layers to handle diverse spatial distributions across datasets, ensuring highquality generation while mitigating the out-of-distribution problem. Subsequently, temporal layers are introduced and trained on videos following previous works [3, 10]. Lastly, targeting high-quality movie production, we employ fine-tuning on a small collection of movie clips. Additionally, we incorporate a super-resolution model for better user experiences, referring to remarkable performances of existing works [4, 14, 21]. In summary, our contributions can be summarized as follows:
+1) We propose MovieFactory, a movie generation framework that allows users to create high-definition (3072×1280), cinematic-style (ultrawide format), and multi-scene movies with accompanying sound by simply using text inputs. 2) A two-stage training strategy is introduced to handle the visual domain shift between image and video datasets. Domainaware normalizations and extra spatial layers enable the model to generate high-quality visual content even when trained on video datasets with limited quality. 3) We showcase the remarkable potential of combining largescale AI models in the domain of automated movie generation, introducing a novel and promising application area for AI-generated content.
+2 MOVIEFACTORY
+Movie generation goes beyond a mere combination of video and audio footage. It requires expertise in various domains, including scriptwriting, cinematography, directing, and sound effect design. Therefore, the creation of movies presents a greater challenge compared to basic video and audio generation, particularly when considering the development of a user-friendly interface for nonprofessionals. In this regard, we propose MovieFactory, a comprehensive and fully automated movie generation framework. With MovieFactory, users can effortlessly initiate the movie creation process by providing a concise description, which can be as simple as a single word indicating the main character.
+disaster including tsunami, wildfire, and volcano
+(2) Video Generation from Scene Scripts
+Noised Video Video
+(3) Audio Retrieval from Video Clips and Scripts
+Audio
+Sounding Movie
+MovieFactory
+The camera soars above a vast forest engulfed in flames ...
+The camera captures the immense power
+of the ocean ... ...
+The earth trembles as a volcano erupts, spewing ...
+...
+(1) Script Generation from Input Text
+ChatGPT
+Scene 1 Scene 2 Scene N
+Diffusion U-Net
+Retrival Models
+Video Clips and Scripts
+Scene Script
+Input Text
+Scene Script 1 Scene Script 2 ...
+Scene Script N Audio Database
+Figure 1: Illustration of our MovieFactory. Given an input text, we utilize ChatGPT to expand it into sequential detailed scripts, and each script describes one scene in the movie. Then, our model generates the visual content and retrieves the audio part for one movie clip with each script. Composing all clips, we obtain the final high-quality movie.
+To fulfill the comprehensive requirement of movies, including high picture quality, smooth scene transitions, and video-audio synchronization, our design incorporates a range of components. The overall framework is shown in Fig. 1. First, we leverage the power of a large language model to generate movie scripts of superior quality. Careful engineering of prompts ensures that the resulting movie plots adhere to fundamental principles of filmology and are well-suited for the subsequent audiovisual generation process. Second, we devise generation modules to bring each script to life visually and acoustically. Considering the restricted capabilities of current audio generation models, generating sound from scratch is not optimal. Therefore, we implement a two-stage process consisting of text-to-video generation and text&video-to-audio retrieval. In the first stage, we use a diffusion model to construct videos by progressively removing noise from the input. In the second stage, we retrieve synchronized audio from a comprehensive database that corresponds to the given context. Finally, we consolidate the generated sounding videos to obtain the complete movie.
+2.1 Script Generation
+The input for our framework can be as simple as a concise plot description in a single sentence. However, considering the limitations of current video generation models that can only produce a single-scene clip from a solitary text prompt, it becomes essential to expand the user’s input into a series of prompts, with each
+
+
+MovieFactory: Automatic Movie Creation from Text using Large Generative Models for Language and Images
+Conv2D Layer
+Conv2D Layer
+Spatial
+Attention
+Up/Down
+Block
+Conv2D Layer
+Conv2D Layer
+Attention
+Spatial Norm
+Dataset 1 α1 β1 Dataset N αN βN
+...
+Step 1: Spatial Finetune
+Step 2: Temporal Training
+Conv2D Layer
+Conv2D Layer
+Spatial
+Attention
+Reshape
+(N×T)×C×H×W
+Conv1D Layer
+Conv1D Layer
+Reshape
+(N×H×W)×C×T
+Reshape
+(N×T)×C×H×W
+Reshape
+(N×H×W)×C×T
+Temporal
+Attention
+Pretrained and Fixed Module
+Added and Trainable Module
+ResBlk
+Attention
+ResBlk
+Attention
+Up
+Spatial ResBlk
+Pretrained U-Net
+Spatial ResBlk Temporal ResBlk
+U-Net Block
+U-Net Block
+U-Net Block
+U-Net Block
+U-Net Block
+U-Net Block
+U-Net Block
+U-Net Block
+(1) Spatial ResBlk Spatiotemporal ResBlk (2) Spatial Attention Spatiotemporal Attention
+Domain-Aware Normalization
+Figure 2: Demonstration of the two training stages of our video diffusion model. In each stage, we fix all components from the pretrained model, and only optimize the newly added blocks.
+prompt describing a distinct scene. These prompts collectively form a sequence of scripts. We expect these scripts to adhere to the principles of scriptwriting while introducing innovative and unique perspectives to the subject matter. Furthermore, the prompts should effectively showcase the capabilities of video generation. To attain this challenging objective, we leverage the powerful large language model, ChatGPT [20], and integrate our requirements through prompt design. An example is shown below, Prompt: “Write a sequence of prompts, using for movie generation for AI. Requirements: 1) each prompt only serves for one scene lasting for about 2 seconds; 2) each prompt contains clear subjects and detailed descriptions; 3) each prompt contains texts like "4K" and "high resolution" for leading high-quality generation; 4) the transition of each scene is very smooth; 5) no other character appears in this movie. The movie is about [User Input]”
+By structuring prompts in this manner, we can guide the generation model to produce coherent and engaging movie contents. To illustrate, let us create a movie about “a race between a car and an airplane.” Given our instruction, ChatGPT generates ten scripts, each corresponding to a distinct scene. In this ten-scene movie, the initial plot is on introducing the main characters through successive “close-up” shots of the “airplane soaring through the sky,” and the “car speeding along a coastal road.” As the movie progresses, captivating highlights unfold, including scenes such as “car drifting around a hairpin turn,” “airplane diving through a narrow canyon,” and “car and airplane racing side by side.” The movie concludes with a victorious moment captured in the scene titled “checkered flag waving in victory.” Each script for generation incorporates both the unfolding events and camera instructions, providing clear guidance for the generation process.
+2.2 Video Generation
+As indicated by prior studies [3, 10, 11, 32, 41], text-to-image pretraining plays a crucial role in open-domain text-to-video generation. This is primarily due to the significant gap in scale and quality between current video datasets [1, 42] and well-established image datasets [30]. Following these works, we extend a pretrained image diffusion model to develop a video diffusion model. We leverage the widely used Stable Diffusion1. To optimize our model, we incorporate two training steps: spatial finetuning and temporal training, as illustrated in Fig. 2.
+2.2.1 Spatial Finetune. serves the purpose of bridging the spatial gap prior to capturing temporal information. In our approach, the Stable Diffusion model is pretrained on the LAION-5B dataset [30], which comprises high-quality images. Conversely, existing largescale video datasets are limited in terms of resolution and visual quality, even containing watermarks. Furthermore, our pretrained model is specifically optimized for generating square visual content, as it is trained on square images (height:width=1:1). Although minor adjustments in resolution have shown negligible effects on visual content and quality, significant changes in aspect ratio (e.g., transitioning from 1:1 to 2.35:1, as seen in movies) can lead to unstable generation, characterized by content ghosting and duplication. Therefore, it is crucial to address the spatial out-of-distribution discrepancy before delving into motion learning. As Video LDM [3] indicates, using low-quality video data to finetune the pretrained layers will inevitably harm the generation performance. Unfortunately, current large-scale dataset cannot satisfy good picture, motion, and text quality at the same time. In other words, if we finetune the whole model and fit the video distribution of the highest picture quality, the training may fail in the motion
+1 https://github.com/Stability- AI/stablediffusion
+
+
+Zhu et al.
+learning which is a disaster for the whole framework, and vice versa. To address above issues, we design a novel finetuning strategy to take advantage of different datasets as much as possible. Different from previous works which directly finetune the pretrained model, we fix the original model and insert extra layers to fit the distribution changes. There are two advantages of this design: 1) the whole knowledge in the pretraining can be completely remained, thus the contents and scenes that are not included in the video dataset can still be generated; 2) we can fit multiple distributions in the new modules, which solves the out-of-distribution problem in the next temporal training and keeps the ability to generate high-quality pictures at the same time. Specifically, as shown in Fig. 2, we add a modified ResBlk and Attention layer before each Up or Down block in U-Net blocks. In the modified ResBlk, we add a learnable domain-aware normalization to specify and fit different spatial distributions. For each dataset, it learn a scaler αi and shifter βi , and works as follows:
+H = X · αi + βi (1)
+where X and H are the input and output feature respectively, and αi and βi are vectors with the same channel number as X and H. For the structure of the added Conv2D and Attention layers, we completely follow previous blocks in the same U-Net Block.
+2.2.2 Temporal Training. makes the model learn the motion of objects after the model is capable of generating images in the target distribution. Following previous works, we add the temporal layer after each pretrained spatial layer. Specifically, as illustrated in Fig. 2, after each pretrained spatial ResBlk, we add a temporal ResBlk with 1D convolutions. Similarly, we add a temporal attention after each spatial attention, which shares the totally same hyper-parameter as the spatial one. Different from the pretrained spatial attention, following Video LDM [3], we also add sinusoidal embeddings [37] to the feature as the positional encoding for the time sequence.
+2.3 Audio Retrieval
+Audio plays an indispensable role in movies. By providing users with an additional sensory experience, audio has the capacity to enhance both the emotional impact and atmospheric quality of a scene. Despite the self-evident importance of audio, limited research has been dedicated to the joint generation of video and audio. This can be attributed to challenges such as the scarcity of large-scale datasets and the limitations imposed by model size, leading to the current inability of existing models [15, 26] to generate high-quality audio. As an alternative, we adopted a retrieval-based approach, leveraging the richness of the audio database to align suitable sounds with the provided video and text. Our audio retrieval strategy is illustrated in Fig. 3. Sound in a movie includes music, dialogue, sound effects, ambient noise, and/or background noise [24]. In this paper, we explore two distinct categories: sound effects and background music. Sound effects, such as footsteps, explosions, or door creaks, vary across different scenes to enhance realism and enrich the visual experience, immersing the audience in the on-screen actions. On the other hand, background music remains consistent throughout the entire movie sequence, serving to establish the overall tone, evoke emotions, and guide the audience’s perception of the narrative. To address these two types, we propose different strategies. For sound
+Audio
+The camera soars above a vast forest engulfed in flames ...
+...
+The camera captures the immense power of the ocean ...
+The earth trembles as a volcano erupts, spewing ...
+...
+Video Clips
+Video Scripts
+Audio Retrieval Models
+Sound Effect
+BGM
+Speech
+...
+Music
+Figure 3: Illustration of our audio retrieval strategy.
+effects, we employ two retrieval approaches: text-to-audio [13] and video-to-audio [35]. We extract features from the original scripts or the generated video content and match them with suitable audio clips from the database. As for background music, we leverage ChatGPT to summarize the plot and tone, and then combine the recommended tone category with techniques from music information retrieval [19] to identify appropriate music tracks.
+3 EXPERIMENTS
+3.1 Implementation Details
+We choose Stable Diffusion 2.02 as the base image diffusion model, which is trained to synthesize 512×512 images on LAION-5B [30]. In the spatial finetune stage, we adopt WebVid-10M [1] and HD-VG130M [39] to jointly train the model in the scale of 768×320. In the temporal training stage, we only use WebVid-10M to train the model for 16 frames generation with fps 8, where we use the normalization parameter learned for WebVid-10M in the spatial layers. Except for the resizing, random crop, and random flip, no other augmentation is involved in training. Also, no automatic or manual data filter is utilized in the pretraining. We adopt RealBasicVSR [4] to 4× upscale our generation results to obtain 3072×1280 videos.
+3.2 Visual Generation
+Before evaluating the movie creation performance, we first assess the video generation capability of our model. In this section, we adopt the model that has been exclusively pretrained on the WebVid10M dataset. We present the generated samples in Fig. 4. The results demonstrate the effectiveness of our two-stage training strategy, as our model produces high-quality videos with clear visuals (without any watermarks) and smooth object motion. The generated videos exhibit rich details and showcase the successful application of our proposed approach. For quantitative comparison, we utilize the Fréchet Video Distance (FVD) [36] to assess video quality and the CLIP similarity (CLIPSIM) [22] for evaluating text-video alignment. We generate 5k samples using text extracted from the validation set of the WebVid10M dataset. As shown in Tab. 1, compared with ModelScope [16] and LVDM [7], our model performs better on both metrics.
+3.3 Creating Movies
+Targeting the best visual quality as in movies, we finetune our model with some real processed movie clips after the pretraining. Note that, we only optimize the parameters of the spatial layers added in
+2 https://huggingface.co/stabilityai/stable- diffusion- 2- base
+
+
+MovieFactory: Automatic Movie Creation from Text using Large Generative Models for Language and Images
+“A time-lapse video of a bustling city skyline with car lights streaking by at night.”
+“A mesmerizing display of fireworks reflecting on the surface of a calm lake.”
+“A breathtaking view of a phoenix emerging from a burst of flames, reborn in all its glory.”
+“A cinematic shot from a distance as a ship rockets through the galaxy, its engines ablaze with brilliant flames, creating a mesmerizing visual spectacle.”
+“A mesmerizing display of glowing jellyfish floating gracefully in the deep ocean.”
+“A slow-motion footage of bubbles rising from a treasure chest on the seabed, creating a magical and ethereal atmosphere.”
+“A thrilling first-person perspective sequence in an FPS game, as the player sprints through a war-torn citye.”
+Figure 4: Generation video samples of our MovieFactory. Our model is able to generate both realistic and science fiction scenes in high quality, with rich details and smooth motion. More cases can be found in YouTube/Bilibili. Please play it in 1080p. All generated samples are for research purposes only and cannot be used for any commercial purposes.
+Table 1: Text-to-video generation on WebVid.
+Method FVD↓ CLIPSIM↑
+ModelScope [16] 414.11 0.3000 LVDM [7] 455.53 0.2751
+Ours 317.52 0.3058
+the stage of spatial finetune while fixing all other layers including all temporal ones. Fig. 5 demonstrates the impressive capabilities of
+our model in generating vivid and engaging movies. For example, it can effectively depict the entire sequence of events experienced by astronauts in an emergency, as well as create captivating blue elf adventures that contain multiple scenes.
+4 CONCLUSION
+We introduce MovieFactory, a robust framework that revolutionizes movie generation. MovieFactory stands as the first model of its kind, enabling users to effortlessly create elaborate movies with
+
+
+Zhu et al.
+An Adventure Day of Blue Elf
+Scene1: Sunrise over the Vast Avatar Landscape Scene2: Blue elf Exploring Ancient Ruins
+Scene3: Blue elf Climbing Towering Cliffs Scene4: Blue elf Soaring through the Sky on a Big Bird
+Scene5: Blue elf Exploring a Bioluminescent Cave Scene6: Blue elf Navigating a Dense Jungle
+Scene7: Blue elf Crossing a Serene River Scene8: Blue elf Discovering an Ancient Tree of Wisdom
+Scene9: Blue elf Gliding through a Canyon Scene10: Blue elf Observing a Rare Creature in its Habitat
+An Astronaut Space Adventure
+Scene1: Astronaut Maneuvers Scene1: Volcanic Eruption
+Scene2: Astronaut on Fire Scene2: Tsunami Crashing Against the Shoreline
+Scene3: Close-Up of Astronaut's Helmet Reflecting the Fiery Scene Scene3: Hurricane Winds Lashing a Coastal Area
+Scene4: Astronaut Initiates Emergency Protocol Scene4: Animal Stampede Across a Savanna During Disaster
+Scene5: Spaceship Sails Towards a Dazzling Horizon Scene5: Animal Exodus from a Flooded Area World Disaster and Animal Escape
+Figure 5: Generation movie samples of our MovieFactory. Given a subject of the movie, our model automatically generates the whole movie with multiple scenes. More cases can be found in YouTube/Bilibili. Please play it in 1080p and turn on the audio. All generated samples are for research purposes only and cannot be used for any commercial purposes.
+cinematic-picture (3072×1280), film-style (multi-scene), and multimodality (sounding) using simple texts. To automatically generate multi-scene movies, we utilize ChatGPT to expand user descriptions into detailed scripts, each representing a distinct scene, thus forming a complete movie. To improve the visual quality of generated videos, we propose a two-step learning strategy involving video-by-frame pretraining and subsequent video training. Auxiliary spatial layers and domain-aware normalizations are applied to address the domain shift between pretrained image models and
+target video datasets, ensuring high-quality generation and mitigating out-of-distribution issues. Temporal layers are introduced and trained on videos to capture object motion and enhance the temporal coherence of the generated scenes. In order to produce high-quality movies, we fine-tune our models on a small collection of movie clips, further refining the generation process. Finally, rather than generating audio content from scratch, we employ a retrieval-based approach to align and retrieve corresponding audio from a comprehensive database. Extensive experiments validate
+
+
+MovieFactory: Automatic Movie Creation from Text using Large Generative Models for Language and Images
+that MovieFactory opens up a brand-new experience for users, empowering them to create captivating movies with ease and bringing a novel dimension to movie production.
+REFERENCES
+[1] Max Bain, Arsha Nagrani, Gül Varol, and Andrew Zisserman. 2021. Frozen in Time: A Joint Video and Image Encoder for End-to-End Retrieval. In ICCV. [2] Yogesh Balaji, Seungjun Nah, Xun Huang, Arash Vahdat, Jiaming Song, Karsten Kreis, Miika Aittala, Timo Aila, Samuli Laine, Bryan Catanzaro, Tero Karras, and Ming-Yu Liu. 2022. eDiff-I: Text-to-Image Diffusion Models with an Ensemble of Expert Denoisers. arXiv (2022). [3] Andreas Blattmann, Robin Rombach, Huan Ling, Tim Dockhorn, Seung Wook Kim, Sanja Fidler, and Karsten Kreis. 2023. Align your Latents: High-Resolution Video Synthesis with Latent Diffusion Models. In CVPR. [4] Kelvin C.K. Chan, Shangchen Zhou, Xiangyu Xu, and Chen Change Loy. 2022. Investigating Tradeoffs in Real-World Video Super-Resolution. In CVPR. [5] Prafulla Dhariwal and Alexander Quinn Nichol. 2021. Diffusion Models Beat GANs on Image Synthesis. In NeurIPS, Marc’Aurelio Ranzato, Alina Beygelzimer, Yann N. Dauphin, Percy Liang, and Jennifer Wortman Vaughan (Eds.). [6] Ian J. Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David WardeFarley, Sherjil Ozair, Aaron C. Courville, and Yoshua Bengio. 2014. Generative Adversarial Nets. In NeurIPS. [7] Yingqing He, Tianyu Yang, Yong Zhang, Ying Shan, and Qifeng Chen. 2022. Latent Video Diffusion Models for High-Fidelity Long Video Generation. arXiv (2022). [8] Jonathan Ho, William Chan, Chitwan Saharia, Jay Whang, Ruiqi Gao, Alexey A. Gritsenko, Diederik P. Kingma, Ben Poole, Mohammad Norouzi, David J. Fleet, and Tim Salimans. 2022. Imagen Video: High Definition Video Generation with Diffusion Models. arXiv (2022). [9] Jonathan Ho, Ajay Jain, and Pieter Abbeel. 2020. Denoising Diffusion Probabilistic Models. NeurIPS. [10] Wenyi Hong, Ming Ding, Wendi Zheng, Xinghan Liu, and Jie Tang. 2022. CogVideo: Large-scale Pretraining for Text-to-Video Generation via Transformers. arXiv (2022). [11] Levon Khachatryan, Andranik Movsisyan, Vahram Tadevosyan, Roberto Henschel, Zhangyang Wang, Shant Navasardyan, and Humphrey Shi. 2023. Text2Video-Zero: Text-to-Image Diffusion Models are Zero-Shot Video Generators. arXiv (2023). [12] Diederik P. Kingma and Max Welling. 2014. Auto-Encoding Variational Bayes. In ICLR.
+[13] A. Sophia Koepke, Andreea-Maria Oncescu, Joao Henriques, Zeynep Akata, and Samuel Albanie. 2022. Audio Retrieval with Natural Language Queries: A Benchmark Study. IEEE TMM (2022), 1–1. [14] Chengxu Liu, Huan Yang, Jianlong Fu, and Xueming Qian. [n. d.]. Learning Trajectory-Aware Transformer for Video Super-Resolution. In CVPR. [15] Jiawei Liu, Weining Wang, Sihan Chen, Xinxin Zhu, and Jing Liu. 2023. Sounding Video Generator: A Unified Framework for Text-guided Sounding Video Generation. arXiv (2023). [16] Zhengxiong Luo, Dayou Chen, Yingya Zhang, Yan Huang, Liang Wang, Yujun Shen, Deli Zhao, Jingren Zhou, and Tieniu Tan. 2023. VideoFusion: Decomposed Diffusion Models for High-Quality Video Generation. In CVPR. [17] Yiyang Ma, Huan Yang, Bei Liu, Jianlong Fu, and Jiaying Liu. [n. d.]. AI Illustrator: Translating Raw Descriptions into Images by Prompt-based Cross-Modal Generation. In ACM MM. [18] Yiyang Ma, Huan Yang, Wenjing Wang, Jianlong Fu, and Jiaying Liu. 2023. Unified Multi-Modal Latent Diffusion for Joint Subject and Text Conditional Image Generation. arXiV (2023). [19] Zain Nasrullah and Yue Zhao. 2019. Music Artist Classification with Convolutional Recurrent Neural Networks. In IEEE IJCNN. [20] OpenAI. 2022. ChatGPT. (2022). https://chat.openai.com/chat [21] Zhongwei Qiu, Huan Yang, Jianlong Fu, and Dongmei Fu. [n. d.]. Learning Spatiotemporal Frequency-Transformer for Compressed Video Super-Resolution. In ECCV.
+[22] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. 2021. Learning Transferable Visual Models From Natural Language Supervision. In ICML. [23] Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen. 2022. Hierarchical Text-Conditional Image Generation with CLIP Latents. arXiv (2022).
+[24] John Reich. 2017. Exploring Movie Construction & Production: What’s So Exciting about Movies? Open SUNY Textbooks. [25] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer. 2022. High-Resolution Image Synthesis with Latent Diffusion Models. In CVPR.
+[26] Ludan Ruan, Yiyang Ma, Huan Yang, Huiguo He, Bei Liu, Jianlong Fu, Nicholas Jing Yuan, Qin Jin, and Baining Guo. 2023. MM-Diffusion: Learning Multi-Modal Diffusion Models for Joint Audio and Video Generation. (2023). [27] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman. 2023. DreamBooth: Fine Tuning Text-to-Image Diffusion Models for Subject-Driven Generation. In CVPR. [28] Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily L. Denton, Seyed Kamyar Seyed Ghasemipour, Raphael Gontijo Lopes, Burcu Karagol Ayan, Tim Salimans, Jonathan Ho, David J. Fleet, and Mohammad Norouzi. 2022. Photorealistic Text-to-Image Diffusion Models with Deep Language Understanding. In NeurIPS. [29] Guy Schofield, Tom Bartindale, and Peter Wright. 2015. Bootlegger: Turning Fans into Film Crew. In CHI. [30] Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Wortsman, Patrick Schramowski, Srivatsa Kundurthy, Katherine Crowson, Ludwig Schmidt, Robert Kaczmarczyk, and Jenia Jitsev. 2022. LAION-5B: An open large-scale dataset for training next generation image-text models. In NeurIPS. [31] Jinhong Shen, Seiya Miyazaki, Teruamsa AOKI, and Hiroshi Yasuda. 2002. The Framework of an Automatic Digital Movie Producer. (2002), 15–18. [32] Uriel Singer, Adam Polyak, Thomas Hayes, Xi Yin, Jie An, Songyang Zhang, Qiyuan Hu, Harry Yang, Oron Ashual, Oran Gafni, et al. 2022. Make-A-Video: Text-to-video generation without text-video data. arXiv (2022). [33] Stability-AI. 2022. Stable Diffusion. https://github.com/Stability-AI/ StableDiffusion. [34] Sitong Su, Jingkuan Song, Lianli Gao, and Junchen Zhu. 2021. Towards Unsupervised Deformable-Instances Image-to-Image Translation. In IJCAI, Zhi-Hua Zhou (Ed.). [35] Didac Surís, Amanda Duarte, Amaia Salvador, Jordi Torres, and Xavier Giró-i Nieto. 2018. Cross-modal embeddings for video and audio retrieval. In ECCV Workshops.
+[36] Thomas Unterthiner, Sjoerd van Steenkiste, Karol Kurach, Raphaël Marinier, Marcin Michalski, and Sylvain Gelly. 2018. Towards Accurate Generative Models of Video: A New Metric & Challenges. arXiv (2018). [37] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. 2017. Attention is All you Need. In NeurIPS. [38] Ruben Villegas, Mohammad Babaeizadeh, Pieter-Jan Kindermans, Hernan Moraldo, Han Zhang, Mohammad Taghi Saffar, Santiago Castro, Julius Kunze, and Dumitru Erhan. 2022. Phenaki: Variable Length Video Generation From Open Domain Textual Description. arXiv (2022). [39] Wenjing Wang, Huan Yang, Zixi Tuo, Huiguo He, Junchen Zhu, Jianlong Fu, and Jiaying Liu. 2023. VideoFactory: Swap Attention in Spatiotemporal Diffusions for Text-to-Video Generation. arXiv (2023). [40] Chenfei Wu, Jian Liang, Lei Ji, Fan Yang, Yuejian Fang, Daxin Jiang, and Nan Duan. 2022. NüWA: Visual synthesis pre-training for neural visual world creation. In ECCV.
+[41] Jay Zhangjie Wu, Yixiao Ge, Xintao Wang, Stan Weixian Lei, Yuchao Gu, Wynne Hsu, Ying Shan, Xiaohu Qie, and Mike Zheng Shou. 2022. Tune-A-Video: OneShot Tuning of Image Diffusion Models for Text-to-Video Generation. arXiv (2022). [42] Hongwei Xue, Tiankai Hang, Yanhong Zeng, Yuchong Sun, Bei Liu, Huan Yang, Jianlong Fu, and Baining Guo. 2022. Advancing High-Resolution Video-Language Representation with Large-Scale Video Transcriptions. In CVPR. [43] Fuzhi Yang, Huan Yang, Jianlong Fu, Hongtao Lu, and Baining Guo. 2020. Learning Texture Transformer Network for Image Super-Resolution. In CVPR. [44] Lijun Yu, Yong Cheng, Kihyuk Sohn, José Lezama, Han Zhang, Huiwen Chang, Alexander G. Hauptmann, Ming-Hsuan Yang, Yuan Hao, Irfan Essa, and Lu Jiang. 2022. MAGVIT: Masked Generative Video Transformer. arXiv (2022). [45] Lvmin Zhang and Maneesh Agrawala. 2023. Adding Conditional Control to Text-to-Image Diffusion Models. arXiv (2023). [46] Daquan Zhou, Weimin Wang, Hanshu Yan, Weiwei Lv, Yizhe Zhu, and Jiashi Feng. 2022. MagicVideo: Efficient video generation with latent diffusion models. arXiv (2022). [47] Junchen Zhu, Lianli Gao, Jingkuan Song, Yuan-Fang Li, Feng Zheng, Xuelong Li, and Heng Tao Shen. 2023. Label-Guided Generative Adversarial Network for Realistic Image Synthesis. IEEE TPAMI 45, 3 (2023), 3311–3328.

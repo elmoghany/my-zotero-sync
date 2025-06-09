@@ -1,0 +1,62 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2311.06329 (cs)
+[Submitted on 10 Nov 2023]
+A Survey of AI Text-to-Image and AI Text-to-Video Generators
+Aditi Singh
+View PDF
+Text-to-Image and Text-to-Video AI generation models are revolutionary technologies that use deep learning and natural language processing (NLP) techniques to create images and videos from textual descriptions. This paper investigates cutting-edge approaches in the discipline of Text-to-Image and Text-to-Video AI generations. The survey provides an overview of the existing literature as well as an analysis of the approaches used in various studies. It covers data preprocessing techniques, neural network types, and evaluation metrics used in the field. In addition, the paper discusses the challenges and limitations of Text-to-Image and Text-to-Video AI generations, as well as future research directions. Overall, these models have promising potential for a wide range of applications such as video production, content creation, and digital marketing.
+Comments:	4 pages, 2 tables, 4th International Conference on Artificial Intelligence, Robotics and Control (AIRC 2023)
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI); Computation and Language (cs.CL); Machine Learning (cs.LG); Image and Video Processing (eess.IV)
+Cite as:	arXiv:2311.06329 [cs.CV]
+ 	(or arXiv:2311.06329v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2311.06329
+Focus to learn more
+
+Related DOI:	
+https://doi.org/10.1109/AIRC57904.2023.10303174
+Focus to learn more
+Submission history
+From: Aditi Singh [view email]
+[v1] Fri, 10 Nov 2023 17:33:58 UTC (299 KB)
+
+Access Paper:
+View PDFOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2023-11
+Change to browse by: cs cs.AI cs.CL cs.LG eess eess.IV
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

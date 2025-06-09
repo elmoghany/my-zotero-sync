@@ -1,0 +1,57 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2306.07257 (cs)
+[Submitted on 12 Jun 2023]
+MovieFactory: Automatic Movie Creation from Text using Large Generative Models for Language and Images
+Junchen Zhu, Huan Yang, Huiguo He, Wenjing Wang, Zixi Tuo, Wen-Huang Cheng, Lianli Gao, Jingkuan Song, Jianlong Fu
+View PDF
+In this paper, we present MovieFactory, a powerful framework to generate cinematic-picture (3072\times1280), film-style (multi-scene), and multi-modality (sounding) movies on the demand of natural languages. As the first fully automated movie generation model to the best of our knowledge, our approach empowers users to create captivating movies with smooth transitions using simple text inputs, surpassing existing methods that produce soundless videos limited to a single scene of modest quality. To facilitate this distinctive functionality, we leverage ChatGPT to expand user-provided text into detailed sequential scripts for movie generation. Then we bring scripts to life visually and acoustically through vision generation and audio retrieval. To generate videos, we extend the capabilities of a pretrained text-to-image diffusion model through a two-stage process. Firstly, we employ spatial finetuning to bridge the gap between the pretrained image model and the new video dataset. Subsequently, we introduce temporal learning to capture object motion. In terms of audio, we leverage sophisticated retrieval models to select and align audio elements that correspond to the plot and visual content of the movie. Extensive experiments demonstrate that our MovieFactory produces movies with realistic visuals, diverse scenes, and seamlessly fitting audio, offering users a novel and immersive experience. Generated samples can be found in YouTube or Bilibili (1080P).
+Subjects:	Computer Vision and Pattern Recognition (cs.CV)
+Cite as:	arXiv:2306.07257 [cs.CV]
+ 	(or arXiv:2306.07257v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2306.07257
+Focus to learn more
+Submission history
+From: Huiguo He [view email]
+[v1] Mon, 12 Jun 2023 17:31:23 UTC (1,967 KB)
+
+Access Paper:
+View PDFTeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2023-06
+Change to browse by: cs
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

@@ -1,0 +1,60 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2309.17080 (cs)
+[Submitted on 29 Sep 2023]
+GAIA-1: A Generative World Model for Autonomous Driving
+Anthony Hu, Lloyd Russell, Hudson Yeo, Zak Murez, George Fedoseev, Alex Kendall, Jamie Shotton, Gianluca Corrado
+View PDF
+Autonomous driving promises transformative improvements to transportation, but building systems capable of safely navigating the unstructured complexity of real-world scenarios remains challenging. A critical problem lies in effectively predicting the various potential outcomes that may emerge in response to the vehicle's actions as the world evolves.
+To address this challenge, we introduce GAIA-1 ('Generative AI for Autonomy'), a generative world model that leverages video, text, and action inputs to generate realistic driving scenarios while offering fine-grained control over ego-vehicle behavior and scene features. Our approach casts world modeling as an unsupervised sequence modeling problem by mapping the inputs to discrete tokens, and predicting the next token in the sequence. Emerging properties from our model include learning high-level structures and scene dynamics, contextual awareness, generalization, and understanding of geometry. The power of GAIA-1's learned representation that captures expectations of future events, combined with its ability to generate realistic samples, provides new possibilities for innovation in the field of autonomy, enabling enhanced and accelerated training of autonomous driving technology.
+Comments:	Technical Report
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI); Robotics (cs.RO)
+Cite as:	arXiv:2309.17080 [cs.CV]
+ 	(or arXiv:2309.17080v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2309.17080
+Focus to learn more
+Submission history
+From: Anthony Hu [view email]
+[v1] Fri, 29 Sep 2023 09:20:37 UTC (15,940 KB)
+
+Access Paper:
+View PDFTeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2023-09
+Change to browse by: cs cs.AI cs.RO
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+1 blog link (what is this?)
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

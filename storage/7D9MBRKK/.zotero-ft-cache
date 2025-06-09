@@ -1,0 +1,371 @@
+VideoFusion: Decomposed Diffusion Models for High-Quality Video Generation
+*Zhengxiong Luo1,2,4,5 Dayou Chen2 Yingya Zhang2 †Yan Huang4,5 Liang Wang4,5 Yujun Shen3 Deli Zhao2 Jingren Zhou2 Tieniu Tan4,5,6 1University of Chinese Academy of Sciences (UCAS) 2Alibaba Group 3Ant Group 4Center for Research on Intelligent Perception and Computing (CRIPAC) 5Institute of Automation, Chinese Academy of Sciences (CASIA) 6Nanjing University
+zhengxiong.luo@cripac.ia.ac.cn {dayou.cdy, yingya.zyy, jingren.zhou}@alibaba-inc.com
+{shenyujun0302, zhaodeli}@gmail.com {yhuang, wangliang, tnt}@nlpr.ia.ac.cn
+Shared Base Noise
+Shared Residual Noise
+Figure 1. Unconditional generation results on the Weizmann Action dataset [11]. Videos of the top-two rows share the same base noise but have different residual noises. Videos of the bottom two rows share the same residual noise but have different base noises.
+Abstract
+A diffusion probabilistic model (DPM), which constructs a forward diffusion process by gradually adding noise to data points and learns the reverse denoising process to generate new samples, has been shown to handle complex data distribution. Despite its recent success in image synthesis, applying DPMs to video generation is still challenging due to high-dimensional data spaces. Previous methods usually adopt a standard diffusion process, where frames in the same video clip are destroyed with independent noises, ignoring the content redundancy and temporal correlation. This work presents a decomposed diffusion process via resolving the per-frame noise into a base noise that is shared among all frames and a residual noise that varies along the time axis. The denoising pipeline employs two
+*Work done at Alibaba DAMO Academy. †Corresponding author.
+jointly-learned networks to match the noise decomposition accordingly. Experiments on various datasets confirm that our approach, termed as VideoFusion, surpasses both GAN-based and diffusion-based alternatives in high-quality video generation. We further show that our decomposed formulation can benefit from pre-trained image diffusion models and well-support text-conditioned video creation.
+1. Introduction
+Diffusion probabilistic models (DPMs) are a class of deep generative models, which consist of : i) a diffusion process that gradually adds noise to data points, and ii) a denoising process that generates new samples via iterative denoising [14, 18]. Recently, DPMs have made awesome achievements in generating high-quality and diverse images [20–22, 25, 27, 36]. Inspired by the success of DPMs on image generation, many researchers are trying to apply a similar idea to video
+arXiv:2303.08320v4 [cs.CV] 13 Oct 2023
+
+
+prediction/interpolation [13, 44, 48]. While study about DPMs for video generation is still at an early stage [16] and faces challenges since video data are of higher dimensions and involve complex spatial-temporal correlations.
+Previous DPM-based video-generation methods usually adopt a standard diffusion process, where frames in the same video are added with independent noises and the temporal correlations are also gradually destroyed in noised latent variables. Consequently, the video-generation DPM is required to reconstruct coherent frames from independent noise samples in the denoising process. However, it is quite challenging for the denoising network to simultaneously model spatial and temporal correlations.
+Inspired by the idea that consecutive frames share most of the content, we are motivated to think: would it be easier to generate video frames from noises that also have some parts in common? To this end, we modify the standard diffusion process and propose a decomposed diffusion probabilistic model, termed as VideoFusion, for video generation. During the diffusion process, we resolve the per-frame noise into two parts, namely base noise and residual noise, where the base noise is shared by consecutive frames. In this way, the noised latent variables of different frames will always share a common part, which makes the denoising network easier to reconstruct a coherent video. For intuitive illustration, we use the decoder of DALL-E 2 [25] to generate images conditioned on the same latent embedding. As shown in Fig. 2a, if the images are generated from independent noises, their content varies a lot even if they share the same condition. But if the noised latent variables share the same base noise, even an image generator can synthesize roughly correlated sequences (shown in Fig. 2b). Therefore, the burden of the denoising network of video-generation DPM can be largely alleviated.
+Furthermore, this decomposed formulation brings additional benefits. Firstly, as the base noise is shared by all frames, we can predict it by feeding one frame to a large pretrained image-generation DPM with only one forward pass. In this way, the image priors of the pretrained model could be efficiently shared by all frames and thereby facilitate the learning of video data. Secondly, the base noise is shared by all video frames and is likely to be related to the video content. This property makes it possible for us to better control the content or motions of generated videos. Experiments in Sec. 4.7 show that, with adequate training, VideoFusion tends to relate the base noise with video content and the residual noise to motions (Fig. 1). Extensive experiments show that VideoFusion can achieve state-of-the-art results on different datasets and also well support text-conditioned video creation.
+(a) (b)
+Figure 2. Comparison between images generated from (a) independent noises; (b) noises with a shared base noise. Images of the same row are generated by the decoder of DALL-E 2 [25] with the same condition.
+2. Related Works
+2.1. Diffusion Probabilistic Models
+DPM is first introduced in [35], which consists of a diffusion (encoding) process and a denoising (decoding) process. In the diffusion process, it gradually adds random noises to the data x via a T -step Markov chain [18]. The noised latent variable at step t can be expressed as:
+zt = pαˆtx + p1 − αˆtεt (1)
+with
+αˆt =
+t
+Y
+k=1
+αk εt ∼ N (0, 1), (2)
+where αt ∈ (0, 1) is the corresponding diffusion coefficient. For a T that is large enough, e.g. T = 1000, we have
+√αˆT ≈ 0 and √1 − αˆT ≈ 1. And zT approximates a random gaussian noise. Then the generation of x can be modeled as iterative denoising. In [14], Ho et al. connect DPM with denoising score matching [37] and propose a ε-prediction form for the denoising process:
+Lt = ∥εt − zθ(zt, t)∥2, (3)
+where zθ is a denoising neural network parameterized by θ, and Lt is the loss function. Based on this formulation, DPM has been applied to various generative tasks, such as image-generation [15, 25], super-resolution [19, 28], image translation [31], etc., and become an important class of deep generative models. Compared with generative adversarial networks (GANs) [10], DPMs are easier to be trained and able to generate more diverse samples [5, 26].
+2.2. Video Generation
+Video generation is one of the most challenging tasks in the generative research field. It not only needs to generate high-quality frames but also the generated frames need to be temporally correlated. Previous video-generation methods are mainly GAN-based. In VGAN [45] and TGAN [29],
+
+
+the generator is directly used to learn the joint distribution of video frames. In [40], Tulyakov et al. propose to decompose a video clip into content and motion and model them respectively via a content vector and a motion vector. A similar decomposed formulation is also adopted in [34] and [3], in which the content noise is shared by consecutive frames to learn the video content and a motion noise is used to model the object trajectory. Other methods firstly train a vector quantized auto encoder [6–8, 12, 42] for video data, and then use an auto-regress transformer [43] to learn the video distribution in the quantized latent space [9, 17, 47]. Recently, inspired by the great achievements of DPM in image generation, many researchers also try to apply DPM to video generation. In [16], Ho et al. propose a video diffusion model, which extends the 2D denoising network in image diffusion models to 3D by stacking frames together as the additional dimension. In [44], DPM is used for video prediction and interpolation with the known frames as the condition for denoising. However, these methods usually treat video frames as independent samples in the diffusion process, which may make it difficult for DPM to reconstruct coherent videos in the denoising process.
+3. Decomposed Diffusion Probabilistic Model
+3.1. Standard Diffusion Process for Video Data
+Suppose x = {xi | i = 1, 2, . . . , N } is a video clip with N frames, and zt = {zti | i = 1, 2, . . . , N } is the noised
+latent variable of x at step t. Then the transition from xi to zti can be expressed as:
+zi
+t = pαˆtxi + p1 − αˆtεi
+t, (4)
+where εit ∼ N (0, 1). In previous methods, the added noise εt of each frame is independent of each other. And frames in the video clip x are encoded to zT ≈ {εi
+T | i = 1, 2, . . . , N }, which are independent noise samples. This diffusion process ignores the relationship between video frames. Consequently, in the denoising process, the denoising network is expected to reconstruct a coherent video from these independent noise samples. Although this task could be realized by a denoising network that is powerful enough, the burden of the denoising network may be alleviated if the noise samples are already correlated. Then it comes to a question: can we utilize the similarity between consecutive frames to make the denoising process easier?
+3.2. Decomposing the Diffusion Process
+To utilize the similarity between video frames, we split the frame xi into two parts: a base frame x0 and a residual ∆xi:
+xi =
+√
+λix0 +
+p
+1 − λi∆xi, i = 1, 2, ..., N (5)
+】
+Figure 3. The decomposed diffusion process of a video clip. The base noise bt is shared across different frames. For simplicity, we omit the coefficient of each component in the figure.
+where x0 represents the common parts of the video frames, and λi ∈ [0, 1] represents the proportion of x0 in xi. Specially, λi = 0 indicates that xi has nothing in common with x0, and λi = 1 indicates xi = x0. In this way, the similarity between video frames can be grasped via x0 and λi. And the noised latent variable at step t is:
+zi
+t = pαˆt(
+√
+λix0 +
+p
+1 − λi∆xi) + p1 − αˆtεi
+t. (6)
+Accordingly, we also split the added noise εit into two
+parts: a base noise bit and a residual noise rti:
+εi
+t=
+√
+λibi
+t+
+p
+1 − λiri
+t bi
+t, ri
+t ∼ N (0, 1). (7)
+We substitute Eq 7 into Eq. (6) and get
+zi
+t=
+√
+λi(pαˆtx0 + p1 − αˆtbi
+t)
+| {z }
+diffusion of x0
++
+p
+1 − λi(pαˆt∆xi + p1 − αˆtri
+t)
+| {z }
+diffusion of ∆xi
+.
+(8)
+As one can see in Eq. (8), the diffusion process can be decomposed into two parts: the diffusion of x0 and the diffusion of ∆xi. In previous methods, although x0 is shared by consecutive frames, it is independently noised to different values in each frame, which may increase the difficulty of denoising. Towards this problem, we propose to share bit for i = 1, 2, ..., N such that bit = bt. In this
+way, x0 in different frames will be noised to the same value. And frames in the video clip x will be encoded to zT ≈ {
+√
+λibT + √1 − λiri
+T | i = 1, 2, . . . , N }, which is sequence of noise samples correlated via bT . From these samples, it may be easier for the denoising network to reconstruct a coherent video. With shared bt, the latent noised variable zti can be expressed as:
+zi
+t = pαˆtxi + p1 − αˆt(
+√
+λibt +
+p
+1 − λiri
+t). (9)
+
+
+As shown in Fig. 3, this decomposed form also holds between adjacent diffusion steps:
+zi
+t = √αtzi
+t−1 + √1 − αt(
+√
+λib′
+t+
+p
+1 − λir′i
+t ), (10)
+where b′t and r′ti are respectively the base noise and residual
+noise at step t. And b′t is also shared between frames in the same video clip.
+3.3. Using a Pretrained Image DPM
+Generally, for a video clip x, there is an infinite number of choices for x0 and λi that satisfy Eq. (6). But we hope x0 contains most information of the video, e.g. the background or main subjects of the video, such that xi only needs to model the small difference between xi and x0. Empirically, we set x0 = x⌊N/2⌋ and λ⌊N/2⌋ = 1, where ⌊·⌋ denotes the floor rounding function. In this case , we have ∆x⌊N/2⌋ = 0 and Eq. (9) can be simplified as:
+zi
+t=
+(pαˆtxi + p1 − αˆtbt i = ⌊N/2⌋
+pαˆtxi + p1 − αˆt(
+√
+λibt +
+p
+1 − λiri
+t) i ̸= ⌊N/2⌋, (11) We notice that Eq. (11) provides us a chance to estimate the base noise bt for all frames with only one forward pass by feeding x⌊N/2⌋ into a ε-prediction denoising function zb
+φ
+(parameterized by φ). We call zb
+φ as the base generator, which is a denoising network of an image diffusion model. It enables us to use a pretrained image generator, e.g. DALL-E 2 [25] and Imagen [27], as the base generator. In this way, we can leverage the image priors of the pretrained image DPM, thereby facilitating the learning of video data. As shown in Fig. 4, in each denoising step, we first estimate the based noised as zb
+φ(z⌊N/2⌋
+t , t), and then remove it from all frames:
+z′i
+t = zi
+t−
+√
+λip1 − αˆtzb
+φ(z⌊N/2⌋
+t , t) i ̸= ⌊N/2⌋. (12)
+We then feed zt′i into a residual generator, denoted as zr
+ψ
+(parameterized by ψ), to estimate the residual noise rti as
+zr
+ψ(zt′i, t, i). We need to note that the residual generator is conditioned on the frame number i to distinguish different frames. As bt has already been removed, zt′i is expected
+to be less noisy than zti. Then it may be easier for zr
+ψ the estimate the remaining residual noise. According to Eq. (7) and Eq. (11), the noise εit can be predicted as:
+(zb
+φ(z⌊N/2⌋
+t , t) i = ⌊N/2⌋
+√
+λizb
+φ(z⌊N/2⌋
+t , t) +
+p
+1 − λizr
+ψ (z ′i
+t , t, i) i ̸= ⌊N/2⌋, (13) where zt′i can be calculated by Eq. (12). Then, we can follow the denoising process of DDIM [36] (shown
+in Fig. 4) or DDPM [14] (shown in Appendix) to infer the next latent diffusion variable and loop until we get the sample xi. As indicated in Eq. (13), the base generator zb
+φ is
+responsible for reconstructing the base frame x⌊N/2⌋, while zr
+ψ is expected to reconstruct the residual ∆xi. Often, x0 contains rich details and is difficult to be learned. In our method, a pretrained image-generation model is used to reconstruct x0, which largely alleviates this problem. Moreover, in each denoising step, zb
+φ takes in only one frame, which allows us to use a large pretrained model (up to 2-billion parameters) while consuming an affordable graph memory. Compared with x0, the residual ∆xi may be much easier to be learned [1, 23, 48, 49]. Therefore, we can use a relatively smaller network (with 0.5-billion parameters) for the residual generator. In this way, we concentrate more parameters on the more difficult task, i.e. the learning of x0, and thereby improve the efficiency of the whole method.
+3.4. Joint Training of Base and Residual Generators
+In ideal cases, the pretrained base generator can be kept fixed during the training of VideoFusion. However, we experimentally find that fixing the pretrained model will lead to unpleasant results. We attribute this to the domain gap between the image data and video data. Thus it is helpful to simultaneously finetune the base generator zb
+θ on the video data with a small learning rate. We define the final loss function as:
+Lt =
+(∥εi
+t − zb
+φ (z ⌊N/2⌋
+t , t)∥2 i = ⌊N/2⌋
+∥εi
+t−
+√
+λi[zb
+θ (z⌊N/2⌋
+t , t)]sg −
+p
+1 − λizr
+ψ (z ′i
+t , t, i)∥2 i ̸= ⌊N/2⌋, (14) where [·]sg is the stop-gradient operation, which means that the gradients will not be propagated back to zb
+θ when i ̸= ⌊N/2⌋. We hope that the pretrained model is finetuned only by the loss on the base frame. This is because at the beginning of the training, the estimated results of zr
+ψ(zt′i, t) is noisy which may destroy the pretrained model.
+3.5. Discussions
+In some GAN-based methods, the videos are generated from two concatenated noises, namely content code and motion code, where the content code is shared across frames [34, 40]. These methods show the ability to control the video content (motions) by sampling different content (motion) codes. It is difficult to directly apply such an idea to DPM-based methods, because the noised latent variables in DPM should have the same shape as the generated video. In the proposed VideoFusion, we decompose the added noise by representing it as the weighted sum of base noise and residual noise, in which way, the latent video space can
+
+
+Base Generator
+Residual Generator
+Residual Generator
+Base Generator
+Residual Generator
+Residual Generator
+Frame #1
+Frame #
+Frame #N
+Figure 4. Visualization of DDIM [36] sampling process of VideoFusion. In each sampling step, we first remove the base noise with the base generator and then estimate the remaining residual noise via the residual generator. τi denotes the DDIM sampling steps. με denotes mean-value predicted function of DDIM in ε-prediction formulation. We omit the coefficients and conditions in the figure for simplicity.
+also be decomposed. According to the DDIM sampling algorithm in Fig. 3, the shared base frame x⌊N/2⌋ is only dependent on the base noise bT . It enables us to control the video content via bT , e.g. generating videos with the same content but different motions by keeping bT fixed, which helps us generate longer coherent sequences in Sec. 4.6. But it may be difficult for VideoFusion to automatically learn to relate the residual noise to video motions, as it is difficult for the residual generator to distinguish the base or residual noises from their weighted sum. Whereas in Sec. 4.7, we experimentally find if we provide VideoFusion with explicit training guidance that videos with the same motions in a mini-batch also share the same residual noise, VideoFusion could also learn to relate the residual noise to video motions.
+4. Experiments
+4.1. Experimental Setup
+Datasets. For quantitative evaluation, we train and test our method on three datasets, i.e. UCF101 [39], Sky Time-lapse [46], and TaiChi-HD [33]. On UCF101, we show both unconditional and class-conditioned generation results. while on Sky Time-lapse and TaiChi-HD, only unconditional generation results are provided. For quantitative evaluation, we also train a text-conditioned videogeneration model on WebVid-10M [2], which consists of 10.7M short videos with paired textual descriptions.
+Metrics. Following previous works [9, 17], we mainly use Fre ́chet Video Distance (FVD) [41], Kernel Video Distance (KVD) [41], and Inception Score (IS) [30] as the evaluation metrics. We use the evaluation scripts provided in [9]. All metrics are evaluated on videos with 16 frames and 128 × 128 resolution. On UCF101, we report the results of IS and FVD, and on Sky Time-lapse and TaiChi-HD we report the results of FVD and KVD.
+Training. We use a pretrained decoder of DALL-E 2 [25]
+Table 1. Quantitative comparisons on UCF101.↓ denotes the lower the better. ↑ denotes the higher the better. The best results are denoted in bold.
+Method Resolution IS ↑ FVD↓
+Unconditional
+TGAN [29] 16 × 64 × 64 11.85 − MoCoGAN-HD [40] 16 × 128 × 128 32.36 838 DIGAN [50] 16 × 128 × 128 32.70 577 StyleGAN-V [34] 16 × 256 × 256 23.94 − VideoGPT [47] 16 × 128 × 128 24.69 − TATS [9] 16 × 128 × 128 57.63 420 VDM [16] 16 × 64 × 64 57.00 295 VideoFusion 16 × 64 × 64 71.67 139 VideoFusion 16 × 128 × 128 72.22 220
+Class-conditioned
+VGAN [45] 16 × 64 × 64 8.31 − TGAN [29] 16 × 64 × 64 15.83 − TGANv2 [30] 16 × 128 × 128 28.87 1209 MoCoGAN [40] 16 × 64 × 64 12.42 − DVD-GAN [4] 16 × 128 × 128 32.97 − CogVideo [17] 16 × 160 × 160 50.46 626 TATS [9] 16 × 128 × 128 79.28 332 VideoFusion 16 × 128 × 128 80.03 173
+(trained on Laion-5B [32]) as our base generator, while the residual generator is a randomly initialized 2D U-shaped denoising network [14, 27]. In the training phase, both the base generator and the residual generator are conditioned on the image embedding extracted by the visual encoder of CLIP [24] from the central image of the video sample. A prior is also trained to generate latent embedding. For conditional video generation, the prior is conditioned on video captions or classes. And for unconditional generation, the condition of the prior is empty text. Our models are initially trained on 16-frame video clips with 64 × 64 resolution and then super-resolved to higher resolutions with DPMbased SR models [28]. Without special statement, we set λi = 0.5, ∀i ̸= 8 and λ8 = 0.5.
+
+
+Table 2. Quantitative comparisons on Sky Time-lapse [46]. ↓ denotes the lower the better. The best results are denoted in bold.
+Method FVD (↓) KVD (↓)
+MoCoGAN-HD [40] 183.6 13.9 DIGAN [50] 114.6 6.8 TATS [9] 132.6 5.7
+VideoFusion 47.0 5.3
+Table 3. Quantitative comparisons on TaiChi-HD [33]. ↓ denotes the lower the better. The best results are denoted in bold.
+Method FVD (↓) KVD (↓)
+MoCoGAN-HD [40] 144.7 25.4 DIGAN [50] 128.1 20.6 TATS [9] 94.6 9.8
+VideoFusion 56.4 6.9
+4.2. Quantitative Results
+We compare our methods with several competitive methods, including VideoGPT [47], CogVideo [17], StyleGANV [34], DIGAN [50], TATS [9], VDM [16], etc. Most of these methods are GAN-based except that VDM is DPM-based. The quantitative results on UCF101 of these methods are shown in Tab. 1. On unconditional generations, VDM outperforms the GAN-based methods in the table, especially in terms of FVD. It implies the potential of DPMbased video-generation methods. While compared with VDM, the proposed VideoFusion further outperforms it by a large margin on the same resolution. The superiority of VideoFusion may be attributed to the more appropriate diffusion framework and a strong pretrained image DPM. If we increase the resolution to 16 × 128 × 128, the IS of VideoFusion can be further improved. We notice that the FVD score will get worse when VideoFusion generates videos with a higher resolution. This is possible because videos with higher resolutions contain richer details and are more difficult to be learned. Nevertheless, VideoFusion achieves the best quantitative results on UCF101. We also provide the FVD and KVD results (with resolution as 16×128×128) on Sky Time-lapse and TaiChi-HD in Tab. 2 and Tab. 3 respectively. As one can see, VideoFusion still achieves much better results than previous methods.
+4.3. Qualitative Results
+We also provide visual comparisons with the most recent state-of-the-art methods, i.e. TATS and DIGAN. As shown in Fig. 5, each generated video has 16 frames with a resolution of 128 × 128 and we show the 4th, 8th, 12th and 16th frame in the figure. As one can see, our VideoFusion can generate more realistic videos with richer details. To further demonstrate the quality of videos generated by VideoFusion, we train a text-to-video model on the large
+Table 4. We re-implement VDM [16] (denoted as VDM∗) based on the base generator of VideoFusion. The efficiency comparisons are shown below.
+Method Memory (GB) Latency (s)
+VDM∗ 63.82 0.40 VideoFusion 49.85(↓ 21.8%) 0.17(↓ 57.5%)
+Table 5. Study on λi. Unconditional generation results on UCF101 [39].
+λi 0.10 0.25 0.50 0.75
+IS ↑ 67.23 69.16 71.67 69.56 FVD ↓ 149 122 139 181
+scale video dataset, i.e. WebVid-10M. Some samples are shown in Fig. 7.
+4.4. Efficiency Comparison
+As we have discussed in Sec. 3.3, in each denoising step VideoFusion estimates the base noise for all frames with only one forward pass. It allows us to use a large base generator while keeping the computational cost affordable. As a comparison, previous video-generation DPM, i.e. VDM [16], extends a 2D DPM to 3D by stacking images at an additional dimension, which processes each frame in parallel and may introduce redundant computations. To make a quantitative comparison, we re-implement VDM based on the base generator of VideoFusion. We evaluate the inference memory and speed of VideoFusion and VDM in Tab. 4. As one can see, despite that VideoFusion consists of an additional residual generator and prior, its consumed memory is reduced by 21.8% and latency is reduced by 57.5% when compared with VDM. This is because the powerful pretrained base generator allows us to use a smaller residual generator, and the shared base noise requires only one forward pass of the base generator.
+4.5. Ablation Study
+Study on λi. To explore the influence of λi, ∀i ̸= ⌊N/2⌋, we perform controlled experiments on UCF101. As one can see in Tab. 5, if λi is too small, e.g. λi = 0.1, or λi is too large, e.g. λi = 0.75, the performance of VideoFusion will get worse. A small λi indicates that less base noise is shared across frames, which makes it difficult for VideoFusion to exploit the temporal correlations. While a large λi suggests that the video frames share most of their information, which restricts the dynamics in the generated videos. Consequently, an appropriate λi is important for VideoFusion to achieve better performance.
+Study on pretraining. To further explore the influence of the pretrained model, we also train our VideoFusion from the scratch. The quantitative comparisons of unconditional generation results on UCF101 are shown in Tab. 6. As
+
+
+DIGAN TATS
+VideoFusion
+(a) UCF101 (c) TaiChi-HD
+(b) Sky Time-Lapse
+Figure 5. Visual comparisons on (a) UCF101 [39], (b) Sky Time-Lapse [46], and (c) TaiChi-HD [33].
+1th ~ 3th Frame 256th ~ 260th Frame 509th ~ 512th Frame
+Figure 6. Generated videos with 512 frames on UCF101 [39] (toprow), Sky Time-Lapse [46] (second-row), and TaiChi-HD [33] (third-row).
+one can see, a well-pretrained base generator does help VideoFusion achieve better performance, because the image priors of the pretrained model can ease the difficulty of learning the image content and help VideoFusion focus on exploiting the temporal correlations. We need to note that VideoFusion still surpasses VDM without the pretrained initialization. It also suggests the superiority of VideoFusion against only come from the pretrained model, but also the decomposed formulation.
+Study on joint training. As we have discussed in Sec. 3.4, we finetune the pretrained generator jointly with the residual generator. We experimentally compare different training methods in Tab. 7. As one can see, if the pretrained base generator is fixed, the performance of VideoFusion is poor. This is because of the domain gap between the pretraining dataset (Laion-5B) and UCF101. The fixed pretrained base generator may provide misleading information on UCF101 and impede the training of the residual generator. If the base generator is jointly finetuned on UCF101, the performance will be largely improved. Whereas if we remove the stop-gradient technique mentioned in Sec. 3.4, the performance gets worse. This is because the randomly
+Table 6. Study on pretraining. Unconditional generation results on UCF101 [39].
+Method IS↑ FVD ↓
+VDM [16] 57.00 295 VideoFusion w/o pretrain 65.29 183 VideoFusion w/ pretrain 71.67 139
+initialized residual generator would destroy the pretrained model at the beginning of training.
+4.6. Generating Long Sequences
+Limited by computational resources, a video-generation model usually generates only a few frames in one forward pass. Previous methods mainly adopt an auto-regressive framework for generating longer videos [9,47]. However, it is difficult to guarantee the content coherence of extended frames. In [38], Yang et al. propose a replacement method for DPMs to extend the generated sequences in an autoregressive way. Whereas it still often fails to keep the content of extended video frames [16]. In our proposed method, the incoherence problem may be largely alleviated, since we can keep the base noise fixed when generating extended frames. To verify this idea, we use the replacement method to extend a 16-frame video to 512 frames. As shown in Fig. 6, both the quality and coherence can be well-kept in the extended frames.
+4.7. Decomposing the Motion and Content
+To further explore the ability of VideoFusion on decomposing the video motion and content, we perform experiments on the Weizmann Action dataset [11]. It contains 81 videos of 9 people performing 9 actions,
+
+
+A shiny golden waterfall
+A lovely girl is smiling
+Beautiful view from the top of Bali
+Dramatic ocean sunset
+Busy freeway at night
+Film of a driving car in a winterstorm
+A turtle swimming in the ocean
+Surfer on his surfboard in a wave
+Time Lapse of sunset view over mosque
+A tropical bule fish swimming through coral reef Fireworks Pov point of view of car driving on a busy freeway
+Figure 7. Text-to-video generation results of VideoFusion trained on WebVid-10M [2].
+Table 7. Study on joint training. Unconditional generation results on UCF101 [39].
+Training method IS↑ FVD ↓
+Fixed 65.06 187 w/o stop gradient 67.86 168 w stop gradient 71.67 139
+including jumping-jack and waving-hands etc. As we have discussed in Sec. 3.5, it may be difficult for VideoFusion to automatically learn to correlate the residual noise with video motions. Thus, we provide VideoFusion with explicit training guidance. To this end, in each training mini-batch of VideoFusion, we share the base noise across videos with the same human identity and share residual noise across videos with the same actions. Since the difference between frames of the same video in Weizmann Action dataset is relatively small, we set λi = 0.9, ∀i ̸= ⌊N/2⌋ in this experiment. The generated results are shown in Fig. 1. As one can see, by keeping the base noise fixed and sampling different residual noises, VideoFusion succeeds to keep the human identity in videos of different actions. Also, by keeping the residual noise fixed and sampling different base noises, VideoFusion generates videos of the same action but with different human identities.
+5. Limitations and Future Work
+Sharing base noise among consecutive frames helps the video-generation DPM to better exploit the temporal correlation, however, it may also limit motions in the generated videos. Although we can adjust λi to control the similarity between consecutive frames, it is difficult to find a suitable λi for all videos, since in some videos the differences between frames is small, while in other videos
+the differences may be large. In the future, we will try to adaptively generate λi for each video and even each frame. And in the current version of VideoFusion, the residual generator is conditioned on the latent embedding produced by the pretrained prior of DALL-E 2. This is because the embedding condition can help the residual generator converge faster. This practice works well for unconditional generations or generations from relatively short texts, in which cases the latent embedding may be enough for encoding all conditioning information. Whereas in video generation from long texts, it may be difficult for the prior to encode the long temporal information of the caption into the latent embedding. A better way is to condition the residual generator directly on the long text. However, the modality gap between the text data and video data will largely increase the burden of the residual generator and make it difficult for the residual generator to converge. In the future, we may try to alleviate this problem and explore video generation from long texts.
+6. Conclusion
+In this paper, we present a decomposed DPM for video generation (VideoFusion). It decomposes the standard diffusion process as adding a base noise and a residual noise, where the base noise is shared by consecutive frames. In this way, frames in the same video clip will be encoded to a correlated noise sequence, from which it may be easier for the denoising network to reconstruct a coherent video. Moreover, we use a pretrained image-generation DPM to estimate the base noise for all frames with only one forward pass, which leverages the priors of the pretrained model efficiently. Both quantitative and qualitative results show that VideoFusion can produce results competitive to thestate-of-art methods.
+
+
+Acknowledgment
+This work was jointly supported by National Natural Science Foundation of China (62236010, 62276261,61721004, and U1803261), Key Research Program of Frontier Sciences CAS Grant No. ZDBS-LYJSC032, Beijing Nova Program (Z201100006820079), and CAS-AIR.
+References
+[1] Eirikur Agustsson, David Minnen, Nick Johnston, Johannes Balle, Sung Jin Hwang, and George Toderici. Scale-space flow for end-to-end optimized video compression. In CVPR, pages 8503–8512, 2020. 4 [2] Max Bain, Arsha Nagrani, Gu ̈l Varol, and Andrew Zisserman. Frozen in time: A joint video and image encoder for end-to-end retrieval. In ICCV, 2021. 5, 8, 11 [3] Tim Brooks, Janne Hellsten, Miika Aittala, Ting-Chun Wang, Timo Aila, Jaakko Lehtinen, Ming-Yu Liu, Alexei A Efros, and Tero Karras. Generating long videos of dynamic scenes. arXiv preprint arXiv:2206.03429, 2022. 3
+[4] Aidan Clark, Jeff Donahue, and Karen Simonyan. Adversarial video generation on complex datasets. arXiv preprint arXiv:1907.06571, 2019. 5
+[5] Prafulla Dhariwal and Alexander Nichol. Diffusion models beat gans on image synthesis. NeurIPS, 34:8780–8794, 2021. 2 [6] Ming Ding, Zhuoyi Yang, Wenyi Hong, Wendi Zheng, Chang Zhou, Da Yin, Junyang Lin, Xu Zou, Zhou Shao, Hongxia Yang, et al. Cogview: Mastering text-to-image generation via Transformers. NeurIPS, 34:19822–19835, 2021. 3 [7] Ming Ding, Wendi Zheng, Wenyi Hong, and Jie Tang. Cogview2: Faster and better text-to-image generation via hierarchical Transformers. arXiv preprint arXiv:2204.14217, 2022. 3 [8] Patrick Esser, Robin Rombach, and Bjorn Ommer. Taming Transformers for high-resolution image synthesis. In CVPR, pages 12873–12883, 2021. 3 [9] Songwei Ge, Thomas Hayes, Harry Yang, Xi Yin, Guan Pang, David Jacobs, Jia-Bin Huang, and Devi Parikh. Long video generation with time-agnostic vqgan and timesensitive transformer. arXiv preprint arXiv:2204.03638, 2022. 3, 5, 6, 7 [10] Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio. Generative adversarial nets. NeurIPS, 27, 2014. 2 [11] Lena Gorelick, Moshe Blank, Eli Shechtman, Michal Irani, and Ronen Basri. Actions as space-time shapes. PAMI, 29(12):2247–2253, 2007. 1, 7 [12] Shuyang Gu, Dong Chen, Jianmin Bao, Fang Wen, Bo Zhang, Dongdong Chen, Lu Yuan, and Baining Guo. Vector quantized diffusion model for text-to-image synthesis. In CVPR, pages 10696–10706, 2022. 3 [13] William Harvey, Saeid Naderiparizi, Vaden Masrani, Christian Weilbach, and Frank Wood. Flexible diffusion modeling of long videos. arXiv preprint arXiv:2205.11495, 2022. 2
+[14] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. NeurIPS, 33:6840–6851, 2020. 1, 2, 4, 5, 11
+[15] Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance. arXiv preprint arXiv:2207.12598, 2022. 2
+[16] Jonathan Ho, Tim Salimans, Alexey Gritsenko, William Chan, Mohammad Norouzi, and David J Fleet. Video diffusion models. arXiv preprint arXiv:2204.03458, 2022. 2, 3, 5, 6, 7
+[17] Wenyi Hong, Ming Ding, Wendi Zheng, Xinghan Liu, and Jie Tang. Cogvideo: Large-scale pretraining for text-to-video generation via Transformers. arXiv preprint arXiv:2205.15868, 2022. 3, 5, 6
+[18] Zhifeng Kong and Wei Ping. On fast sampling of diffusion probabilistic models. arXiv preprint arXiv:2106.00132, 2021. 1, 2
+[19] Haoying Li, Yifan Yang, Meng Chang, Shiqi Chen, Huajun Feng, Zhihai Xu, Qi Li, and Yueting Chen. Srdiff: Single image super-resolution with diffusion probabilistic models. Neurocomputing, 479:47–59, 2022. 2
+[20] Nan Liu, Shuang Li, Yilun Du, Antonio Torralba, and Joshua B Tenenbaum. Compositional visual generation with composable diffusion models. In Computer VisionECCV 2022: 17th European Conference, Tel Aviv, Israel, October 23–27, 2022, Proceedings, Part XVII, pages 423439. Springer, 2022. 1
+[21] Alex Nichol, Prafulla Dhariwal, Aditya Ramesh, Pranav Shyam, Pamela Mishkin, Bob McGrew, Ilya Sutskever, and Mark Chen. Glide: Towards photorealistic image generation and editing with text-guided diffusion models. arXiv preprint arXiv:2112.10741, 2021. 1
+[22] Alexander Quinn Nichol and Prafulla Dhariwal. Improved denoising diffusion probabilistic models. In ICML, pages 8162–8171, 2021. 1
+[23] George Papamakarios, Theo Pavlakou, and Iain Murray. Masked autoregressive flow for density estimation. NeurIPS, 30, 2017. 4
+[24] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In ICML, pages 8748–8763, 2021. 5
+[25] Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen. Hierarchical text-conditional image generation with clip latents. arXiv preprint arXiv:2204.06125, 2022. 1, 2, 4, 5
+[26] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bjo ̈rn Ommer. High-resolution image synthesis with latent diffusion models. In CVPR, pages 10684–10695, 2022. 2
+[27] Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily Denton, Seyed Kamyar Seyed Ghasemipour, Burcu Karagol Ayan, S Sara Mahdavi, Rapha Gontijo Lopes, et al. Photorealistic text-to-image diffusion models with deep language understanding. arXiv preprint arXiv:2205.11487, 2022. 1, 4, 5
+
+
+[28] Chitwan Saharia, Jonathan Ho, William Chan, Tim Salimans, David J Fleet, and Mohammad Norouzi. Image superresolution via iterative refinement. PAMI, 2022. 2, 5 [29] Masaki Saito, Eiichi Matsumoto, and Shunta Saito. Temporal generative adversarial nets with singular value clipping. In ICCV, pages 2830–2839, 2017. 2, 5 [30] Masaki Saito, Shunta Saito, Masanori Koyama, and Sosuke Kobayashi. Train sparsely, generate densely: Memoryefficient unsupervised training of high-resolution temporal gan. ICCV, 128(10):2586–2606, 2020. 5 [31] Hiroshi Sasaki, Chris G Willcocks, and Toby P Breckon. Unit-ddpm: Unpaired image translation with denoising diffusion probabilistic models. arXiv preprint arXiv:2104.05358, 2021. 2
+[32] Christoph Schuhmann, Richard Vencu, Romain Beaumont, Robert Kaczmarczyk, Clayton Mullis, Aarush Katta, Theo Coombes, Jenia Jitsev, and Aran Komatsuzaki. Laion-400m: Open dataset of clip-filtered 400 million image-text pairs. arXiv preprint arXiv:2111.02114, 2021. 5
+[33] Aliaksandr Siarohin, Ste ́phane Lathuilie`re, Sergey Tulyakov, Elisa Ricci, and Nicu Sebe. First order motion model for image animation. NeurIPS, 32, 2019. 5, 6, 7, 11 [34] Ivan Skorokhodov, Sergey Tulyakov, and Mohamed Elhoseiny. StyleGAN-V: A continuous video generator with the price, image quality and perks of StyleGAN2. In CVPR, pages 3626–3636, 2022. 3, 4, 5, 6 [35] Jascha Sohl-Dickstein, Eric Weiss, Niru Maheswaranathan, and Surya Ganguli. Deep unsupervised learning using nonequilibrium thermodynamics. In ICML, pages 22562265, 2015. 2 [36] Jiaming Song, Chenlin Meng, and Stefano Ermon. Denoising diffusion implicit models. arXiv preprint arXiv:2010.02502, 2020. 1, 4, 5
+[37] Yang Song and Stefano Ermon. Generative modeling by estimating gradients of the data distribution. NeurIPS, 32, 2019. 2 [38] Yang Song, Jascha Sohl-Dickstein, Diederik P Kingma, Abhishek Kumar, Stefano Ermon, and Ben Poole. Scorebased generative modeling through stochastic differential equations. arXiv preprint arXiv:2011.13456, 2020. 7
+[39] Khurram Soomro, Amir Roshan Zamir, and Mubarak Shah. A dataset of 101 human action classes from videos in the wild. CRCV, 2(11), 2012. 5, 6, 7, 8, 11 [40] Sergey Tulyakov, Ming-Yu Liu, Xiaodong Yang, and Jan Kautz. Mocogan: Decomposing motion and content for video generation. In CVPR, pages 1526–1535, 2018. 3, 4, 5, 6
+[41] Thomas Unterthiner, Sjoerd van Steenkiste, Karol Kurach, Raphael Marinier, Marcin Michalski, and Sylvain Gelly. Towards accurate generative models of video: A new metric & challenges. arXiv preprint arXiv:1812.01717, 2018. 5
+[42] Aaron Van Den Oord, Oriol Vinyals, et al. Neural discrete representation learning. NeurIPS, 30, 2017. 3 [43] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. NeurIPS, 30, 2017. 3
+[44] Vikram Voleti, Alexia Jolicoeur-Martineau, and Christopher Pal. Masked conditional video diffusion for prediction, generation, and interpolation. arXiv preprint arXiv:2205.09853, 2022. 2, 3 [45] Carl Vondrick, Hamed Pirsiavash, and Antonio Torralba. Generating videos with scene dynamics. NeurIPS, 29, 2016. 2, 5 [46] Wei Xiong, Wenhan Luo, Lin Ma, Wei Liu, and Jiebo Luo. Learning to generate time-lapse videos using multi-stage dynamic generative adversarial networks. In CVPR, pages 2364–2373, 2018. 5, 6, 7, 11 [47] Wilson Yan, Yunzhi Zhang, Pieter Abbeel, and Aravind Srinivas. Videogpt: Video generation using vq-vae and Transformers. arXiv preprint arXiv:2104.10157, 2021. 3, 5, 6, 7 [48] Ruihan Yang, Prakhar Srivastava, and Stephan Mandt. Diffusion probabilistic modeling for video generation. arXiv preprint arXiv:2203.09481, 2022. 2, 4
+[49] Ruihan Yang, Yibo Yang, Joseph Marino, and Stephan Mandt. Hierarchical autoregressive modeling for neural video compression. arXiv preprint arXiv:2010.10258, 2020. 4
+[50] Sihyun Yu, Jihoon Tack, Sangwoo Mo, Hyunsu Kim, Junho Kim, Jung-Woo Ha, and Jinwoo Shin. Generating videos with dynamics-aware implicit generative adversarial networks. arXiv preprint arXiv:2202.10571, 2022. 5, 6
+
+
+Algorithm 1 DDPM [14] sampling of VideoFusion
+Sampling b ∼ N (0, 1), z⌊N/2⌋ ← b for i = 1 to N and i ̸= ⌊N/2⌋ do Sampling ri ∼ N (0, 1) zi =
+√
+λib + √1 − λiri end for for t = T to 1 do b ← zb
+φ(z⌊N/2⌋, t); ε⌊N/2⌋ ← b
+for i = 1 to N and i ̸= ⌊N/2⌋ do z′i ← zi −
+√
+λi√1 − αˆb ri ← zr
+ψ(z′i, t, i)
+εi ←
+√
+λib + √1 − λiri end for for i = 1 to N do
+μi ← √1αt zi − 1−αt
+√1−αˆt
+√αt εi
+σ ← 1−αˆt−1
+1−αˆt (1 − αt)
+end for
+Sampling b ∼ N (0, 1)
+z⌊N/2⌋ ← σb + μ⌊N/2⌋
+for i = 1 to N and i ̸= ⌊N/2⌋ do Sampling ri ∼ N (0, 1) zi ← σ(
+√
+λib + √1 − λiri) + μi end for end for
+return {zi | i = 1, 2, . . . , N }
+A. DDPM Sampling of VideoFusion
+The DDPM sampling algorithm of VideoFusion is shown in Algorithm 1. We need note that during each sampling process, the added noise is also resolved into a base noise and a residual noise, where the base noise is shared across frames and residual noise varies along time axis.
+B. Details about VideoFusion
+The base generator and residual generator are both Ushape networks. For experiments on UCF101 [39], Sky Time-lapse [46], and TaiChi-HD [33], we use relative smaller models. The details are shown in Tab. 8. For experiments on the large-scale datasets, i.e. WebVid-10M [2], we use relatively large models, whose details are shown in Tab. 9. As one can see, we use a large pretrained base generator (2.00 billion parameters) on WebVid-10M. Since the knowledge of the pretrained model can be efficiently shared by all frames via its predicted base noise, we can use a smaller residual generator (0.59 billion parameters) to save the computations.
+Table 8. Details about the base generator and residual generator on UCF101 [39], Sky Time-Lapse [46], and TaiChi-HD [33].
+Base generator Residual generator
+Network
+base dims 192 128 dim expansions 1, 2, 3, 5 1, 2, 3, 5 Textual embedding dims 768 768 Visual embedding dims 768 768 # Scales 4 4 # Layers per scale 2 2 Attention head dims 64 64 Attention scales 1
+2, 1
+4, 1
+8
+1
+2, 1
+4, 1
+8 # Params (B) 0.29 0.22
+Diffusion
+Diffusion steps 1000 1000 Noise schedule cosine cosine Sampling algorithm DDIM DDIM Sampling steps 50 50 Variance type fixed small fixed small Guidance classifier free classifier free Guiding scale 3.0 3.0 Objective eps eps Loss type MSE MSE
+Table 9. Details about the base generator and residual generator on WebVid-10M [2].
+Base generator Residual generator
+Network
+base dims 512 192 dim expansions 1, 2, 3, 4 1, 2, 3, 4 Textual embedding dims 768 768 Visual embedding dims 768 768 # Scales 4 4 # Layers per scale 3 3 Attention head dims 64 64 Attention scales 1
+2, 1
+4, 1
+8
+1
+2, 1
+4, 1
+8 # Params (B) 2.00 0.59
+Diffusion
+Diffusion steps 1000 1000 Noise schedule cosine cosine Sampling algorithm DDIM DDIM Sampling steps 50 50 Variance type fixed small fixed small Guidance classifier free classifier free Guiding scale 3.0 3.0 Objective eps eps Loss type MSE MSE

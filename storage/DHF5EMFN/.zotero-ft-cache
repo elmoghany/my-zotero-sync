@@ -1,0 +1,59 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2205.11495 (cs)
+[Submitted on 23 May 2022 (v1), last revised 15 Dec 2022 (this version, v3)]
+Flexible Diffusion Modeling of Long Videos
+William Harvey, Saeid Naderiparizi, Vaden Masrani, Christian Weilbach, Frank Wood
+View PDF
+We present a framework for video modeling based on denoising diffusion probabilistic models that produces long-duration video completions in a variety of realistic environments. We introduce a generative model that can at test-time sample any arbitrary subset of video frames conditioned on any other subset and present an architecture adapted for this purpose. Doing so allows us to efficiently compare and optimize a variety of schedules for the order in which frames in a long video are sampled and use selective sparse and long-range conditioning on previously sampled frames. We demonstrate improved video modeling over prior work on a number of datasets and sample temporally coherent videos over 25 minutes in length. We additionally release a new video modeling dataset and semantically meaningful metrics based on videos generated in the CARLA autonomous driving simulator.
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Machine Learning (cs.LG)
+Cite as:	arXiv:2205.11495 [cs.CV]
+ 	(or arXiv:2205.11495v3 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2205.11495
+Focus to learn more
+Submission history
+From: William Harvey [view email]
+[v1] Mon, 23 May 2022 17:51:48 UTC (9,298 KB)
+[v2] Thu, 15 Sep 2022 17:25:14 UTC (20,592 KB)
+[v3] Thu, 15 Dec 2022 20:57:59 UTC (11,623 KB)
+
+Access Paper:
+View PDFTeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2022-05
+Change to browse by: cs cs.LG
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

@@ -14,10 +14,10 @@
 	"inRepository": false,
 	"configOptions": {
 		"getCollections": true,
-		"hash": "d2fb90cac7de159623258314b6b31fe7d426b711bea36c665fcc2b5bf1de15a1"
+		"hash": "e77e34257f374e6b8759142b05619fa190fba7435af201a2fa02edb861e61849"
 	},
 	"priority": 100,
-	"lastUpdated": "2025-01-10"
+	"lastUpdated": "2025-05-26"
 }
 
 ZOTERO_CONFIG = {"GUID":"zotero@zotero.org","ID":"zotero","CLIENT_NAME":"Zotero","DOMAIN_NAME":"zotero.org","PRODUCER":"Digital Scholar","PRODUCER_URL":"https://digitalscholar.org","REPOSITORY_URL":"https://repo.zotero.org/repo/","BASE_URI":"http://zotero.org/","WWW_BASE_URL":"https://www.zotero.org/","PROXY_AUTH_URL":"https://zoteroproxycheck.s3.amazonaws.com/test","API_URL":"https://api.zotero.org/","STREAMING_URL":"wss://stream.zotero.org/","SERVICES_URL":"https://services.zotero.org/","API_VERSION":3,"CONNECTOR_MIN_VERSION":"5.0.39","PREF_BRANCH":"extensions.zotero.","BOOKMARKLET_ORIGIN":"https://www.zotero.org","BOOKMARKLET_URL":"https://www.zotero.org/bookmarklet/","START_URL":"https://www.zotero.org/start","QUICK_START_URL":"https://www.zotero.org/support/quick_start_guide","PDF_TOOLS_URL":"https://www.zotero.org/download/xpdf/","SUPPORT_URL":"https://www.zotero.org/support/","SYNC_INFO_URL":"https://www.zotero.org/support/sync","TROUBLESHOOTING_URL":"https://www.zotero.org/support/getting_help","FEEDBACK_URL":"https://forums.zotero.org/","CONNECTORS_URL":"https://www.zotero.org/download/connectors","CHANGELOG_URL":"https://www.zotero.org/support/changelog","CREDITS_URL":"https://www.zotero.org/support/credits_and_acknowledgments","LICENSING_URL":"https://www.zotero.org/support/licensing","GET_INVOLVED_URL":"https://www.zotero.org/getinvolved","DICTIONARIES_URL":"https://download.zotero.org/dictionaries/","PLUGINS_URL":"https://www.zotero.org/support/plugins","NEW_FEATURES_URL":"https://www.zotero.org/blog/zotero-7/"}
@@ -64,13 +64,6 @@ var { doExport } = (() => {
   var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
   var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
   var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-
-  // gen/version.js
-  var require_version = __commonJS({
-    "gen/version.js"(exports, module) {
-      module.exports = "7.0.5";
-    }
-  });
 
   // node_modules/@stdlib/utils-define-property/lib/define_property.js
   var require_define_property = __commonJS({
@@ -981,14 +974,14 @@ var { doExport } = (() => {
             return r.d(e2, "a", e2), e2;
           }, r.o = function(t2, e2) {
             return Object.prototype.hasOwnProperty.call(t2, e2);
-          }, r.p = "", r(r.s = 45);
+          }, r.p = "", r(r.s = 46);
         }([function(t, e, r) {
           "use strict";
           Object.defineProperty(e, "__esModule", { value: true });
           var n = r(1), o = r(12), i = r(6), a = r(7), c = r(2), u = function() {
             function t2(t3, e2, r2) {
-              var o2 = void 0 === r2 ? {} : r2, i2 = o2.keepSpace, a2 = void 0 !== i2 && i2, c2 = o2.prevTagName, u2 = void 0 === c2 ? "" : c2, s = o2.nextTagName, p = void 0 === s ? "" : s, l = o2.prevTagStr, f = void 0 === l ? "" : l, h = o2.nextTagStr, d = void 0 === h ? "" : h, _ = o2.parentTag, y = void 0 === _ ? "" : _, v = o2.isFirstSubTag, g = void 0 === v || v, b = o2.calcLeading, O = void 0 !== b && b, m = o2.leadingSpace, S = void 0 === m ? "" : m, T = o2.layer, x = void 0 === T ? 1 : T, j = o2.noWrap, w = void 0 !== j && j, P = o2.prevHasEndSpace, M = void 0 !== P && P, E = o2.prevHasStartSpace, N = void 0 !== E && E, C = o2.match, L = void 0 === C ? null : C, k = o2.indentSpace, A = void 0 === k ? "" : k, H = o2.language, W = void 0 === H ? "" : H, V = o2.count, R = void 0 === V ? 1 : V, I = o2.tableColumnCount, D = void 0 === I ? 0 : I, U = o2.noExtraLine, B = void 0 !== U && U, q = o2.inTable, F = void 0 !== q && q;
-              if (this.tagName = e2, this.rawStr = t3, this.parentTag = y, this.prevTagName = u2, this.nextTagName = p, this.prevTagStr = f, this.nextTagStr = d, this.isFirstSubTag = g, this.calcLeading = O, this.leadingSpace = S, this.layer = x, this.noWrap = w, this.match = L, this.indentSpace = A, this.language = W, this.count = R, this.inTable = F, this.tableColumnCount = D, this.noExtraLine = B, this.prevHasEndSpace = M, this.prevHasStartSpace = N, this.hasStartSpace = false, this.hasEndSpace = false, this.keepSpace = a2, !this.__detectStr__(t3, this.tagName)) return this.attrs = {}, void (this.innerHTML = "");
+              var o2 = void 0 === r2 ? {} : r2, i2 = o2.keepSpace, a2 = void 0 !== i2 && i2, c2 = o2.prevTagName, u2 = void 0 === c2 ? "" : c2, s = o2.nextTagName, p = void 0 === s ? "" : s, l = o2.prevTagStr, f = void 0 === l ? "" : l, h = o2.nextTagStr, d = void 0 === h ? "" : h, _ = o2.parentTag, y = void 0 === _ ? "" : _, v = o2.isFirstSubTag, g = void 0 === v || v, b = o2.calcLeading, m = void 0 !== b && b, O = o2.leadingSpace, S = void 0 === O ? "" : O, T = o2.layer, x = void 0 === T ? 1 : T, j = o2.noWrap, w = void 0 !== j && j, P = o2.prevHasEndSpace, M = void 0 !== P && P, E = o2.prevHasStartSpace, N = void 0 !== E && E, C = o2.match, L = void 0 === C ? null : C, k = o2.indentSpace, A = void 0 === k ? "" : k, H = o2.language, W = void 0 === H ? "" : H, V = o2.count, R = void 0 === V ? 1 : V, I = o2.tableColumnCount, q = void 0 === I ? 0 : I, D = o2.noExtraLine, U = void 0 !== D && D, B = o2.inTable, F = void 0 !== B && B;
+              if (this.tagName = e2, this.rawStr = t3, this.parentTag = y, this.prevTagName = u2, this.nextTagName = p, this.prevTagStr = f, this.nextTagStr = d, this.isFirstSubTag = g, this.calcLeading = m, this.leadingSpace = S, this.layer = x, this.noWrap = w, this.match = L, this.indentSpace = A, this.language = W, this.count = R, this.inTable = F, this.tableColumnCount = q, this.noExtraLine = U, this.prevHasEndSpace = M, this.prevHasStartSpace = N, this.hasStartSpace = false, this.hasEndSpace = false, this.keepSpace = a2, !this.__detectStr__(t3, this.tagName)) return this.attrs = {}, void (this.innerHTML = "");
               var G = this.__fetchTagAttrAndInnerHTML__(t3), $ = G.attr, J = G.innerHTML;
               J.startsWith(" ") && (0, n.isSpacePassingTag)(e2) && (this.hasStartSpace = true), J.endsWith(" ") && (0, n.isSpacePassingTag)(e2) && (this.hasEndSpace = true), this.attrs = $, this.innerHTML = J;
             }
@@ -1054,8 +1047,8 @@ var { doExport } = (() => {
           e.default = u;
         }, function(t, e, r) {
           "use strict";
-          Object.defineProperty(e, "__esModule", { value: true }), e.shouldRenderRawInside = e.isSpacePassingTag = e.isIndependentTag = e.clearComment = e.getLanguage = e.getTableAlign = e.getTagAttributes = e.isSelfClosing = e.generateGetNextValidTag = e.getTagConstructor = e.getRealTagName = e.unescapeStr = e.extraEscape = void 0;
-          var n = r(46);
+          Object.defineProperty(e, "__esModule", { value: true }), e.isSpacePassingTag = e.isIndependentTag = e.clearComment = e.getLanguage = e.getTableAlign = e.getTagAttributes = e.isSelfClosing = e.generateGetNextValidTag = e.getTagConstructor = e.getRealTagName = e.unescapeStr = e.extraEscape = void 0;
+          var n = r(18);
           Object.defineProperty(e, "extraEscape", { enumerable: true, get: function() {
             return n.extraEscape;
           } }), Object.defineProperty(e, "unescapeStr", { enumerable: true, get: function() {
@@ -1081,8 +1074,6 @@ var { doExport } = (() => {
           e.isSpacePassingTag = f.default;
           var h = r(55);
           e.getTableAlign = h.default;
-          var d = r(56);
-          e.shouldRenderRawInside = d.default;
         }, function(t, e, r) {
           "use strict";
           Object.defineProperty(e, "__esModule", { value: true });
@@ -1153,8 +1144,8 @@ var { doExport } = (() => {
             function t2(t3, e2, r2) {
               var n2 = void 0 === r2 ? {} : r2, o2 = n2.parentTag, i2 = void 0 === o2 ? "" : o2, a = n2.leadingSpace, c = void 0 === a ? "" : a, u = n2.layer, s = void 0 === u ? 1 : u, p = n2.isFirstSubTag, l = void 0 !== p && p, f = n2.inTable, h = void 0 !== f && f, d = n2.match, _ = void 0 === d ? null : d, y = n2.prevTagName, v = void 0 === y ? "" : y, g = n2.nextTagName, b = void 0 === g ? "" : g;
               if (this.tagName = e2, this.rawStr = t3, this.parentTag = i2, this.isFirstSubTag = l, this.prevTagName = v, this.nextTagName = b, this.leadingSpace = c, this.layer = s, this.innerHTML = "", this.match = _, this.inTable = h, this.__detectStr__(t3, this.tagName)) {
-                var O = this.__fetchTagAttr__(t3).attr;
-                this.attrs = O;
+                var m = this.__fetchTagAttr__(t3).attr;
+                this.attrs = m;
               } else this.attrs = {};
             }
             return t2.prototype.__detectStr__ = function(t3, e2) {
@@ -1354,8 +1345,8 @@ var { doExport } = (() => {
           var n = r(1), o = r(7), i = function() {
             function t2(t3, e2, r2) {
               void 0 === e2 && (e2 = "__nomatch__");
-              var n2 = void 0 === r2 ? {} : r2, o2 = n2.keepSpace, i2 = void 0 !== o2 && o2, a = n2.prevTagName, c = void 0 === a ? "" : a, u = n2.nextTagName, s = void 0 === u ? "" : u, p = n2.prevTagStr, l = void 0 === p ? "" : p, f = n2.prevHasEndSpace, h = void 0 !== f && f, d = n2.prevHasStartSpace, _ = void 0 !== d && d, y = n2.parentTag, v = void 0 === y ? "" : y, g = n2.calcLeading, b = void 0 !== g && g, O = n2.layer, m = void 0 === O ? 1 : O, S = n2.leadingSpace, T = void 0 === S ? "" : S, x = n2.inTable, j = void 0 !== x && x;
-              this.tagName = e2, this.nextTagName = s, this.prevTagName = c, this.parentTag = v, this.prevTagStr = l, this.keepSpace = i2, this.calcLeading = b, this.leadingSpace = T, this.layer = m, this.rawStr = t3, this.inTable = j, this.prevHasEndSpace = h, this.prevHasStartSpace = _, this.hasEndSpace = false, this.hasStartSpace = false, t3.startsWith(" ") && (this.hasStartSpace = true), t3.endsWith(" ") && (this.hasEndSpace = true);
+              var n2 = void 0 === r2 ? {} : r2, o2 = n2.keepSpace, i2 = void 0 !== o2 && o2, a = n2.prevTagName, c = void 0 === a ? "" : a, u = n2.nextTagName, s = void 0 === u ? "" : u, p = n2.prevTagStr, l = void 0 === p ? "" : p, f = n2.prevHasEndSpace, h = void 0 !== f && f, d = n2.prevHasStartSpace, _ = void 0 !== d && d, y = n2.parentTag, v = void 0 === y ? "" : y, g = n2.calcLeading, b = void 0 !== g && g, m = n2.layer, O = void 0 === m ? 1 : m, S = n2.leadingSpace, T = void 0 === S ? "" : S, x = n2.inTable, j = void 0 !== x && x;
+              this.tagName = e2, this.nextTagName = s, this.prevTagName = c, this.parentTag = v, this.prevTagStr = l, this.keepSpace = i2, this.calcLeading = b, this.leadingSpace = T, this.layer = O, this.rawStr = t3, this.inTable = j, this.prevHasEndSpace = h, this.prevHasStartSpace = _, this.hasEndSpace = false, this.hasStartSpace = false, t3.startsWith(" ") && (this.hasStartSpace = true), t3.endsWith(" ") && (this.hasEndSpace = true);
             }
             return t2.prototype.slim = function(t3) {
               if (this.keepSpace) return t3;
@@ -1513,6 +1504,23 @@ var { doExport } = (() => {
           e.default = o;
         }, function(t, e, r) {
           "use strict";
+          Object.defineProperty(e, "__esModule", { value: true }), e.unescapeStr = e.extraEscape = e.escapeStr = void 0;
+          var n = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'", "&apos;": "'", "&#x60;": "`", "&ldquo;": "\u201C", "&rdquo;": "\u201D" }, o = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "`": "&#x60;", "\u201C": "&ldquo;", "\u201D": "&rdquo;" }, i = /[&<>"'`\u201c\u201d]/g, a = RegExp(i.source), c = /&(?:amp|lt|gt|quot|#39|apos|#x60|ldquo|rdquo);/g, u = RegExp(c.source), s = [[/\\/g, "\\\\"], [/\*/g, "\\*"], [/^-/g, "\\-"], [/^\+ /g, "\\+ "], [/^(=+)/g, "\\$1"], [/^(#{1,6}) /g, "\\$1 "], [/`/g, "\\`"], [/^~~~/g, "\\~~~"], [/\[/g, "\\["], [/\]/g, "\\]"], [/^>/g, "\\>"], [/_/g, "\\_"], [/^(\d+)\. /g, "$1\\. "]];
+          e.escapeStr = function(t2) {
+            return t2 && a.test(t2) ? t2.replace(i, function(t3) {
+              return o[t3];
+            }) : t2;
+          }, e.unescapeStr = function(t2) {
+            return t2 = t2 && u.test(t2) ? t2.replace(c, function(t3) {
+              return n[t3];
+            }) : t2;
+          }, e.extraEscape = function(t2) {
+            return s.reduce(function(t3, e2) {
+              return t3.replace(e2[0], e2[1]);
+            }, t2);
+          };
+        }, function(t, e, r) {
+          "use strict";
           var n = this && this.__extends || /* @__PURE__ */ function() {
             var t2 = function(e2, r2) {
               return (t2 = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(t3, e3) {
@@ -1651,15 +1659,15 @@ var { doExport } = (() => {
             };
           }();
           Object.defineProperty(e, "__esModule", { value: true });
-          var o = function(t2) {
+          var o = r(4), i = r(18), a = function(t2) {
             function e2(e3, r2, n2) {
               return void 0 === r2 && (r2 = "b"), t2.call(this, e3, r2, n2) || this;
             }
             return n(e2, t2), e2.prototype.exec = function(t3, e3) {
-              return void 0 === e3 && (e3 = "\n"), this.inTable ? "" : "  " + e3;
+              return void 0 === e3 && (e3 = "\n"), this.inTable ? (0, i.escapeStr)("<br />") : "  " + e3;
             }, e2;
-          }(r(4).default);
-          e.default = o;
+          }(o.default);
+          e.default = a;
         }, function(t, e, r) {
           "use strict";
           var n = this && this.__extends || /* @__PURE__ */ function() {
@@ -2141,7 +2149,7 @@ var { doExport } = (() => {
             return n(e2, t2), e2.prototype.beforeMergeSpace = function(t3) {
               return this.calcLeading ? this.leadingSpace + t3 : t3;
             }, e2.prototype.exec = function(e3, r2) {
-              return void 0 === e3 && (e3 = "\n"), void 0 === r2 && (r2 = "\n"), this.prevTagName || !this.prevTagStr || this.prevTagStr.endsWith("\n") || (e3 = "\n\n"), this.nextTagName || !this.nextTagStr || this.nextTagStr.startsWith("\n") || (r2 = "\n\n"), t2.prototype.exec.call(this, e3, r2);
+              return void 0 === e3 && (e3 = "\n"), void 0 === r2 && (r2 = "\n"), this.prevTagName || !this.prevTagStr || this.prevTagStr.endsWith("\n") || (e3 = "\n\n"), this.nextTagName || !this.nextTagStr || this.nextTagStr.startsWith("\n") || (r2 = "\n\n"), this.inTable && (e3 = "", r2 = ""), t2.prototype.exec.call(this, e3, r2);
             }, e2;
           }(r(0).default);
           e.default = o;
@@ -2500,21 +2508,6 @@ var { doExport } = (() => {
           };
         }, function(t, e, r) {
           "use strict";
-          Object.defineProperty(e, "__esModule", { value: true }), e.unescapeStr = e.extraEscape = void 0;
-          var n = {}, o = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "`": "&#x60;", "\u201C": "&ldquo;", "\u201D": "&rdquo;" };
-          for (var i in o) n[o[i]] = i;
-          var a = /&(?:amp|lt|gt|quot|#39|#x60|ldquo|rdquo);/g, c = RegExp(a.source), u = [[/\\/g, "\\\\"], [/\*/g, "\\*"], [/^-/g, "\\-"], [/^\+ /g, "\\+ "], [/^(=+)/g, "\\$1"], [/^(#{1,6}) /g, "\\$1 "], [/`/g, "\\`"], [/^~~~/g, "\\~~~"], [/\[/g, "\\["], [/\]/g, "\\]"], [/^>/g, "\\>"], [/_/g, "\\_"], [/^(\d+)\. /g, "$1\\. "]];
-          e.unescapeStr = function(t2) {
-            return t2 = t2 && c.test(t2) ? t2.replace(a, function(t3) {
-              return n[t3];
-            }) : t2;
-          }, e.extraEscape = function(t2) {
-            return u.reduce(function(t3, e2) {
-              return t3.replace(e2[0], e2[1]);
-            }, t2);
-          };
-        }, function(t, e, r) {
-          "use strict";
           Object.defineProperty(e, "__esModule", { value: true });
           var n = r(11);
           function o(t2, e2) {
@@ -2583,7 +2576,7 @@ var { doExport } = (() => {
             return "string" === typeof t2 && n.includes(t2.toLowerCase());
           };
         }, function(t, e, r) {
-          var n = { "./__Heading__": 3, "./__Heading__.ts": 3, "./__empty__": 8, "./__empty__.ts": 8, "./__ignore__": 5, "./__ignore__.ts": 5, "./__nomatch__": 10, "./__nomatch__.ts": 10, "./__rawString__": 12, "./__rawString__.ts": 12, "./__skip__": 9, "./__skip__.ts": 9, "./a": 18, "./a.ts": 18, "./b": 19, "./b.ts": 19, "./blockquote": 20, "./blockquote.ts": 20, "./br": 21, "./br.ts": 21, "./code": 22, "./code.ts": 22, "./del": 15, "./del.ts": 15, "./em": 16, "./em.ts": 16, "./h1": 23, "./h1.ts": 23, "./h2": 24, "./h2.ts": 24, "./h3": 25, "./h3.ts": 25, "./h4": 26, "./h4.ts": 26, "./h5": 27, "./h5.ts": 27, "./h6": 28, "./h6.ts": 28, "./hr": 29, "./hr.ts": 29, "./i": 30, "./i.ts": 30, "./img": 31, "./img.ts": 31, "./input": 32, "./input.ts": 32, "./li": 33, "./li.ts": 33, "./ol": 34, "./ol.ts": 34, "./p": 35, "./p.ts": 35, "./pre": 36, "./pre.ts": 36, "./s": 37, "./s.ts": 37, "./span": 38, "./span.ts": 38, "./strong": 14, "./strong.ts": 14, "./table": 39, "./table.ts": 39, "./tbody": 40, "./tbody.ts": 40, "./td": 41, "./td.ts": 41, "./th": 17, "./th.ts": 17, "./thead": 42, "./thead.ts": 42, "./tr": 43, "./tr.ts": 43, "./ul": 44, "./ul.ts": 44 };
+          var n = { "./__Heading__": 3, "./__Heading__.ts": 3, "./__empty__": 8, "./__empty__.ts": 8, "./__ignore__": 5, "./__ignore__.ts": 5, "./__nomatch__": 10, "./__nomatch__.ts": 10, "./__rawString__": 12, "./__rawString__.ts": 12, "./__skip__": 9, "./__skip__.ts": 9, "./a": 19, "./a.ts": 19, "./b": 20, "./b.ts": 20, "./blockquote": 21, "./blockquote.ts": 21, "./br": 22, "./br.ts": 22, "./code": 23, "./code.ts": 23, "./del": 15, "./del.ts": 15, "./em": 16, "./em.ts": 16, "./h1": 24, "./h1.ts": 24, "./h2": 25, "./h2.ts": 25, "./h3": 26, "./h3.ts": 26, "./h4": 27, "./h4.ts": 27, "./h5": 28, "./h5.ts": 28, "./h6": 29, "./h6.ts": 29, "./hr": 30, "./hr.ts": 30, "./i": 31, "./i.ts": 31, "./img": 32, "./img.ts": 32, "./input": 33, "./input.ts": 33, "./li": 34, "./li.ts": 34, "./ol": 35, "./ol.ts": 35, "./p": 36, "./p.ts": 36, "./pre": 37, "./pre.ts": 37, "./s": 38, "./s.ts": 38, "./span": 39, "./span.ts": 39, "./strong": 14, "./strong.ts": 14, "./table": 40, "./table.ts": 40, "./tbody": 41, "./tbody.ts": 41, "./td": 42, "./td.ts": 42, "./th": 17, "./th.ts": 17, "./thead": 43, "./thead.ts": 43, "./tr": 44, "./tr.ts": 44, "./ul": 45, "./ul.ts": 45 };
           function o(t2) {
             var e2 = i(t2);
             return r(e2);
@@ -2651,9 +2644,6 @@ var { doExport } = (() => {
               return e3 || n2 ? e3 && !n2 ? r2[e3[1]] || r2._default_ : n2 ? r2[n2[1]] || r2._default_ : void 0 : r2._default_;
             }) : n;
           };
-        }, function(t, e, r) {
-          "use strict";
-          Object.defineProperty(e, "__esModule", { value: true }), e.default = ["th", "td"];
         }]).default;
       });
     }
@@ -18540,10 +18530,10 @@ var { doExport } = (() => {
       };
       CSL2.Util.PageRangeMangler = {};
       CSL2.Util.PageRangeMangler.getFunction = function(state, rangeType) {
-        var rangerex, pos, len, stringify, listify, expand, minimize, minimize_internal, chicago15, chicago16, lst, m, b, e, ret, begin, end, ret_func;
+        var rangerex, pos, len, stringify2, listify, expand, minimize, minimize_internal, chicago15, chicago16, lst, m, b, e, ret, begin, end, ret_func;
         var range_delimiter = state.getTerm(rangeType + "-range-delimiter");
         rangerex = /([0-9]*[a-zA-Z]+0*)?([0-9]+[a-z]*)\s*(?:\u2013|-)\s*([0-9]*[a-zA-Z]+0*)?([0-9]+[a-z]*)/;
-        stringify = function(lst2) {
+        stringify2 = function(lst2) {
           len = lst2.length;
           for (pos = 1; pos < len; pos += 2) {
             if ("object" === typeof lst2[pos]) {
@@ -18608,7 +18598,7 @@ var { doExport } = (() => {
               }
             }
           }
-          return stringify(lst2);
+          return stringify2(lst2);
         };
         minimize_internal = function(begin2, end2, minchars, isyear) {
           if (!minchars) {
@@ -18652,7 +18642,7 @@ var { doExport } = (() => {
               m[2] = range_delimiter;
             }
           }
-          return stringify(lst2);
+          return stringify2(lst2);
         };
         chicago16 = function(lst2) {
           len = lst2.length;
@@ -18676,7 +18666,7 @@ var { doExport } = (() => {
               m[2] = range_delimiter;
             }
           }
-          return stringify(lst2);
+          return stringify2(lst2);
         };
         var sniff = function(str, func, minchars, isyear) {
           var ret2;
@@ -18687,11 +18677,11 @@ var { doExport } = (() => {
         };
         if (!state.opt[rangeType + "-range-format"]) {
           ret_func = function(str) {
-            return sniff(str, stringify);
+            return sniff(str, stringify2);
           };
         } else if (state.opt[rangeType + "-range-format"] === "expanded") {
           ret_func = function(str) {
-            return sniff(str, stringify);
+            return sniff(str, stringify2);
           };
         } else if (state.opt[rangeType + "-range-format"] === "minimal") {
           ret_func = function(str) {
@@ -21635,7 +21625,7 @@ var { doExport } = (() => {
   });
 
   // content/client.ts
-  var worker = typeof location !== "undefined" && location.search;
+  var worker = typeof location !== "undefined" && !!location.search;
   var searchParams = worker && new URLSearchParams(location.search);
   var name = (() => {
     var _a3;
@@ -21653,7 +21643,6 @@ var { doExport } = (() => {
   })();
   var slug = name.toLowerCase().replace("-", "");
   var isBeta = version.includes("beta");
-  var run = worker ? searchParams.get("run") : Zotero.Utilities.generateObjectKey();
   var locale = worker ? searchParams.get("locale") : Zotero.locale;
   var platform = worker ? searchParams.get("platform") : Zotero.isWin ? "win" : Zotero.isMac ? "mac" : Zotero.isLinux ? "lin" : "unk";
   var isWin = worker ? searchParams.get("isWin") === "true" : Zotero.isWin;
@@ -21661,8 +21650,6 @@ var { doExport } = (() => {
   var isLinux = worker ? searchParams.get("isLinux") === "true" : Zotero.isLinux;
 
   // content/logger.ts
-  var version2 = require_version();
-  var run2 = `<${version2} ${run}>`;
   function stringifyXPCOM(obj) {
     if (!obj.QueryInterface) return "";
     if (obj.message) return `[XPCOM error ${obj.message}]`;
@@ -21686,21 +21673,28 @@ ${obj.stack}]`;
       if (value === null) return value;
       if (value instanceof Set) return [...value];
       if (value instanceof Map) return Object.fromEntries(value);
+      if (value instanceof RegExp) return value.source;
+      if (Array.isArray(value)) return value;
       switch (typeof value) {
         case "string":
         case "number":
         case "boolean":
+        case "function":
+        case "undefined":
           return value;
         case "object":
           return stringifyXPCOM(value) || stringifyError(value) || value;
       }
-      if (Array.isArray(value)) return value;
-      return void 0;
+      if (value.openDialog || value.querySelector) return value.toString();
+      return "{object}";
     };
+  }
+  function stringify(obj, indent) {
+    return JSON.stringify(obj, replacer(), indent);
   }
   function to_s(obj) {
     if (typeof obj === "string") return obj;
-    return JSON.stringify(obj, replacer(), 2);
+    return stringify(obj);
   }
   function format(...msg) {
     return msg.map(to_s).join(" ");
@@ -21733,7 +21727,7 @@ ${obj.stack}]`;
       }
     }
   }, _instances = new WeakSet(), prefix_fn = function(error) {
-    return `{${error ? "error: " : ""}${worker ? "worker: " : ""}${this.prefix}better-bibtex: ${run2}} `;
+    return `{${error ? "error: " : ""}${worker ? "worker: " : ""}${this.prefix}better-bibtex:} `;
   }, _a)();
 
   // content/file.ts
@@ -21752,7 +21746,7 @@ ${e.stack}
     }
     async isFile(path) {
       try {
-        return (await IOUtils.stat(path)).type === "file";
+        return (await IOUtils.stat(path)).type === "regular";
       } catch (err) {
         if (err.name !== "NotFoundError") log.error(path, "isFile", err);
         return false;
@@ -21761,8 +21755,8 @@ ${e.stack}
     async lastModified(path) {
       try {
         const stat = await IOUtils.stat(path);
-        if (stat.type !== "file") return 0;
-        return stat.lastModificationDate.getTime();
+        if (stat.type !== "regular") return 0;
+        return stat.lastModified;
       } catch {
         return 0;
       }
@@ -21788,9 +21782,6 @@ ${e.stack}
     basename(path) {
       const m = path.match(__privateGet(this, _basenameRE));
       return m ? m[2] : path;
-    }
-    isAbsolute(path) {
-      return isWin ? !!path.match(/:\\/) : path[0] === "/";
     }
   }, _home = new WeakMap(), _basenameRE = new WeakMap(), _a2)();
 
@@ -21820,10 +21811,12 @@ ${e.stack}
     cacheDelete: false,
     cacheRetain: false,
     charmap: "",
+    chinese: false,
+    chineseSplitName: true,
     citeCommand: "cite",
     citekeyCaseInsensitive: true,
     citekeyFold: true,
-    citekeyFormat: "auth.lower + shorttitle(3,3) + year",
+    citekeyFormat: " auth.lower + shorttitle(3,3) + year",
     citekeyFormatEditing: "",
     citekeySearch: true,
     citekeyUnsafeChars: `\\"#%'(),={}~`,
@@ -21851,10 +21844,9 @@ ${e.stack}
     importUnknownTexCommand: "ignore",
     itemObserverDelay: 5,
     jabrefFormat: 0,
-    jieba: false,
+    japanese: false,
     keyConflictPolicy: "keep",
     keyScope: "library",
-    kuroshiro: false,
     language: "langid",
     logEvents: true,
     mapMath: "",
@@ -22041,6 +22033,7 @@ ${e.stack}
       "gitbook": "GitBook",
       "orgRef": "org-ref citation",
       "orgRef3": "org-ref v3 citation",
+      "orgcite": "Org-mode citation link",
       "orgmode": "Org-mode select link",
       "pandoc": "Pandoc citation",
       "roamCiteKey": "Roam Cite Key",
@@ -22906,24 +22899,6 @@ ${e.stack}
 /*! Bundled license information:
 
 @stdlib/utils-define-property/lib/define_property.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2021 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/utils-define-property/lib/has_define_property_support.js:
   (**
   * @license Apache-2.0
@@ -22944,6 +22919,31 @@ ${e.stack}
   *)
 
 @stdlib/utils-define-property/lib/builtin.js:
+@stdlib/utils-define-property/lib/polyfill.js:
+@stdlib/utils-define-property/lib/index.js:
+@stdlib/utils-define-nonenumerable-read-only-property/lib/main.js:
+@stdlib/utils-define-nonenumerable-read-only-property/lib/index.js:
+@stdlib/assert-is-string/lib/primitive.js:
+@stdlib/assert-has-symbol-support/lib/main.js:
+@stdlib/assert-has-symbol-support/lib/index.js:
+@stdlib/assert-has-tostringtag-support/lib/main.js:
+@stdlib/assert-has-tostringtag-support/lib/index.js:
+@stdlib/utils-native-class/lib/tostring.js:
+@stdlib/utils-native-class/lib/main.js:
+@stdlib/assert-has-own-property/lib/main.js:
+@stdlib/assert-has-own-property/lib/index.js:
+@stdlib/symbol-ctor/lib/main.js:
+@stdlib/symbol-ctor/lib/index.js:
+@stdlib/utils-native-class/lib/tostringtag.js:
+@stdlib/utils-native-class/lib/polyfill.js:
+@stdlib/utils-native-class/lib/index.js:
+@stdlib/assert-is-string/lib/valueof.js:
+@stdlib/assert-is-string/lib/try2valueof.js:
+@stdlib/assert-is-string/lib/object.js:
+@stdlib/assert-is-string/lib/main.js:
+@stdlib/assert-is-string/lib/index.js:
+@stdlib/utils-escape-regexp-string/lib/main.js:
+@stdlib/utils-escape-regexp-string/lib/index.js:
   (**
   * @license Apache-2.0
   *
@@ -22963,713 +22963,22 @@ ${e.stack}
   *)
 
 @stdlib/string-base-format-interpolate/lib/is_number.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/zero_pad.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/format_integer.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/is_string.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/format_double.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/space_pad.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-tokenize/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-tokenize/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-format/lib/is_string.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-format/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-format/lib/index.js:
   (**
   * @license Apache-2.0
   *
   * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-define-property/lib/polyfill.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-define-property/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-define-nonenumerable-read-only-property/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-define-nonenumerable-read-only-property/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/primitive.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-symbol-support/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-symbol-support/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-tostringtag-support/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-tostringtag-support/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-native-class/lib/tostring.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-native-class/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-own-property/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-own-property/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/symbol-ctor/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/symbol-ctor/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-native-class/lib/tostringtag.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-native-class/lib/polyfill.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-native-class/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/valueof.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/try2valueof.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/object.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-escape-regexp-string/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-escape-regexp-string/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.
