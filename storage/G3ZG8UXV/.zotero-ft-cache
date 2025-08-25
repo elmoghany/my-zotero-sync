@@ -1,0 +1,59 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2501.06250 (cs)
+[Submitted on 8 Jan 2025]
+Generative AI for Cel-Animation: A Survey
+Yunlong Tang, Junjia Guo, Pinxin Liu, Zhiyuan Wang, Hang Hua, Jia-Xing Zhong, Yunzhong Xiao, Chao Huang, Luchuan Song, Susan Liang, Yizhi Song, Liu He, Jing Bi, Mingqian Feng, Xinyang Li, Zeliang Zhang, Chenliang Xu
+View PDF
+HTML (experimental)
+Traditional Celluloid (Cel) Animation production pipeline encompasses multiple essential steps, including storyboarding, layout design, keyframe animation, inbetweening, and colorization, which demand substantial manual effort, technical expertise, and significant time investment. These challenges have historically impeded the efficiency and scalability of Cel-Animation production. The rise of generative artificial intelligence (GenAI), encompassing large language models, multimodal models, and diffusion models, offers innovative solutions by automating tasks such as inbetween frame generation, colorization, and storyboard creation. This survey explores how GenAI integration is revolutionizing traditional animation workflows by lowering technical barriers, broadening accessibility for a wider range of creators through tools like AniDoc, ToonCrafter, and AniSora, and enabling artists to focus more on creative expression and artistic innovation. Despite its potential, issues such as maintaining visual consistency, ensuring stylistic coherence, and addressing ethical considerations continue to pose challenges. Furthermore, this paper discusses future directions and explores potential advancements in AI-assisted animation. For further exploration and resources, please visit our GitHub repository: this https URL
+Comments:	20 pages
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI); Human-Computer Interaction (cs.HC)
+Cite as:	arXiv:2501.06250 [cs.CV]
+ 	(or arXiv:2501.06250v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2501.06250
+Focus to learn more
+Submission history
+From: Yunlong Tang [view email]
+[v1] Wed, 8 Jan 2025 20:57:39 UTC (37,367 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2025-01
+Change to browse by: cs cs.AI cs.HC
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

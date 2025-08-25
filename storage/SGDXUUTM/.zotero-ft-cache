@@ -1,0 +1,59 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2412.18688 (cs)
+[Submitted on 24 Dec 2024]
+Video Is Worth a Thousand Images: Exploring the Latest Trends in Long Video Generation
+Faraz Waseem, Muhammad Shahzad
+View PDF
+HTML (experimental)
+An image may convey a thousand words, but a video composed of hundreds or thousands of image frames tells a more intricate story. Despite significant progress in multimodal large language models (MLLMs), generating extended videos remains a formidable challenge. As of this writing, OpenAI's Sora, the current state-of-the-art system, is still limited to producing videos that are up to one minute in length. This limitation stems from the complexity of long video generation, which requires more than generative AI techniques for approximating density functions essential aspects such as planning, story development, and maintaining spatial and temporal consistency present additional hurdles. Integrating generative AI with a divide-and-conquer approach could improve scalability for longer videos while offering greater control. In this survey, we examine the current landscape of long video generation, covering foundational techniques like GANs and diffusion models, video generation strategies, large-scale training datasets, quality metrics for evaluating long videos, and future research areas to address the limitations of the existing video generation capabilities. We believe it would serve as a comprehensive foundation, offering extensive information to guide future advancements and research in the field of long video generation.
+Comments:	35 pages, 18 figures, Manuscript submitted to ACM
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI)
+Cite as:	arXiv:2412.18688 [cs.CV]
+ 	(or arXiv:2412.18688v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2412.18688
+Focus to learn more
+Submission history
+From: Faraz Waseem [view email]
+[v1] Tue, 24 Dec 2024 21:24:41 UTC (17,745 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2024-12
+Change to browse by: cs cs.AI
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

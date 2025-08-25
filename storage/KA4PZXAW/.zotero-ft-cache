@@ -1,0 +1,58 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2407.08428 (cs)
+[Submitted on 11 Jul 2024]
+A Comprehensive Survey on Human Video Generation: Challenges, Methods, and Insights
+Wentao Lei, Jinting Wang, Fengji Ma, Guanjie Huang, Li Liu
+View PDF
+HTML (experimental)
+Human video generation is a dynamic and rapidly evolving task that aims to synthesize 2D human body video sequences with generative models given control conditions such as text, audio, and pose. With the potential for wide-ranging applications in film, gaming, and virtual communication, the ability to generate natural and realistic human video is critical. Recent advancements in generative models have laid a solid foundation for the growing interest in this area. Despite the significant progress, the task of human video generation remains challenging due to the consistency of characters, the complexity of human motion, and difficulties in their relationship with the environment. This survey provides a comprehensive review of the current state of human video generation, marking, to the best of our knowledge, the first extensive literature review in this domain. We start with an introduction to the fundamentals of human video generation and the evolution of generative models that have facilitated the field's growth. We then examine the main methods employed for three key sub-tasks within human video generation: text-driven, audio-driven, and pose-driven motion generation. These areas are explored concerning the conditions that guide the generation process. Furthermore, we offer a collection of the most commonly utilized datasets and the evaluation metrics that are crucial in assessing the quality and realism of generated videos. The survey concludes with a discussion of the current challenges in the field and suggests possible directions for future research. The goal of this survey is to offer the research community a clear and holistic view of the advancements in human video generation, highlighting the milestones achieved and the challenges that lie ahead.
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI)
+Cite as:	arXiv:2407.08428 [cs.CV]
+ 	(or arXiv:2407.08428v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2407.08428
+Focus to learn more
+Submission history
+From: Wentao Lei [view email]
+[v1] Thu, 11 Jul 2024 12:09:05 UTC (2,947 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2024-07
+Change to browse by: cs cs.AI
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

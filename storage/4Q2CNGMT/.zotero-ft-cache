@@ -1,0 +1,61 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2303.08320 (cs)
+[Submitted on 15 Mar 2023 (v1), last revised 13 Oct 2023 (this version, v4)]
+VideoFusion: Decomposed Diffusion Models for High-Quality Video Generation
+Zhengxiong Luo, Dayou Chen, Yingya Zhang, Yan Huang, Liang Wang, Yujun Shen, Deli Zhao, Jingren Zhou, Tieniu Tan
+View PDF
+A diffusion probabilistic model (DPM), which constructs a forward diffusion process by gradually adding noise to data points and learns the reverse denoising process to generate new samples, has been shown to handle complex data distribution. Despite its recent success in image synthesis, applying DPMs to video generation is still challenging due to high-dimensional data spaces. Previous methods usually adopt a standard diffusion process, where frames in the same video clip are destroyed with independent noises, ignoring the content redundancy and temporal correlation. This work presents a decomposed diffusion process via resolving the per-frame noise into a base noise that is shared among all frames and a residual noise that varies along the time axis. The denoising pipeline employs two jointly-learned networks to match the noise decomposition accordingly. Experiments on various datasets confirm that our approach, termed as VideoFusion, surpasses both GAN-based and diffusion-based alternatives in high-quality video generation. We further show that our decomposed formulation can benefit from pre-trained image diffusion models and well-support text-conditioned video creation.
+Comments:	Accepted to CVPR2023
+Subjects:	Computer Vision and Pattern Recognition (cs.CV)
+Cite as:	arXiv:2303.08320 [cs.CV]
+ 	(or arXiv:2303.08320v4 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2303.08320
+Focus to learn more
+Submission history
+From: Zhengxiong Luo [view email]
+[v1] Wed, 15 Mar 2023 02:16:39 UTC (8,461 KB)
+[v2] Thu, 16 Mar 2023 14:12:31 UTC (8,461 KB)
+[v3] Wed, 22 Mar 2023 11:24:34 UTC (8,461 KB)
+[v4] Fri, 13 Oct 2023 01:43:04 UTC (6,354 KB)
+
+Access Paper:
+View PDFTeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2023-03
+Change to browse by: cs
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

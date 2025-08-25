@@ -14,9 +14,9 @@
 	},
 	"inRepository": false,
 	"configOptions": {
-		"hash": "875ac4b483637492ed209e38bdde2453f42d2e7f3fc9c8f607460574c9b62f6c"
+		"hash": "d7b45aaaac090eeee649925489c9577f33364a8bdfd61ef984f33a41b56fb20f"
 	},
-	"lastUpdated": "2025-01-10"
+	"lastUpdated": "2025-06-24"
 }
 
 ZOTERO_CONFIG = {"GUID":"zotero@zotero.org","ID":"zotero","CLIENT_NAME":"Zotero","DOMAIN_NAME":"zotero.org","PRODUCER":"Digital Scholar","PRODUCER_URL":"https://digitalscholar.org","REPOSITORY_URL":"https://repo.zotero.org/repo/","BASE_URI":"http://zotero.org/","WWW_BASE_URL":"https://www.zotero.org/","PROXY_AUTH_URL":"https://zoteroproxycheck.s3.amazonaws.com/test","API_URL":"https://api.zotero.org/","STREAMING_URL":"wss://stream.zotero.org/","SERVICES_URL":"https://services.zotero.org/","API_VERSION":3,"CONNECTOR_MIN_VERSION":"5.0.39","PREF_BRANCH":"extensions.zotero.","BOOKMARKLET_ORIGIN":"https://www.zotero.org","BOOKMARKLET_URL":"https://www.zotero.org/bookmarklet/","START_URL":"https://www.zotero.org/start","QUICK_START_URL":"https://www.zotero.org/support/quick_start_guide","PDF_TOOLS_URL":"https://www.zotero.org/download/xpdf/","SUPPORT_URL":"https://www.zotero.org/support/","SYNC_INFO_URL":"https://www.zotero.org/support/sync","TROUBLESHOOTING_URL":"https://www.zotero.org/support/getting_help","FEEDBACK_URL":"https://forums.zotero.org/","CONNECTORS_URL":"https://www.zotero.org/download/connectors","CHANGELOG_URL":"https://www.zotero.org/support/changelog","CREDITS_URL":"https://www.zotero.org/support/credits_and_acknowledgments","LICENSING_URL":"https://www.zotero.org/support/licensing","GET_INVOLVED_URL":"https://www.zotero.org/getinvolved","DICTIONARIES_URL":"https://download.zotero.org/dictionaries/","PLUGINS_URL":"https://www.zotero.org/support/plugins","NEW_FEATURES_URL":"https://www.zotero.org/blog/zotero-7/"}
@@ -1196,7 +1196,7 @@ var { citeCreators, doExport, yearFromDate } = (() => {
   });
 
   // content/client.ts
-  var worker = typeof location !== "undefined" && location.search;
+  var worker = typeof location !== "undefined" && !!location.search;
   var searchParams = worker && new URLSearchParams(location.search);
   var name = (() => {
     var _a;
@@ -1214,7 +1214,6 @@ var { citeCreators, doExport, yearFromDate } = (() => {
   })();
   var slug = name.toLowerCase().replace("-", "");
   var isBeta = version.includes("beta");
-  var run = worker ? searchParams.get("run") : Zotero.Utilities.generateObjectKey();
   var locale = worker ? searchParams.get("locale") : Zotero.locale;
   var platform = worker ? searchParams.get("platform") : Zotero.isWin ? "win" : Zotero.isMac ? "mac" : Zotero.isLinux ? "lin" : "unk";
   var isWin = worker ? searchParams.get("isWin") === "true" : Zotero.isWin;
@@ -1422,7 +1421,6 @@ var { citeCreators, doExport, yearFromDate } = (() => {
     return `${date.year}`;
   }
   var Mode = {
-    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
     gitbook(items) {
       const citations = items.map((item) => `{{ "${item.citationKey}" | cite }}`);
       Zotero.write(citations.join(""));
@@ -1458,6 +1456,10 @@ var { citeCreators, doExport, yearFromDate } = (() => {
     orgRef3(items) {
       if (!items.length) return "";
       Zotero.write(`cite:&${items.map((item) => item.citationKey).join(";&")}`);
+    },
+    orgcite(items) {
+      if (!items.length) return "";
+      Zotero.write(`[cite:@${items.map((item) => item.citationKey).join("; @")}]`);
     },
     orgmode(items) {
       switch (Zotero.getHiddenPref("better-bibtex.quickCopyOrgMode")) {
@@ -1530,24 +1532,6 @@ var { citeCreators, doExport, yearFromDate } = (() => {
 /*! Bundled license information:
 
 @stdlib/utils-define-property/lib/define_property.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2021 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/utils-define-property/lib/has_define_property_support.js:
   (**
   * @license Apache-2.0
@@ -1568,6 +1552,31 @@ var { citeCreators, doExport, yearFromDate } = (() => {
   *)
 
 @stdlib/utils-define-property/lib/builtin.js:
+@stdlib/utils-define-property/lib/polyfill.js:
+@stdlib/utils-define-property/lib/index.js:
+@stdlib/utils-define-nonenumerable-read-only-property/lib/main.js:
+@stdlib/utils-define-nonenumerable-read-only-property/lib/index.js:
+@stdlib/assert-is-string/lib/primitive.js:
+@stdlib/assert-has-symbol-support/lib/main.js:
+@stdlib/assert-has-symbol-support/lib/index.js:
+@stdlib/assert-has-tostringtag-support/lib/main.js:
+@stdlib/assert-has-tostringtag-support/lib/index.js:
+@stdlib/utils-native-class/lib/tostring.js:
+@stdlib/utils-native-class/lib/main.js:
+@stdlib/assert-has-own-property/lib/main.js:
+@stdlib/assert-has-own-property/lib/index.js:
+@stdlib/symbol-ctor/lib/main.js:
+@stdlib/symbol-ctor/lib/index.js:
+@stdlib/utils-native-class/lib/tostringtag.js:
+@stdlib/utils-native-class/lib/polyfill.js:
+@stdlib/utils-native-class/lib/index.js:
+@stdlib/assert-is-string/lib/valueof.js:
+@stdlib/assert-is-string/lib/try2valueof.js:
+@stdlib/assert-is-string/lib/object.js:
+@stdlib/assert-is-string/lib/main.js:
+@stdlib/assert-is-string/lib/index.js:
+@stdlib/utils-escape-regexp-string/lib/main.js:
+@stdlib/utils-escape-regexp-string/lib/index.js:
   (**
   * @license Apache-2.0
   *
@@ -1587,713 +1596,22 @@ var { citeCreators, doExport, yearFromDate } = (() => {
   *)
 
 @stdlib/string-base-format-interpolate/lib/is_number.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/zero_pad.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/format_integer.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/is_string.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/format_double.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/space_pad.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-interpolate/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-tokenize/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-base-format-tokenize/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-format/lib/is_string.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-format/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
 @stdlib/string-format/lib/index.js:
   (**
   * @license Apache-2.0
   *
   * Copyright (c) 2022 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-define-property/lib/polyfill.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-define-property/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-define-nonenumerable-read-only-property/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-define-nonenumerable-read-only-property/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/primitive.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-symbol-support/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-symbol-support/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-tostringtag-support/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-tostringtag-support/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-native-class/lib/tostring.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-native-class/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-own-property/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-has-own-property/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/symbol-ctor/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/symbol-ctor/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-native-class/lib/tostringtag.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-native-class/lib/polyfill.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-native-class/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/valueof.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/try2valueof.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/object.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/assert-is-string/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-escape-regexp-string/lib/main.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *)
-
-@stdlib/utils-escape-regexp-string/lib/index.js:
-  (**
-  * @license Apache-2.0
-  *
-  * Copyright (c) 2018 The Stdlib Authors.
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.

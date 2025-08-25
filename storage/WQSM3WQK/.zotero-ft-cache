@@ -1,0 +1,719 @@
+SKYREELS-V2: INFINITE-LENGTH FILM GENERATIVE MODEL
+SkyReels Team Skywork AI
+ABSTRACT
+Recent advances in video generation have been driven by diffusion models and autoregressive frameworks, yet critical challenges persist in harmonizing prompt adherence, visual quality, motion dynamics, and duration: compromises in motion dynamics to enhance temporal visual quality, constrained video duration (5-10 seconds) to prioritize resolution, and inadequate shot-aware generation stemming from general-purpose MLLMs’ inability to interpret cinematic grammar, such as shot composition, actor expressions, and camera motions. These intertwined limitations hinder realistic long-form synthesis and professional film-style generation. To address these limitations, we propose SkyReels-V2, an Infinite-length Film Generative Model, that synergizes Multi-modal Large Language Model (MLLM), Multi-stage Pretraining, Reinforcement Learning, and Diffusion Forcing Framework. Firstly, we design a comprehensive structural representation of video that combines the general descriptions by the Multi-modal LLM and the detailed shot language by sub-expert models. Aided with human annotation, we then train a unified Video Captioner, named SkyCaptioner-V1, to efficiently label the video data. Secondly, we establish progressive-resolution pretraining for the fundamental video generation, followed by a four-stage post-training enhancement: Initial concept-balanced Supervised Fine-Tuning (SFT) improves baseline quality; Motion-specific Reinforcement Learning (RL) training with human-annotated and synthetic distortion data addresses dynamic artifacts; Our diffusion forcing framework with non-decreasing noise schedules enables long-video synthesis in an efficient search space; Final high-quality SFT refines visual fidelity. Experiments demonstrate state-of-the-art performance in prompt adherence (especially the shot language), motion quality with sufficient dynamics, and film-style long-video generation capability, enabling several applications such as story generation, image-to-video synthesis, camera director and elements-to-video generation. All the code and models are available at https://github.com/SkyworkAI/SkyReels-V2.
+1 Introduction
+Video generation has emerged as a pivotal domain in generative AI, enabling applications from creative content production to virtual simulation. While closed-source diffusion models have successful commercial applications, such as Sora [1], Kling1.6 [2], Hailuo [3], and Veo2 [4], open-source models struggles to reduce the performance gap with the closed-source models, among which Wan2.1 [5] shows a great improvement on the public benchmark and ranks, securing the No.1 position as of 2025-02-24 in V-bench1.0 [6]. However, the commercial application of these video generative models for film makers still faces great challenges, including a minor text alignment in shot-language prompt following, lack of high-quality motion dynamics, and limited duration (typically 5s-10s). Several factors account for these limitations. Firstly, most of existing methods leverage the general MLLM to caption the video data which has a minor text alignment when handling the movie or film scenario with detailed shot language, such that the generation results will lose the professional movie performance. Secondly, optimization objectives in these models remain underexplored, leading to a poor motion quality that is important for the film maker. Standard denoising losses prioritize the frame-wise appearance learning and struggles with the temporal coherence as analysed in [7]. Though recent methods try the preference alignment methods to improve all metrics simutanously, such as semantics, aesthetics and motion dynamics. The weighting for each metric will be ill-defined, leading to a sub-optimal result. Furthermore, two primary methods dominates the video generation framework, including the diffusion models and autoregressive (AR) models. While diffusion models have set new benchmarks for visual quality through iterative denoising, and autoregressive (AR) models excel in temporal coherence, existing approaches struggle to harmonize these strengths. For instance, pure diffusion models often produce visually stunning but temporally fragmented outputs, while AR models
+arXiv:2504.13074v3 [cs.CV] 21 Apr 2025
+
+
+...
+...
+Frame 1 Frame 64 Frame 128 Frame 256 Infinity
+A cyclist pedals furiously along a winding mountain road, his eyes fixed on the path ahead...
+A rally car taking a fast turn on a track
+an adorable kangaroo wearing a green dress and a sun hat taking a pleasant stroll in Antarctica during a beautiful sunset
+A sea turtle swimming near a shipwreck.
+Figure 1: SkyReels-V2 produces stunningly realistic and cinematic high-resolution videos of virtually unlimited length. The model excels at maintaining visual consistency of the main subject across all frames, ensuring no distortion and delivering exceptional quality throughout the extended video sequences.
+suffer from error accumulation and degraded resolution. Due to these limitations, both of the methods cannot produce a long-duration video. To combine the merits of both high-fidelity diffusion methods and casual auto-regressive methods, some researchers proposes the diffusion-forcing transformers (DFoT) to bridge this gap but face critical limitations: DFoT’s combinatorial noise schedules lead to unstable training.
+To overcome these limitations, we propose the SkyReels-V2 that synergizes Multi-modal Large Language model (MLLM), Multi-stage Pretraining, Reinforcement Learning, and Diffusion-forcing framework. Our approach begins with a careful ensemble design for video captioning. We propose a structural representations for a training video clip, which includes the subject type, subject appearance, expression, action, position, etc. Some of the fields can be well understood by the general MLLM models like Qwen2.5-VL [8]. These fields requires expert models, such as the shot type, shot angle, shot position, expression, and camera motions. To enhance the understanding of these fields, we train several expert models to achieve accurate descriptions. For efficiently labeling, we then distill the knowledge of both the general captioner and expert models into a unified MLLM model - SkyCaptioner-V1. The final text prompt is refined by a LLM to form the diverse description of video captions following the same original structural information. With these careful text description, we then pretrain a base diffusion model in progressive resolutions. After that we perform a first high-quality SFT stage with concept-balanced data to set up a good initialization for further optimizations. Then, inspired by the success application of Reinforcement Learning in LLM reasoning models like GPT-o1 [9] and deepseek-R1 [10], we enhance the motion quality of the pretrained model through preference optimizations. To tackle the high cost of data annotation in RL, we propose a semi-auto pipeline to produce preference pairs. Besides, to unlock long-video synthesis and reduce convergence uncertainty, instead of pretraining the diffusion-forcing model from scratch, we propose a diffusion-forcing post-training where the pretrained full diffusion model will be finetuned into a diffusion-forcing model. To reduce the search space of denoising schedule as in [11],we use the non-decreasing noise schedule in the consecutive frames, which significantly reduce the Composition Space Size from O(1e48) to O(1e32). Finally, we train the model in the higher resolution and apply distill techniques to enable a high-quality commercial
+2
+
+
+Data Collection HQ 540p SFT RL HQ 720p SFT
+Progressive-resolution Pretraining Post Training Application
+Image2Video
+Camera Director
+Story Generation
+Elements2Video
+Diffusion Forcing Transformer (DFoT)
+Non-decreasing Noise Injection
+t=0.1 t=0.3 t=0.6
+Captioning & Processing & Pretraining DF
+VLM-based Reward Model
+Instructions Visual Tokens
+score
+Filter & Crop & Balance & Bucket
+256p
+360p 540p
+DiT
+t=0.9
+SkyCaptioner-V1
+DiT
+Figure 2: Overview of the proposed method.
+application. The proposed model also enables several applications including story generation, image-to-video synthesis, camera director and elements-to-video generation.
+Extensive experiments demonstrate the superior performance of SkyReels-V2 compared to current state-of-the-art methods. To the best of our knowledge, it represents the first open-source video generative model employing diffusionforcing architecture that achieves the highest V-Bench score among publicly available models. Notably, our solution unlocks unprecedented infinite-length generation capabilities as depicted in Figure 1. Human assessments conducted through the SkyReels-Bench benchmark further reveal that our model outperforms several closed-source alternatives and demonstrates comparable results with the leading video generative model in the field. Our main contributions are summarized as follow:
+• Comprehensive video captioner that understand the shot language while capturing the general description of the video, which dramatically improve the prompt adherence.
+• Motion-specific preference optimization enhances motion dynamics with a semi-automatic data collection pipeline.
+• Effective Diffusion-forcing adaptation enables the generation of ultra-long videos and story generation capabilities, providing a robust framework for extending temporal coherence and narrative depth.
+• SkyCaptioner-V1 and SkyReels-V2 series models including diffusion-forcing, text2video, image2video, camera director and elements2video models with various sizes (1.3B, 5B, 14B) are open-sourced.
+2 Related Work
+2.1 Video Generative Models
+The field of video generation has witnessed remarkable advancements over the past year. While closed-source models like OpenAI Sora [1], KuaiShou Kling [2], MiniMax Hailuo [3], RunwayML Gen-4 [12], and Google Veo2 [4] have achieved commercial success, open-source alternatives are rapidly closing the performance gap. Early architectures predominantly employed 2D Spatial + 1D Temporal frameworks such as Make-A-Video [13], AnimateDiff [14], Stable Video Diffusion [15], etc., which have gradually evolved into sophisticated 3D full-attention systems exemplified by Video Diffusion Models [16] and CogVideoX [17]. Recent open-source implementations including HunyuanVideo [18], StepVideo [19], SkyReels-V1[20], OpenSora-2.0 [21], and Wan2.1 [5] demonstrate progressively diminishing quality disparities with their proprietary counterparts.
+These improvements stem from multi-faceted innovations: architectural transitions from U-Net [22] to DiT [23] or MMDiT [24] structures, enhanced VAE implementations [25, 26, 27, 28, 29, 18, 5], upgraded text encoders [30, 31, 18, 32], and paradigm shifts from DDPM [33, 34] to flow matching [35, 24] optimization. Concurrently, refined data processing pipelines and advancements in video captioning capabilities (GPT-4o [36], Qwen2.5-VL [8], Gemini 2.5 [37], Tarsier2 [38], etc.) have significantly contributed to quality enhancements. The frontier of research now extends to novel integrations of reinforcement learning, hybrid autoregressive-diffusion approaches, and long-form video generation techniques. These emerging directions promise to bridge the remaining gap towards achieving cinematic-quality video synthesis.
+3
+
+
+2.2 Alignment on Diffusion models
+The success of Reinforcement Learning from Human Feedback (RLHF) in aligning large language models with human preferences [39] has inspired its adaptation to visual generation tasks. There are two main representative optimization algorithms: (1) Reward-Weighted Regression (RWR) methods [40, 41] employ reinforcement learning to optimize policy models by weighting trajectories with explicit reward models; (2) Direct Preference Optimization (DPO) strategies [42, 43, 44, 45, 19, 46] bypasses explicit reward modeling by directly optimizing preference data. These methods have been proved to successfully enhance performances of diffusion models with human preferences, improving aesthetics and semantic consistency. Following the framework in [46], we apply DPO method on flow matching for incorporating human feedback. Unlike the previous works, we mainly focus on the motion quality, ignoring the text-alignment and the visual quality optimizations that will be improved by the other training stages.
+Reward models play a important role in aligning generative models, as they are used to collect preference data. Early works employed metrics like CLIP scores [30] and image quality scores [47] as reward model to improve the assessment of visual quality and text alignment. Recent methods [46, 48, 49] have started training Reward Models with humanannotated datasets, resulting in more accurate and direct outcomes. However, the generated data used in these methods are relatively outdated, leading to poor human alignment in motion quality of the trained Reward Models. Considering the high cost in collecting and annotating motion quality data, we propose a semi-automatic data collection pipeline to scale the motion-quality data, achieving significant improvements in alignment performance.
+2.3 Diffusion forcing framework
+While existing diffusion models have demonstrated remarkable success in video generation, they remain constrained to producing fixed-length sequences, lacking the unlimited sequence extension capability inherent in Large Language Models (LLMs) through autoregressive token prediction. Previous autoregressive approaches attempting to model video as next-token prediction suffer from error accumulation issues, leading to suboptimal performance compared to diffusion-based approaches. The emerging paradigm of Diffusion Forcing [50] addresses this by establishing a next-token prediction mechanism through independent noise level to form partial masking, thereby combining the high-quality generation of diffusion models with the infinite extension potential of autoregressive methods. However, the expanded search space in this framework introduces significant training challenges. To overcome this, AR-Diffusion [51] introduces a novel non-decreasing timestep constraint that systematically reduces the search space and stabilizes the training process. Furthermore, the History-Guided Video Diffusion [52] enhances temporal coherence by extending Classifier-Free Guidance (CFG) [53] to accommodate variable-length context frame conditioning, significantly improving historical information utilization. CausVid [54] proposes an efficient adaptation strategy through DMD distillation [55, 56], enabling direct conversion of pretrained bidirectional diffusion transformers into autoregressive diffusion forcing architectures without full retraining. Additionally, the Long Context Tuning framework [57] implements a extensive approach: applying diffusion forcing at the scene level while maintaining full-sequence diffusion at the shot level, thereby enabling infinitely extensible story generation while preserving local visual quality. These innovations collectively advance the frontier of long-form video synthesis through synergistic integration of diffusion and auto-regressive paradigms.
+3 Methods
+In this section, we present a comprehensive overview of our methodology. Figure 2 illustrates the training framework. We begin by detailing the data processing pipeline in Sec. 3.1, followed by an explanation of the Video Captioner architecture in Sec. 3.2. Next, we describe our multi-task pretraining strategy in Sec. 3.3. Subsequently, we elaborate on post-training optimization techniques in Sec. 3.4, including Reinforcement Learning in Sec. 3.4.1, Diffusion Forcing Training in Sec. 3.4.2, and High-quality Supervised Fine-Tuning (SFT) stages in Sec. 3.4.3. We further outline the computational infrastructure for training and inference in Sec. 4. To validate our approach, we conduct a systematic comparison with state-of-the-art baselines in Sec. 5. Finally, we demonstrate practical applications of the proposed model in Sec. 6, including Story Generation, Image-to-Video Synthesis, Camera Director and Elements-to-Video Generation.
+3.1 Data Processing
+Data processing stands as the cornerstone of video model training, and our framework integrates three critical components—Data Sources, Processing Pipeline, and Human-In-The-Loop Validation—to ensure robust quality control. The Processing Pipeline, as depicted in Figure 3, employs a progressive filtering strategy that transitions from loose to strict criteria, systematically reducing data volume while enhancing quality throughout the training process. This
+4
+
+
+Pool
+256p Video
+256p Image
+- Deduplication - Synthetic Data Filter - Black Screen Filter - Static Screen Filter - Mosaic Filter - Special effect/sticker Filter
+360p Video
+540p Video
+720p Video
+Pre-training Stages Post-training Stages
+- Motion Filter - OCR Filter - Aesthetic Filter - Duration Filter - Quality Filters
+Data Sources
+360p Image
+540p Video
+- Deduplication - Synthetic Data Filter
+- OCR Filter - Aesthetic Filter - Quality Filters
+- Concept Balance - Quality Filters
+- Manually Filter
+- Motion Filter - Aesthetic Filter - Source Filter - Subtitle Crop - Logo Crop - Black Border Crop - Quality Filters
+Shot Segmentation
+Captioning
+Pre-processing Stage
+Human-In-The-Loop Validation
+BadCase Rate
+- Basic Quality - Video Type Issues - Post-processing Artifacts
+Figure 3: Data Processing Pipeline.
+pipeline begins with raw inputs from diverse Data Sources, which are then processed through an automated pipeline designed to control the quality of samples by different filtering thresholds. A key pillar of our pipeline is the integration of Human-In-The-Loop Validation, which focuses on manual evaluation of sampled data from both raw data sources and training samples in different stages. By conducting systematic sampling inspections at key stages—from initial data ingestion to pipeline outputs—this step ensures that ambiguous, erroneous, or non-compliant data are identified and rectified, ultimately safeguarding the final data quality critical for robust model training.
+3.1.1 Data Sources
+Given our objective to develop a film generative model, our multi-stage quality assurance framework integrates data from three primary sources: (1) The general-purpose dataset integrates open-source resources including Koala-36M [58], HumanVid [59], along with additional web-crawled video resources from the internet. (2) Self-collected media comprising 280,000+ films and 800,000+ TV episodes spanning 120+ countries (estimated total duration: 6.2M+ hours). (3) Artistic repositories featuring high-quality video assets from Internet. The raw dataset reaches O(100M ) scale, with different subsets utilized at various training stages based on quality requirements. We also collected O(100M ) concept-balanced image data to accelerate the establishment of generation capabilities during early training.
+3.1.2 Processing Pipeline
+As shown in Figure 3, to obtain the training data pool, two pre-processing procedures are applied on the raw datas: Shot Segmentation and Captioning. After that, we handle the data quality issues using a series of data filters in different training stages. Through systematic analysis, we categorize data quality issues into three classes: 1) Basic quality: low-resolution sources, low frame rates, black/white/static screens, camera shake, unstable motion, and arbitrary shot transitions. 2) Video type issues: surveillance footage, game recordings, animation, meaningless content, and static videos. 3) Post-processing artifacts: subtitles, logos, image editing, split screens, black/blurred borders, picture-inpicture, speed variations, and special effects/mosaics. The detailed definitions of these issues are shown in Table 1. Besides, we also use some data croppers to fix specific quality issues and perform the data balancing to ensure the generalization of the model. Pre-training Stages produce data for Multistage-pretraining in Sec. 3.3. Post-training Stages produce data for Post Training in Sec. 3.4.
+Pre-processing Stage The pre-processing stage consists of two processes: 1) Shot Segmentation: All raw videos go through shot boundary detection using PyDetect and TransNet-V2 [60] and are splitted into single-shot video clips. 2) Captioning: Segmented single-shot clips are annotated using our hierarchical captioning system as described in Section 3.2. After the pre-processing stage, the training data pool will undergo a series of data filters, which set different thresholds for different training stages. Meanwhile, data croppers are introduced to fix several data quality issues.
+5
+
+
+Details of Data Filters In this part, we explain the taxonomy and details of the data filters. Data Filters consist of Element Filters and Quality Filters to filter data for different training stages. Element Filters are used to justify the severity of specific quality issues. These filters are either classification-based filters to test the existence or classes of issues, or score-based filters that will set different thresholds for different quality requirements. Element Filters include: 1) Black Screen Filter: use heuristic rules to detect the data with black screen. 2) Static Screen Filter: calculate a flow-based score to detect the static screen data. 3) Aesthetic Filter: rely on the aesthetic model [61] to get the a score. 4) Deduplication: To enhance the diversity of our pre-training set, we eliminate perceptually redundant clips from it by leveraging the similarity within the copy-detection embedding space [62]. 5) OCR Filter: analyse the existence of text and calculate the occupancy ratio of the text and crop the data dependent on the training stage. 6) Mosaic Filter: a trained expert model to detect the mosaic region. 7) Special effect/sticker Filter: a trained expert model to identify the Special effect/sticker. Besides, we also include several Quality Filters, such as the Video Quality Assessment (VQA) model [63, 64, 65], Image Quality Assessment (IQA) model [66], and Video Training Suitability Score (VTSS) [58]. We will use these model after certain training stages and set different thresholds to filer data. Figure 3 illustrates the application of different data filters during different training stages.
+OCR Detection on Candidate Regions
+Logo Detection on Candidate Regions
+Largest Interior Rectangle on Valid Region
+Raw Frame
+Figure 4: The pipeline of subtitle and logo cropping. Subtitles and logos are detected in candidate regions (dotted line). Then the largest interior rectangle is obtained beyond the the detection bounding boxes via Algorithm A1.
+Details of Subtitle and Logo Crop Most of our training data comes from movies and TV series, which may have subtitles and channel logos that can affect the final video generation model’s quality. Discarding this data directly is wasteful. To tackle this, we perform subtitle detection, logo detection, and video cropping sequentially on each video clip to remove overlays while keeping data quantity. Before subtitle detection, we do Black Border Crop using heuristic - based methods to crop black borders, ensuring more reasonable subtitle position detection by providing cleaner data. For subtitle detection, we define four potential regions (top 20%, bottom 40%, left 20%, and right 20% of the frame borders) as candidate areas. Then the CRAFT model [67] is utilized to perform OCR detection on these regions in all video frames, and the coordinates of the OCR bounding boxes are recorded. Similarly, for logo detection, we focus on four corner regions (each covering 15% of frame width/height) and employ the MiniCPM-o model [68] to detect and record the logo coordinates. In the video cropping phase, we first construct a binary matrix that matches the dimensions of the video frame, where the detected subtitle/logo regions are marked 0 and other areas 1. We then apply a monotonic stack-based algorithm (as detailed in Algorithm A1) to identify the largest interior rectangle containing only 1s. If such a rectangle covers over 80% area of the original frame, and its aspect ratio is close to that of the original frame, then all frames will be cropped according to the coordinates of the rectangle and saved as a new video clip, while non-compliant data will be discarded. The entire video processing pipeline is illustrated in Fig. 4.
+Data Balancing in Post Training In post training stage, we begin to perform a detailed concept balancing using subject categories from the captioner, resulting in a 50% data volume reduction. The comparison of the unbalanced and balanced concept grouped by main subject type is shown in Figure 5. After concept balanced, we also calculated the distribution of each sub-type under each primary type. Table 2 provides a detailed breakdown of the sub-types statistics for the top five primary types.
+3.1.3 Human-In-The-Loop Validation
+Human-In-The-Loop Validation involves manual visual checks at every stage of data production—Data Sources, Shot Segmentation, Pre-training and Post-training—to ensure high-quality data for model training. For Data Sources,
+6
+
+
+Table 1: Data Quality Issue Categories and Definitions
+Category Issue Definition
+Basic Quality
+Low-resolution sources Video sources with insufficient pixel density, typically below 720p resolution Low frame rates Videos with frame rates below 16fps causing choppy motion Black/white/static screens Frames containing blank screens or frozen images Camera shake Unintentional camera movement causing unstable footage Unstable motion Irregular object/camera movement creating visual discomfort Arbitrary shot transitions Abrupt or mismatched scene changes without logical continuity
+Video Type Issues
+Surveillance footage CCTV-style recordings with fixed angles and timestamps Game recordings Screen captures of video game gameplay Animation Computer-generated or hand-drawn non-liveaction content Meaningless content Videos lacking coherent narrative or visual purpose Static videos Footage with minimal motion (e.g., still images with audio)
+Post-processing Artifacts
+Subtitles Text overlays added during editing Logos Watermarks or channel identifiers superimposed on video Image editing Color grading, filters, or digital alterations Split screens Multiple video streams shown simultaneously Black/blurred borders Non-content areas added during post-production Picture-in-picture Secondary video inset within main footage Speed variations Altered playback speed (slow/fast motion) Special effects/mosaics Added visual elements or pixelation overlays
+humans subjectively assess if the raw data is suitable for use. During Shot Segmentation, reviewers check samples to ensure less than 1% of shots have errors like wrong transitions. In Pre-training, data is filtered and 0.01% (1 in 10,000 samples) is manually checked to meet strict limits: overall bad cases (problems like poor quality, wrong content type, or processing errors) must be under 15%, with subcategories like basic quality issues <3%, video type issues <5% and post-processing flaws <7%. For Post-training, the same 0.1% sample rate (1 in 1000 samples) applies but with tighter rules: total bad cases must be under 3%, including basic quality <0.5%, video type issues <1%, and post-processing flaws <1.5%. We determine the usability of Data Sources batches by leveraging the bad cases rates derived from manual checks. If the bad cases rate of a particular batch surpasses the predefined threshold, appropriate actions such as discarding or further refining the batch will be taken. Moreover, filter parameters are adjusted in accordance with the characteristics of diverse data sources. For instance, filters related to quality are tightened for data sources with a higher incidence of quality-related issues. This step-by-step manual evaluation at each stage ensures data quality stays high, helping the model train effectively.
+3.2 Video Captioner
+Our Video Captioner aims to generate precise video captions by integrating structured caption formats with specialized sub-expert captioners. Its objectives include: 1) Correcting errors or hallucinated information from Multi-modal Large Language model (MLLM). 2) Continuously optimizing dynamic video elements (e.g., shot information, expressions, and camera motions). 3) Dynamically adjusting caption length based on application scenarios (text-to-video or image-to-video). To achieve these objectives, we design a structural caption, as shown in Figure 6, which provide multi-dimensional descriptive information from various perspectives, including: 1) Subjects: Main and secondary entities with attributes like appearance, action, expression, position, and hierarchical categories/types (e.g., Animal → Mammal). 2) Shot Metadata: shot type, shot angle, shot position, camera motion, environment, lighting, etc. We use the base model Qwen2.5-VL-72B-Instruct to generate these initial structural information. However, some information will be replaced by the results of the expert captioners to get more precise descriptions. Finally, we generate the final
+7
+
+
+0 20 40 60 80 100
+Unbalanced: Percentage (%) of Concept Types
+Human
+Scenery
+Animal
+Architecture
+Food
+Furniture
+Vehicles
+Plant
+Information
+Sport
+84.8%
+5.0%
+4.3%
+1.5%
+0.9%
+0.9%
+0.9%
+0.8%
+0.5%
+0.4%
+0 20 40 60 80 100
+Balanced: Percentage (%) of Concept Types
+Human
+Scenery
+Animal
+Architecture
+Food
+Furniture
+Vehicles
+Plant
+Information
+Sport
+63.2%
+14.0%
+9.5%
+4.0%
+2.8%
+1.7%
+1.7%
+1.5%
+0.9%
+0.7%
+Figure 5: Comparison of unbalanced (left) and balanced (right) concept distribution .
+Table 2: Statics of top5 primary types and its sub-types ratios
+Primary type Sub-type Ratio Primary type Sub-type Ratio
+Human
+Man 55.2%
+Animal
+Mammal 55.4% Woman 40.8% Bird 18.5% Girl 1.9% Aquatic Life 13.4% Boy 1.4% Insect 7.5% Child 0.5% Reptile 5.2% Baby 0.2%
+Scenery
+Mountain 17.9%
+Architecture
+Historical 41.3% Seascape 16.4% Commercial 19.1% Urban 12.0% Industrial 16.3% River 10.6% Residential 12.3% Beach 7.6% Religious 11.1%
+Road 6.1%
+Food
+Snack 35.8% Lake 6.1% Dessert 19.4% Sky 6.1% Fruit 11.3% Forest 5.7% Meat 10.7% Volcano 4.1% Vegetable 8.6% Desert 2.6% Seafood 6.9% Valley 2.0% Dairy 4.7% Canyons 1.7% Poultry 3.7% Cloud 1.2%
+captions by fusions of the structured data for different models. 1) Text-to-video: Produces dense descriptions. 2) Image-to-video: Focuses on "subject + temporal action/expression + camera motion.". Each fields of captions follow a 10% drop rate to adapt different users situations as users might not give a precise description for each fields. The caption fusion details are displayed in Appendix C.
+3.2.1 Sub-expert Captioner
+Shot Captioner The shot captioner consists of three sub-captioners that describe different aspects of a shot. It includes shot type, shot angle, and shot position. We define these aspects as classification problems. 1) Shot type: close-up shot, extreme close-up shot, medium shot, long shot, and full shot. 2) Shot angle: eye angle shot, high angle shot, low angle shot. 3) Shot position: back view, front view, over the head, over the shoulder, point of view and side view.
+Our training methodology employs a carefully designed two-phase approach to develop robust shot classifiers. In the initial phase, we train a preliminary classifier using web images to establish baseline performance (we use class labels as trigger word to crawl data from web). This low-precision model serves primarily to extract balanced real-world scene data across all target categories from our film datasets. The second phase focuses on developing high-precision expert classifiers through manual annotation of real film data, with each category containing 2,000 carefully labeled samples.
+8
+
+
+Structural Caption
+{
+"subjects": [
+{
+"TYPES": {
+"type": "Human",
+"sub_type": "Woman"
+},
+"appearance": "long platinum blonde hair styled in two braids, ...",
+"action": "The woman remains still, looking forward as ...",
+"expression": "The woman exhibits a neutral facial expression...",
+"position": "Centrally positioned in the frame.",
+"is_main_subject": true
+},
+{
+"TYPES": {
+"type": "Vehicles",
+"sub_type": "Ship"
+},
+"appearance": "dark-colored with multiple masts, docked or anchored.",
+"action": "",
+"expression": "",
+"position": "In the background, blurred and indistinct.",
+"is_main_subject": false
+},
+{...}
+],
+"shot_type": "extreme close-up shot",
+"shot_angle": "eye level",
+"shot_position": "front view",
+"camera_motion": "use a handheld static shot",
+"environment": "Overcast sky with clouds, maritime setting ...",
+"lighting": "Soft and diffused lighting with no harsh shadows ..."
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+Figure 6: The design and demonstration of our structural caption
+9
+
+
+These annotated samples form the training set for our final high-precision classifiers, which are specifically optimized for accurate shot type, shot angle and shot position classification in real film videos. This multi-stage training approach ensures both category balance in our training datasets and high classification accuracy for production applications.
+To evaluate the performance of our three classifiers: shot type, shot angle, and shot position. We constructed a balanced test set containing 100 manually annotated samples per label. The evaluation results showed average accuracies of 82.2% for shot type classification, 78.7% for shot angle classification, and 93.1% for shot position classification. While the shot position classifier achieved strong performance, the shot type and shot angle classifiers indicate potential for improvement in future, particularly through enhanced data balance and higher-quality annotations for scene and angle classification tasks.
+Expression Captioner The expression captioner provides detailed descriptions of human facial expressions, focusing on several key dimensions: 1) Emotion Label: Emotions are categorized into seven common types, i.e., neutral, anger, disgust, fear, happiness, sadness, and surprise. 2) Intensity: The strength of the emotion is quantified, such as "slight anger," "moderate joy," or "extremely surprised," indicating the emotion’s magnitude. 3) Facial Features: Physical characteristics contributing to emotional expression, including eye shape, eyebrow position, mouth curvature, wrinkles, and muscle movements. 4) Temporal Description: Captures dynamic changes in emotional displays over time, focusing on how emotions evolve and the timing of these changes within a video.
+The expression caption generation consists of two phases: 1) We first detect and crop human faces and classify their emotions using our emotion classifier. 2) We then input both the emotion labels and video frames into a VLM model to generate detailed expression captions. Specifically, we adapt the framework of S2D [69] and train the model using ∼10k in-house datasets, focusing on both human and non-human characters. For the VLM model, we use InternVL2.5 to generate frame-wise descriptions with emotion labels as a prior and we employ a chain-of-thought prompting strategy to refine the descriptions and generate the final expression caption.
+To validate the performance of our emotion classifier, we compiled a test set of 1,200 videos. The classifier achieved an average precision of 85% across all emotion categories. For the expression captioner, we gathered 560 video samples and enlisted human annotators to evaluate the model’s effectiveness across four key dimensions. The captioner demonstrated an accuracy of 88% for emotion labeling, 95% for emotion intensity assessment, 85% for facial feature identification, and 93% for temporal description accuracy. These results highlight the robustness of our model in capturing nuanced emotional and expressive details in video content.
+Camera Motion Captioner Our framework employs a hierarchical classification strategy for camera motions through a three-stage processing pipeline integrating Motion Complexity Filtering, Single-type Motion Modeling and Singletype Motion Data Curation. 1) Motion Complexity Filtering: This stage eliminates trivial and overly complex motions through dual detection mechanisms. A binary static shot detector (95% accuracy) first screens motionless clips, followed by specialized classifiers for irregular patterns (handheld jitter, subject tracking, abrupt shifts) trained on manually labeled data. Surviving clips proceed as standard single-type motions. 2) Single-type Motion Modeling: We parameterize motions using 6DoF coordinates (translation x/y/z; rotation roll/pitch/yaw), each axis discretized into negative (-), neutral (0), or positive (+) states. Coupled with three speed tiers (slow: <5%, medium: 5-20%, fast: >20% frame displacement/sec), this creates 2,187 distinct motion combinations. Training data combines manual annotations and synthetic samples. 3) Single-type Motion Data Curation: We implement five-cycle active learning for efficient annotation scaling. Starting with O(10k) human-annotated samples for baseline training, we iteratively predict labels on 100k unlabeled data, balance-sample 10k predictions for verification, then refine models through fine-tuning. This process yields 93k high-confidence samples supplemented with 16k synthetic data balanced across motion axes. The synthetic data ensures equal positive/negative state representation for each DoF axis. All data trains classification-based captioners for motion recognition.
+Evaluation on a 15k-video test set achieves prediction accuracies of: 89% for single-type motions, 78% (handheld), 83% (subject-following), and 81% (abrupt shifts) for complex motions, and 95% accuracy for static shot detection.
+3.2.2 SkyCaptioner-V1: A Structured Video Captioning Model
+SkyCaptioner-V1 serves as our final video captioning model for data annotation. This model is trained on the captioning result from the base model Qwen2.5-VL-72B-Instruct and the sub-expert captioners on a balanced video data. The balanced video data is a carefully curated dataset of approximately 2 million videos—selected from an initial pool of 10 million samples to ensure conceptual balance and annotation quality.
+Built upon the Qwen2.5-VL-7B-Instruct model, SkyCaptioner-V1 is fine-tuned to enhance performance in domainspecific video captioning tasks. To compare the performance with the SOTA models, we conducted a manual assessment of accuracy across different captioning fields using a test set of 1,000 samples. Table 3 presents the detailed accuracy
+10
+
+
+metrics of each field in the structural caption. The proposed SkyCaptioner-V1 achieves the highest average accuracy among the baseline models, and show a dramatic result in the shot related fields.
+Table 3: Comprehensive Model Performance Comparison on Visual Understanding test set (All the models use the same system prompt of generating structural caption for video in Appendix C. For the Tarsier2-recap-7B baseline, we implement a caption-to-json converter because it can not output structural format directly for their supervised fine-tuning method.) model Qwen2.5-VL-7B-Ins. Qwen2.5-VL-72B-Ins. Tarsier2-recap-7B SkyCaptioner-V1 Avg accuracy 51.4% 58.7% 49.4% 76.3% shot type 76.8% 82.5% 60.2% 93.7% shot angle 60.0% 73.7% 52.4% 89.8% shot position 28.4% 32.7% 23.6% 83.1% camera motion 62.0% 61.2% 45.3% 85.3% expression 43.6% 51.5% 54.3% 68.8% TYPES_type 43.5% 49.7% 47.6% 82.5% TYPES_sub_type 38.9% 44.9% 45.9% 75.4% appearance 40.9% 52.0% 45.6% 59.3% action 32.4% 52.0% 69.8% 68.8% position 35.4% 48.6% 45.5% 57.5% is_main_subject 58.5% 68.7% 69.7% 80.9% environment 70.4% 72.7% 61.4% 70.5% lighting 77.1% 80.0% 21.2% 76.6%
+Training details We adopt Qwen2.5-VL-7B-Instruct as our base model and train it with a global batch size of 512 distributed across 64 NVIDIA A800 GPUs using 4 micro batch size and 2 gradient accumulation steps. The model is optimized using AdamW with a learning rate of 1e-5 and trained for 2 epochs, with the best-performing checkpoint selected based on comprehensive evaluation metrics from our test set. This training configuration ensures stable convergence while maintaining computational efficiency for large-scale video captioning tasks.
+3.3 Multistage-pretraining
+We adopt the model architecture from Wan2.1[5] and only train the DiT from scratch while retaining the pretrained weight of other components including VAE and text encoder. Then, we also use the Flow Matching framework [35, 24] to train our video generation model. This approach transforms a complex data distribution into a simple Gaussian prior through continuous-time probability density paths, enabling efficient sampling via ordinary differential equations (ODEs).
+Training Objective: Given a latent representation x1 (image or video), we sample a timestep t ∈ [0, 1] from a logit-normal distribution [24]. Then, initialize noise x0 ∼ N (0, I). and construct the intermediate latent xt via linear interpolation:
+xt = tx1 + (1 − t)x0. (1)
+Compute the ground-truth velocity vector vt as:
+vt = dxt
+dt = x1 − x0. (2)
+The model predicts the velocity field uθ(xt, c, t), which guides the sample xt towards the sample x1 and is conditioned on text embeddings c (e.g., 512-dim umT5 features), by minimizing the loss function L:
+L = Et,x0,x1,c ∥uθ(xt, c, t) − vt∥2 , (3)
+Following this training objective, we first design a dual-axis Bucketing framework and FPS normalization method to normalize all the data. After that, we perform three-stage pretrainings with a progressively increasing resolution.
+Dual-axis Bucketing framework and FPS normalization Following the data processing outlined in Section 3.1, we address the spatiotemporal heterogeneity of video data through a dual-axis bucketing framework. This framework organizes training samples along two orthogonal dimensions: temporal duration bins (BT divisions) and spatial aspect ratio categories (BAR divisions), forming a BT × BAR matrix of mutually exclusive buckets. To optimize GPU
+11
+
+
+memory utilization while preventing OOM failures, we implement adaptive batch sizing through empirical profiling - each bucket is assigned a distinct maximum batch capacity based on its duration and aspect ratio. During data preprocessing, samples are mapped to their nearest bucket. Throughout model training, distributed compute nodes employ stochastic bucket sampling to dynamically assemble mini-batches, ensuring continuous variation in input resolutions and temporal spans. Building upon the dual-axis bucketing system (BT temporal bins × BAR spatial aspect ratio categories), we extend the framework with temporal frequency adaptation. Videos undergo FPS normalization through a residue-aware downsampling protocol: For each sample, we compute modulus remainders relative to target frequencies (16/24 FPS), selecting the frequency with minimal remainder as the resampling basis. This mathematical formulation: ftarget = arg minf∈{16,24} (original_fps mod f ) ensures optimal temporal alignment while preserving motion semantics. Resampled videos are subsequently bucketed using the established duration-aspect ratio matrix. To disentangle frame rate dependencies, we augment the DiT architecture with learnable frequency embeddings that interact additively with timestep embeddings. These learnable frequency embeddings will be abandoned after we use FPS-24 only video data in high-quality SFT stage.
+Pretraining Stage1 We first pretrain on low-resolution data (256p) to capture the basic generation ability. In this stage, we propose a joint image-video training and support different aspect ratio and frame length. We implement rigorous data filtering to remove low-quality and synthetic data, and perform deduplication to ensure data diversity. This low-resolution stage helps the model to learn the low-frequency concepts from a larger amount of samples. The model trained at this stage demonstrates fundamental video generation capabilities, though the generated videos remain relatively blurry.
+Pretraining Stage2 In this stage, we continue with joint image-video training but increase the resolution to 360p. We apply more sophisticated data filtering strategies, including duration filtering, motion filtering, OCR filtering, aesthetic filtering and quality filtering. After this training stage, the clarity of generated videos shows significant improvement.
+Pretraining Stage3 We further scale up the resolution to 540p in this final pretraining stage, focusing exclusively on video objectives. We implement more stringent motion, aesthetic and quality filtering criteria to ensure high-quality training data. Moreover, we introduce source filtering to remove user-generated content while preserving cinematic data. This approach enhances the visual quality of generated videos and significantly improves the model’s capability to generate realistic human videos with superior texture and cinematic qualities.
+Pretraining Settings For optimization, we employ the AdamW optimizer throughout all pretraining stages. In Stage 1, we initialize the learning rate at 1e-4 with weight decay set to 0. Once the loss converges to a stable range, we adjust the learning rate to 5e-5 and introduce weight decay at 1e-4. In Stages 2 and 3, we further reduce the learning rate to 2e-5.
+3.4 Post Training
+The post training is the key stage to improve the overall performance of the model. Our post training consists of four stages: high-quality SFT in 540p, Reinforcement Learning, Diffusion Forcing Training, and high-quality SFT in 720p. For efficiency, the first three post training are performed in 540p resolution, while the last stage is performed in 720p resolution. The high-quality SFT in 540p leverage the balanced data to improve the overall performance, setting a better initialization for the following stages. To enhance the motion quality, we will rely on the Reinforcement learning instead of standard diffusion loss. In this stage, we propose a semi-automatic pipeline to collect preference data from both human and models. Furthermore, we propose the diffusion forcing training stage, in which we transform the full-sequence diffusion model into a diffusion forcing model that applies frame-specific noise levels such that enables a various length video generation ability. After that, we have the high-quality SFT stage in 720p, which increase the generative resolution from 540p to 720p.
+3.4.1 Reinforcement Learning
+Inspired by the previous success in LLM [9, 10], we propose to enhance the performance of the generative model by Reinforcement Learning. Specifically, we focus on the motion quality because we find that the main drawback of our generative model is: 1) the generative model does not handle well with large, deformable motions (Fig. 7.a, Fig. 7.b). 2) the generated videos may violate the physical law (Fig. 7.c).
+To avoid the degradation in other metrics, such as text alignment and video quality, we ensure the preference data pairs have comparable text alignment and video quality, while only the motion quality varies. This requirement poses greater challenges in obtaining preference annotations due to the inherently higher costs of human annotation. To address
+12
+
+
+this challenge, we propose a semi-automatic pipeline that strategically combines automatically generated motion pairs and human annotation results. This hybrid approach not only enhances the data scale but also improves alignment with human preferences through curated quality control. Leveraging this enhanced dataset, we first train a specialized reward model to capture the generic motion quality differences between paired samples. This learned reward function subsequently guides the sample selection process for Direct Preference Optimization (DPO), enhancing the motion quality of the generative model.
+V2V Distortion Video
+Original Video
+(a) An example of V2V distortion: The character’s face undergoes slight corruption in the generated video.
+V2V Distortion Video
+Original Video
+(b) An example of I2V distortion: The person in the generated video experiences severe body deformation.
+V2V Distortion Video
+Original Video
+(c) An example of T2V distortion: The generated video shows the basketball rising upward instead of falling downward (violating gravity).
+Figure 7: Examples of various distortion types created by our progressive distortion creation process.
+Preference Data Annotated by Human Through rigorous analysis of motion artifacts in generated videos, we establish a systematic taxonomy of prevalent failure modes: excessive/insufficient motion amplitude, subject distortion, local detail corruption, physical law violations, and unnatural motion. In addition, we record the prompts corresponding to these failure modes and generate the same type of prompts by LLMs. Those generated prompts are diverse, ranging from human and animal interaction to object movement, including all the above types of motion failures. Then, each prompt is used to generate four samples with a history checkpoint pool of our pre-trained models.
+After sample collection phase, samples for the same prompt were systematically paired into sample pairs. Professional human annotators are invited to rate the preference of these sample pairs. Our annotation pipeline follows two main steps: 1) Data filtering: Samples will be excluded under two conditions: First, content/quality mismatch - if the two samples describe different textual contents or exhibit significant visual quality discrepancies, to ensure focus on motion
+13
+
+
+quality analysis; Second, Annotation criteria failure - if either sample in the pair fails to meet the three criteria – clarity of the main subject, sufficient subject size within the image frame, or simplicity of the background composition. From our experience, this process will drop almost 80% of data pair before proceeding to further annotation. 2) Preference selection: Human Annotators assign one of three label (Better/Worse/Tie) to each sample pair according to the motion quality criteria. The details of motion criteria for human annotation are listed in Tab A2, which provides descriptions of all failure types in motion quality. Each failure type is assigned a weighted score, and the overall scores of both videos are calculated to enable comparison between them.
+Preference Data Automatic Generation The resource-intensive nature of human annotation under our stringent quality criteria significantly constrained dataset scale. To augment the preference datasets, we design a automatic preference data generation pipeline, comprising two core steps:
+1) Ground Truth data collection We use the generated prompts to query our existing dataset to obtain the similar prompts by calculating cosine similarities between their CLIP features[30]. The curated ground-truth reference videos associated with semantically matched prompts serve as chosen samples. The rejected samples are generated through the following step to form preference pairs.
+2) Progressively Distortion Creation The basic observation is that state-of-the-art video generation models still fall short in motion quality compared to real videos. We address this by deliberately adding controllable distortions to real videos, creating systematic simulations of motion flaws. Each real video comes with a text caption (describing content) and its first frame (static reference), enabling dynamic defect analysis while preserving visual structure. We create three variants of corrupted samples: V2V: Direct inversion of noisy latent (lowest distortion); I2V: Reconstruction using first frame guidance (medium distortion); T2V: Regeneration from text description (highest distortion). Also, we use different generative models ([5, 18, 17]) and model parameters (e.g., timestep) to construct different levels of motion quality, while maintaining sample diversity. Fig. 7 shows three cases constructed using our process automation.
+Beyond standard procedures, our research has explored innovative techniques to induce specific video quality issues. We can manipulate frame sampling rates in the temporal domain, increasing or decreasing them to create excessive or insufficient motion amplitude effects, or alternating rates for erratic motion. Using the Tea-Cache [70] method, we can tune parameters and inject noise to corrupt local details in video frames. For scenarios like cars driving or birds flying, we create pairs by playing videos backwards, challenging models to distinguish correct from incorrect physical motions. These methods are highly effective in simulating various bad cases in video generation. They can accurately replicate scenarios such as abnormal motion, local detail loss, and physics, which defying actions that might occur during the video generation process.
+Reward model training Following VideoAlign [46], we implement our motion quality reward with Qwen2.5VL-7B-Instruct [8]. The training data comes from the above data collecting process, forming a total of 30k sample pairs. Since the motion quality is context-agnostic, sample pairs do not include the prompts. The model is trained with BradleyTerry model with ties (BTT) [71], an extension of BT that accounts for tied preferences: L = −P
+(i,j) [yi>j ln P (i > j) + yi<j ln P (i < j) + yi=j ln P (i = j)]. Where i > j, i < j, i = j mean that sample i is better than/worse than/equal to sample j in the sample pairs.
+DPO training We apply the direct preference optimization for flow (Flow-DPO) from [46] to improve the motion quality of our generative model. The loss function can be defined as:
+LDPO = − 1
+N
+N
+X
+i=1
+· log σ
+
+
+− β
+2
+h
+(Lw
+model − Ll
+model)
+| {z } ∆model
+− (Lw
+ref − Ll
+ref)
+| {z } ∆ref
+i
+
+
+ (4)
+wherein:
+Lw
+model = 1
+2 ∥yˆw
+model − y∥2
+2, Ll
+model = 1
+2 ∥yˆl
+model − y∥2
+2
+Lw
+ref = 1
+2 ∥yˆw
+ref − y∥2
+2, Ll
+ref = 1
+2 ∥yˆl
+ref − y∥2
+2
+∆model = Lw
+model − Ll
+model, ∆ref = Lw
+ref − Ll
+ref
+Where the β is a temperature coefficient. yˆw/l
+model is the current model predictions for chosen/rejected samples. And yˆw/l
+ref
+are the reference model predictions for chosen/rejected samples.
+14
+
+
+To collect these training samples, we construct two types of prompt sets: concept-balanced prompts (for diversity) and motion-specific prompts (for motion quality). Each prompt is used to generate 8 videos using our generative model. Then we use the motion quality reward model to rank the videos and choose the best video and worst video, forming a sample triplet (chosen video, rejected video, prompt). Note that our DPO training is conducted in stages. When the model begins to easily distinguish between chosen and rejected samples (indicating performance plateaus), we refresh the reference model with the latest iteration. The updated reference model then generates new data, which is ranked by the reward model to form training data for the next stage. Each stage needs 20k training data, And we conduct a total of 3 stages of DPO training.
+3.4.2 Diffusion Forcing
+In this section, we introduce the Diffusion Forcing Transformer, which unlocks our model’s ability to generate long videos. Diffusion Forcing [50] is a training and sampling strategy where each token is assigned an independent noise level. This allows tokens to be denoised according to arbitrary, per-token schedules using the trained model. Conceptually, this approach functions as a form of partial masking: a token with zero noise is fully unmasked, while complete noise fully masks it. Diffusion Forcing trains the model to “unmask” any combination of variably noised tokens, using the cleaner tokens as conditional information to guide the recovery of noisy ones. Building on this, our Diffusion Forcing Transformer can extend video generation indefinitely based on the last frames of the previous segment. Note that the synchronous full sequence diffusion is a special case of Diffusion Forcing, where all tokens share the same noise level. This relationship allows us to fine-tune the Diffusion Forcing Transformer from a full-sequence diffusion model.
+Inspired by AR-Diffusion [11], we utilize the Frame-oriented Probability Propagation (FoPP) timestep scheduler for Diffusion Forcing Training. The process involves the following steps:
+1. Uniform Sampling: First, we uniformly sample a frame index f ∼ U (1, F ) and a corresponding timestep t ∼ U (1, T ). This ensures that timesteps are evenly distributed across all video frames.
+2. Dynamic Programming for Probability Propagation: Using dynamic programming, we calculate the probabilities for timesteps of frames before and after the sampled frame f , conditioned on tf = t.
+3. Definition of Transition Equation: We define ds
+i,j as the count of valid timestep sequences starting at frame i
+with timestep j, under the non-decreasing constraint. We compute ds
+i,j using the transition equation:
+di,j = di,j−1 + di−1,j
+with boundary conditions d∗,T = 1 and dF,∗ = 1.
+4. Visit Probability Calculation: For frames after f , the probability of visiting timestep k is:
+ds
+i,k PT
+j=K ds
+i,j
+Similarly, for frames before f , we define de
+i,j and calculate the probability as:
+de
+i,k PK
+j=1 de
+i,j
+5. Timestep Sampling: Finally, timesteps for previous or subsequent frames are sampled one by one based on the calculated probabilities.
+During inference, we adapt an Adaptive Difference (AD) timestep scheduler [11] that supports adaptive video generation, accommodating both asynchronous auto-regressive and synchronous generation.
+The AD scheduler treats the timestep difference between neighboring frames as an adaptive variable s. For consecutive frames with timesteps ti and ti−1, the condition is:
+ti = ti + 1, if i = 1 or ti−1 = 0,
+min(ti−1 + s, T ), if ti−1 > 0
+When the previous frame is none or clean, the current frame focuses on self-denoising. Otherwise, it denoises with a timestep difference of s from the previous frame. Notably, synchronous diffusion (s = 0) and auto-regressive generation (s = T ) are special cases. A smaller s yields more similar neighboring frames, while a larger s increases content variability.
+15
+
+
+Our conditioning mechanism enables auto-regressive frames generation by leveraging cleaner historical samples as conditions. In this framework, the information flow is inherently directional: noisy samples rely on preceding history to ensure consistency. This directional nature implies that bidirectional attention is unnecessary and can be replaced with more efficient causal attention. After training the Diffusion Forcing Transformer with bidirectional attention, one can fine-tune the model with context-causal attention for enhanced efficiency. During inference, this architecture enables caching of K, V features from historical samples, eliminating redundant computations and significantly reducing computational overhead.
+3.4.3 High-quality Supervised Fine-Tuning (SFT)
+We implement two sequential high-quality supervised fine-tuning (SFT) stages at 540p and 720p resolutions respectively, with the initial SFT phase conducted immediately after pretraining but prior to reinforcement learning (RL) stage. This first-stage SFT serves as a conceptual equilibrium trainer, building upon the foundation model’s pretraining outcomes that utilized only fps24 video data, while strategically removing FPS embedding components to streamline the architecture. Trained with the high-quality concept-balanced samples as detailed in Section 3.1.2, this phase establishes optimized initialization parameters for subsequent training processes. Following this, we execute a secondary highresolution SFT at 720p after completing the diffusion forcing stage, incorporating identical loss formulations and the higher-quality concept-balanced datasets by the manually filter. This final refinement phase focuses on resolution increase such that the overall video quality will be further enhanced.
+4 Infrastructure
+In this section, we introduce the infrastructure optimizations during the training and inference stages.
+4.1 Training optimization
+The training optimization focuses on ensuring efficient and robust training, including memory optimization, training stability, and parallel strategy, which are elaborated in the following paragraphs.
+Memory Optimization The attention block’s fp32 memory-bound operations dominate GPU memory usage. We address this through efficient operator fusion, reducing kernel launch overhead while optimizing memory access and utilization for improved performance. Gradient checkpointing (GC) minimizes memory by storing only transformer block inputs in fp32; converting these to bf16 cuts memory by 50% with negligible accuracy impact. Activation offloading further saves GPU memory by asynchronously moving temporary tensors to CPU, preserving throughput. However, due to shared CPU memory across 8 GPUs and limited computation overlap with excessive offloading, we strategically combine GC with selective activation offloading for optimal efficiency.
+Training Stability We propose an intelligent self-healing framework that implements autonomic fault recovery through three-phase remediation: real-time detection and isolation of compromised nodes, dynamic resource reallocation using standby computing units, and task migration with checkpoint restoration to ensure uninterrupted model training.
+Parallel Strategy We pre-compute the results of VAE and text encoder. Using FSDP to distributively store DiT’s weights and optimizer states across all nodes to address the GPU memory pressure caused by the large model size. When training at 720p resolution, due to large temporary tensors, we encounter severe GPU memory fragmentation issues, triggering torch.empty_cache() even when memory is still sufficient. Therefore, we use Sequence Parallel [72] to address the memory pressure caused by activations.
+4.2 Inference optimization
+The key goal of inference optimization is to reduce video generation latency without compromising quality. While diffusion-based model succeed in producing high-fidelity video, its requires multi-step samplings during inference, which is typically 30 to 50 steps that can take more than 5 minutes for 5 seconds video. In our actual deployment, we achieved optimization through VRAM optimization, quantization, multi-GPU parallel, and Distillation.
+VRAM optimization Our deployment leverages RTX 4090 GPUs (24GB VRAM) to serve the 14B-parameter model. By combining FP8 quantization with parameter-level offloading techniques, we successfully enable 720p video generation while maintaining full model capabilities on a single GPU instance.
+16
+
+
+Quantization Our analysis identifies the attention and linear layers as the primary computational bottlenecks in DiTs. To optimize performance, we implement FP8 quantization across the architecture. Specifically, we apply FP8 dynamic quantization combined with FP8 GEMM acceleration to linear layers, achieving 1.10× speedup compared to the bf16 baseline on RTX 4090 hardware. For attention operations, we deploy sageAttn2-8bit[73], which delivers 1.30× faster inference than the bf16 implementation on the same RTX 4090 platform.
+Parallel strategy To accelerate single-video generation, we utilize three key parallelization strategies: Content Parallel, CFG Parallel, and VAE Parallel. In real-world deployment, this approach reduces overall latency by 1.8× when scaling from 4 to 8 RTX 4090 GPUs.
+Distillation To accelerate the video generation, we employ DMD distillation technique [55, 56]. We remove the regression loss and use high-quality video data instead of pure noise as the input to the student generator to accelerate model convergence. Besides, we also adopt the two time-scale update rule to ensure the fake score generator tracks the student generator’s output distribution and the multi-step schedule from DMD. Similarly, as demonstrated in the formulation, the gradients are applied to update the student generator G.
+∇θDKL ≃ Et,x (sfake(x, t) − sreal(x, t)) dG
+dθ
+where x represents the video generated by the student generator, sfake and sreal denote the evaluation scores produced by the fake score generator and real score generator, respectively. We set the update ratio of fake score generator and student generator as 5 and use 4-step generator with a specified schedule tuned for flow matching framework. During the distillation stage, we find a small learning rate combined with a larger batch size is very important to stablize the trainining. Through the aforementioned distillation process, we can significantly reduce the time required for video generation.
+5 Performance
+To comprehensively evaluate our proposed method, we construct the SkyReels-Bench for human assessment and leverage the open-source V-Bench for automated evaluation. This allows us to compare our model with the state-of-the-art (SOTA) baselines, including both open-source and proprietary models.
+5.1 SkyReels-Bench
+For human evaluation, we design SkyReels-Bench with 1,020 text prompts, systematically assessing three dimensions: Instruction Adherence, Motion Quality, Consistency and Visual Quality. This benchmark is designed to evaluate both text-to-video (T2V) and image-to-video (I2V) generation models, providing comprehensive assessment across different generation paradigms.
+Instruction Adherence Evaluating how well the generated video follows the provided text prompt. 1) Motion instruction adherence: Accuracy in executing specified actions or movements. 2) Subject instruction adherence: Correct representation of described subjects and attributes. 3) Spatial relationships: Proper positioning and interaction between subjects. 4) Shot adherence: Correct implementation of specified shot types (close-up, wide, etc.). 5) Expression adherence: Accurate portrayal of emotional states and facial expressions. 6) Camera motion adherence:: Proper execution of camera movements (pan, tilt, zoom, etc.). 7) Hallucination: Absence of content not specified in the prompt
+Motion Quality Assessing the temporal dynamics of subjects in the video. 1) Motion dynamism: Diversity and expressiveness of movements. 2) Fluidity and stability: Smoothness of motion without jitter or discontinuities. 3) Physical plausibility: Adherence to natural physics and realistic movement patterns.
+Consistency Measuring coherence across video frames. 1) Subject consistency: Stable appearance of main subjects throughout the video. 2) Scene consistency: Coherent background, location, and environmental elements. For image-tovideo (I2V) models, we additionally evaluate: 3) First-frame fidelity: Consistency between the generated video and the provided input image, including preservation of color palette, maintenance of subject identity and continuity of scene elements established in the first frame.
+Visual Quality Evaluating the spatial fidelity of the generated content. 1) Visual clarity: Sharpness and definition of visual elements. 2) Color accuracy: Appropriate color balance without oversaturation. 3) Structural integrity: Absence of distortions or corruptions in subjects and backgrounds.
+17
+
+
+This comprehensive evaluation framework allows us to systematically compare video generation capabilities across different models and identify specific strengths and weaknesses in various aspects of video quality.
+For evaluation, a panel of 20 professional evaluators assess each dimension using a 1-5 scale, with the following criteria as shown in Table 4:
+Table 4: Video Quality Assessment Rating Scale
+Score Label Assessment Criteria
+1 Fail Complete failure to meet evaluation criteria 2 Marginal Partial compliance with significant deficiencies 3 Adequate Basic compliance with non-critical flaws 4 Proficient Full satisfaction of all requirements 5 Excellent Exceptional quality exceeding baseline requirements
+The final results are summarized in Table 5. The evaluation demonstrates that our model achieves significant advancements in instruction adherence compared to baseline methods, while maintaining competitive performance in motion without sacrificing the consistency. To ensure fairness, all models are evaluated under default settings with consistent resolutions, and no post-generation filtering is applied. Detailed scoring guidelines for each criterion can be found in the Appendix A.
+Model Name Average Instruction Adherence Consistency Visual Quality Motion Quality
+Runway-Gen3 Alpha [74] 2.53 2.19 2.57 3.23 2.11 HunyuanVideo-13B [18] 2.82 2.64 2.81 3.20 2.61 Kling-1.6 STD Mode [2] 2.99 2.77 3.05 3.39 2.76 Hailuo-01 [3] 3.0 2.8 3.08 3.29 2.74 Wan2.1-14B [5] 3.12 2.91 3.31 3.54 2.71 SkyReels-V2 3.14 3.15 3.35 3.34 2.74
+Table 5: Text-to-Video (T2V) Model Performance on SkyReels-Bench. Evaluation conducted on a 1-5 scale across multiple dimensions, with higher scores indicating better performance.
+5.2 Model Benchmarking and Leaderboard
+To objectively compare SkyReels-V2 against other leading open-source video generation models, we conduct comprehensive evaluations using the public benchmark VBench1.0 [6].
+Our evaluation specifically leverages the benchmark’s longer version prompt. For fair comparison with baseline models, we strictly follow their recommended setting for inference. Meanwhile, our model employs 50 inference steps and guidance scale of 6 during generation, aligning with the common practice.
+Model Total Score Quality Score Semantic Score
+CogVideoX1.5-5B [17] 80.3 % 80.9 % 77.9 % OpenSora-2.0 [75] 81.5 % 82.1 % 78.2 % HunyuanVideo-13B [18] 82.7 % 84.4 % 76.2 % Wan2.1-14B [5] 83.7 % 84.2 % 81.4 % SkyReels-V2 83.9 % 84.7 % 80.8 %
+Table 6: Text-to-Video (T2V) Model Performance on Vbench1.0’s long prompt version
+The VBench results (Table 6) demonstrate that SkyReels-V2 outperforms all baseline models including HunyuanVideo13B and Wan2.1-14B, With the highest total score (83.9%) and quality score (84.7%). In this evaluation, the semantic score is slightly lower than Wan2.1-14B, while we outperform Wan2.1-14B in the previous human evaluation, with the primary gap attributed to V-Bench’s insufficient evaluation of shot-scenario semantic adherence.
+18
+
+
+Time
+0s 5s 10s 15s 20s 25s 30s
+A young woman with sunglasses is walking on Tokyo’s street at night with an umbrella. Rain-slick pavement reflects fractured light.
+A woman in a leather jacket and sunglasses riding a vintage motorcycle through a desert highway at sunset...
+A robotic owl with retractable wings and glowing gold eyes perched on a data terminal in a cyberpunk city...
+A jellyfish floats in deep blue waters, its translucent bell rhythmically contracting and expanding. Its tentacles drift like ribbons in the water...
+A graceful white swan with a curved neck and delicate feathers swimming in a serene lake at dawn...
+Figure 8: Examples of ultra-long video generation using single prompts with our SkyReels-V2 model.
+a bud slowly bloomed began to wither slowly
+sways gently in the breeze
+Time
+a little girl waves forward suddenly burst into tears
+playing in the water
+a woman becoming sad very sad and cries
+is joyful
+an engine emitting smoke produces sparks
+is starting
+Marilyn Monroe gradually restrained her smile expressionless
+laughing heartily
+Figure 9: Examples of ultra-long video generation using sequential prompts with our SkyReels-V2 model.
+6 Application
+6.1 Story Generation
+Our trained diffusion forcing transformer enables the generation of ultra-long videos with theoretically unlimited extension. The model generates long videos using a sliding window approach. It conditions on the last fprev frames and the text prompt to generate the next fnew frames, except for the first iteration, where it relies solely on the text prompt. However, extending the video length can lead to error accumulation over time. To mitigate this issue, we employ a
+19
+
+
+stabilization technique where previously generated frames are marked with slight noise level. This approach prevents error accumulation and further stabilizes the long rollout process. In Figure 8, we illustrate examples of extending long shot videos to durations exceeding 30 seconds, demonstrating the capability to enhance temporal length while preserving visual coherence.
+Our model not only supports mere temporal extension but is also able in generating long shots with compelling story narratives. By leveraging a sequence of narrative text prompts, we can orchestrate a cohesive visual narrative that spans multiple actions while maintaining visual consistency throughout the video. This capability ensures smooth transitions between scenes, allowing for dynamic storytelling without compromising the integrity of the visual elements. The model’s ability to seamlessly integrate narrative text prompts enables the creation of extended video content that is both engaging and visually harmonious, making it ideal for applications requiring complex, multi-action sequences. In Figure 9, we illustrate examples where users can manipulate attributes such as the actions of the little girl, the expressions of the woman, and the status of the engine through sequential text prompts.
+6.2 Image-to-Video Synthesis
+There are two approaches to develop image-to-video (I2V) models under our frameworks: 1) Fine-Tuning full-sequence Text-to-Video (T2V) diffusion Models (SkyReels-V2-I2V): Following Wan 2.1’s I2V implementation, we extend T2V architectures by injecting the first reference frame as an image condition. The input image is padded to match the target video length, then processed through a VAE encoder to obtain image latents. These latents are concatenated with noise latents and 4 binary mask channels (1 for the reference frame, 0 for subsequent frames), enabling the model to leverage the reference frame for subsequent generation. To preserve original T2V capabilities during adaptation, we apply zero-initialization to newly added convolutional layers and specifically to the image context to value projections in cross attention, while other new components (such as image context to key projections) use random initialization, minimizing abrupt performance shifts during fine-tuning. Besides, the I2V training leverages I2V-specific prompts generated through the captioning framework described in Section 3.2. Remarkably, this approach achieves competitive results with only 10,000 training iterations on 384 GPUs. 2) Text-to-Video (T2V) Diffusion Forcing model with first-frame Conditioning (SkyReels-V2-DF): Our alternative method directly utilizes the diffusion framework’s conditioning mechanism by feeding the first frame as a clean reference condition. This bypasses explicit model retraining while maintaining temporal consistency through latent space constraints. We evaluate SkyReels-V2 against leading opensource and closed-source image-to-video models using the SkyReels-Bench evaluation suite (Table 7). Our results demonstrate that both SkyReels-V2-I2V (3.29) and SkyReels-V2-DF (3.24) achieve state-of-the-art performance among open-source models, significantly outperforming HunyuanVideo-13B (2.84) [18] and Wan2.1-14B (2.85) [5] across all quality dimensions. With an average score of 3.29, SkyReels-V2-I2V demonstrates comparable performance to proprietary models Kling-1.6 [2] (3.4) and Runway-Gen4 [12] (3.39). Based on these promising results, we publicly release our SkyReels-V2-I2V model to advance community research in Image-to-video synthesis.
+Model Average Instruction Adherence Consistency Visual Quality Motion Quality
+HunyuanVideo-13B [18] 2.84 2.97 2.95 2.87 2.56 Wan2.1-14B [5] 2.85 3.10 2.81 3.00 2.48 Hailuo-01 [3] 3.05 3.31 2.58 3.55 2.74 Kling-1.6 Pro Mode [2] 3.4 3.56 3.03 3.58 3.41 Runway-Gen4 [12] 3.39 3.75 3.2 3.4 3.37 SkyReels-V2-DF 3.24 3.64 3.21 3.18 2.93 SkyReels-V2-I2V 3.29 3.42 3.18 3.56 3.01
+Table 7: Image-to-Video (I2V) Model Performance on SkyReels-Bench. Evaluation conducted on a 1-5 scale across multiple dimensions, with higher scores indicating better performance.
+6.3 Camera Director
+Although SkyCaptioner-V1 demonstrates robust performance in annotating camera motions, we observe that while it achieves balanced subject distribution, the inherent imbalance in camera-motion data poses challenges for further optimization of cinematography parameters. To address this limitation, we specifically curate approximately 1 million samples from the supervised fine-tuning (SFT) dataset, ensuring a balanced representation of both basic camera motions and their common combinations. Building upon this enhanced dataset, we conduct fine-tuning experiments on our image-to-video generation model using 384 GPUs over 3,000 iterations. This dedicates training regimen resulted in marked enhancement of cinematographic effects, particularly in the fluidity and diversity of camera motions.
+20
+
+
+6.4 Elements-to-Video Generation
+Current video generation models mainly tackle two tasks: text-to-video (T2V) and image-to-video (I2V). T2V leverages text encoders like T5 [76] or CLIP [30] to generate videos from textual prompts, but often suffers from inconsistency due to the randomness of the diffusion process. I2V, on the other hand, generates motion from a static image and optional text, yet is typically limited by over-dependence on the initial frame. In our previous work, we introduce an elements-to-video (E2V) task and proposed SkyReels-A2[77], a controllable video generation framework that composes arbitrary visual elements, such as characters, objects, and backgrounds, into coherent videos guided by textual prompts, while ensuring high fidelity to the reference images for each element. As shown in the Figure 10, SkyReels-A2 generates high-quality, temporally consistent videos with editable compositions of multiple visual elements. Furthermore, we propose A2-Bench, a novel benchmark for comprehensively evaluating the E2V task, which exhibits statistically significant correlation with human subjective judgments.
+In the future, we’re planning to release a unified video generation framework that supports additional input modalities such as audio and pose. Building upon our previous work SkyReels-A1[78] on audio-driven and pose-driven portrait animation, this enhanced framework will support richer and more diverse forms of input. By doing so, it aims to significantly broaden the scope of applications, including but not limited to short dramas, music videos, and virtual e-commerce content creation.
+Figure 10: Examples of elements-to-video results from our proposed SkyReels-A2 model. Given reference with multiple images and textual prompt, our method can generate realistic and naturally composed videos while preserving specific identity consistent.
+7 Conclusion
+We propose the SkyReels-V2 model, a novel framework capable of generating infinite-length videos while maintaining adherence to shot-scenario prompts, high video quality, and robust motion quality. Key improvements are achieved through the following advancements: 1) Prompt Adherence: Enhanced through the SkyCaptioner-V1 module, which leverages knowledge distillation from both general-purpose multi-modal large language models (MLLMs) and specialized shot-expert models to ensure precise alignment with input prompts. 2) Video Quality: Significantly improved by leveraging diverse data sources and a multi-stage training pipeline, ensuring visually coherent and high-fidelity outputs. 3) Motion Quality: Optimized via reinforcement learning post-training, supported by a semi-automated data production pipeline that refines dynamic motion consistency and fluidity. 4) Infinite-Length Generation: Enabled by
+21
+
+
+the diffusion-forcing framework, which allows seamless extension of video content without explicit length constraints. Despite these advancements, the diffusion-forcing framework remains subject to error accumulation over extended generations, which currently limits the practical length of high-quality video outputs. Future work will focus on addressing this challenge to further enhance the model’s scalability and reliability.
+8 Contributors
+We gratefully acknowledge all contributors for their dedicated efforts. The following lists recognize participants by their primary contribution roles:
+• Project Sponsor: Yahui Zhou
+• Project Leader: Guibin Chen† (guibin.chen@kunlun-inc.com)
+• Contributors:
+– Infrastructure: Hao Zhang†, Weiming Xiong, Zhiheng Xu, Yuzhe Jin – Data & Captioning: Mingyuan Fan†, Zheng Chen, Chengcheng Ma, Peng Zhao, Boyuan Xu
+– Model Training: Dixuan Lin†, Jiangping Yang†, Chunze Lin†, Junchen Zhu†, Sheng Chen, Wei Wang, Nuo Pang, Kang Kang, Yupeng Liang, Yubing Song, Di Qiu, Debang Li, Zhengcong Fei
+† Indicates equally contributing authors.
+References
+[1] OpenAI. Video generation models as world simulators, 2024.
+[2] Kuaishou. Kling, 2024.
+[3] MiniMax. Hailuo, 2024.
+[4] DeepMind. Veo 2, 2024.
+[5] WanTeam, Ang Wang, Baole Ai, Bin Wen, Chaojie Mao, Chen-Wei Xie, Di Chen, Feiwu Yu, Haiming Zhao, Jianxiao Yang, Jianyuan Zeng, Jiayu Wang, Jingfeng Zhang, Jingren Zhou, Jinkai Wang, Jixuan Chen, Kai Zhu, Kang Zhao, Keyu Yan, Lianghua Huang, Mengyang Feng, Ningyi Zhang, Pandeng Li, Pingyu Wu, Ruihang Chu, Ruili Feng, Shiwei Zhang, Siyang Sun, Tao Fang, Tianxing Wang, Tianyi Gui, Tingyu Weng, Tong Shen, Wei Lin, Wei Wang, Wei Wang, Wenmeng Zhou, Wente Wang, Wenting Shen, Wenyuan Yu, Xianzhong Shi, Xiaoming Huang, Xin Xu, Yan Kou, Yangyu Lv, Yifei Li, Yijing Liu, Yiming Wang, Yingya Zhang, Yitong Huang, Yong Li, You Wu, Yu Liu, Yulin Pan, Yun Zheng, Yuntao Hong, Yupeng Shi, Yutong Feng, Zeyinzi Jiang, Zhen Han, Zhi-Fan Wu, and Ziyu Liu. Wan: Open and advanced large-scale video generative models. arXiv preprint arXiv:2503.20314, 2025.
+[6] Ziqi Huang, Yinan He, Jiashuo Yu, Fan Zhang, Chenyang Si, Yuming Jiang, Yuanhan Zhang, Tianxing Wu, Qingyang Jin, Nattapol Chanpaisit, Yaohui Wang, Xinyuan Chen, Limin Wang, Dahua Lin, Yu Qiao, and Ziwei Liu. VBench: Comprehensive benchmark suite for video generative models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024.
+[7] Hila Chefer, Uriel Singer, Amit Zohar, Yuval Kirstain, Adam Polyak, Yaniv Taigman, Lior Wolf, and Shelly Sheynin. Videojam: Joint appearance-motion representations for enhanced motion generation in video models, 2025.
+[8] Shuai Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, Sibo Song, Kai Dang, Peng Wang, Shijie Wang, Jun Tang, Humen Zhong, Yuanzhi Zhu, Mingkun Yang, Zhaohai Li, Jianqiang Wan, Pengfei Wang, Wei Ding, Zheren Fu, Yiheng Xu, Jiabo Ye, Xi Zhang, Tianbao Xie, Zesen Cheng, Hang Zhang, Zhibo Yang, Haiyang Xu, and Junyang Lin. Qwen2.5-vl technical report. arXiv preprint arXiv:2502.13923, 2025.
+[9] OpenAI. Gpt-o1, 2024.
+[10] DeepSeek-AI. Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning, 2025.
+[11] Mingzhen Sun, Weining Wang, Gen Li, Jiawei Liu, Jiahui Sun, Wanquan Feng, Shanshan Lao, SiYu Zhou, Qian He, and Jing Liu. Ar-diffusion: Asynchronous video generation with auto-regressive diffusion. arXiv preprint arXiv:2503.07418, 2025.
+[12] RunwayML. Gen-4, 2024.
+22
+
+
+[13] Uriel Singer, Adam Polyak, Thomas Hayes, Xi Yin, Jie An, Songyang Zhang, Qiyuan Hu, Harry Yang, Oron Ashual, Oran Gafni, et al. Make-a-video: Text-to-video generation without text-video data. arXiv preprint arXiv:2209.14792, 2022.
+[14] Yuwei Guo, Ceyuan Yang, Anyi Rao, Zhengyang Liang, Yaohui Wang, Yu Qiao, Maneesh Agrawala, Dahua Lin, and Bo Dai. Animatediff: Animate your personalized text-to-image diffusion models without specific tuning, 2023.
+[15] Andreas Blattmann, Tim Dockhorn, Sumith Kulal, Daniel Mendelevitch, Maciej Kilian, Dominik Lorenz, Yam Levi, Zion English, Vikram Voleti, Adam Letts, et al. Stable video diffusion: Scaling latent video diffusion models to large datasets. arXiv preprint arXiv:2311.15127, 2023.
+[16] Jonathan Ho, Tim Salimans, Alexey Gritsenko, William Chan, Mohammad Norouzi, and David J Fleet. Video diffusion models. Advances in Neural Information Processing Systems, 35:8633–8646, 2022.
+[17] Zhuoyi Yang, Jiayan Teng, Wendi Zheng, Ming Ding, Shiyu Huang, Jiazheng Xu, Yuanming Yang, Wenyi Hong, Xiaohan Zhang, Guanyu Feng, et al. Cogvideox: Text-to-video diffusion models with an expert transformer. arXiv preprint arXiv:2408.06072, 2024.
+[18] Weijie Kong, Qi Tian, Zijian Zhang, Rox Min, Zuozhuo Dai, Jin Zhou, Jiangfeng Xiong, Xin Li, Bo Wu, Jianwei Zhang, Kathrina Wu, Qin Lin, Junkun Yuan, Yanxin Long, Aladdin Wang, Andong Wang, Changlin Li, Duojun Huang, Fang Yang, Hao Tan, Hongmei Wang, Jacob Song, Jiawang Bai, Jianbing Wu, Jinbao Xue, Joey Wang, Kai Wang, Mengyang Liu, Pengyu Li, Shuai Li, Weiyan Wang, Wenqing Yu, Xinchi Deng, Yang Li, Yi Chen, Yutao Cui, Yuanbo Peng, Zhentao Yu, Zhiyu He, Zhiyong Xu, Zixiang Zhou, Zunnan Xu, Yangyu Tao, Qinglin Lu, Songtao Liu, Dax Zhou, Hongfa Wang, Yong Yang, Di Wang, Yuhong Liu, Jie Jiang, and Caesar Zhong. Hunyuanvideo: A systematic framework for large video generative models, 2025.
+[19] Guoqing Ma, Haoyang Huang, Kun Yan, Liangyu Chen, Nan Duan, Shengming Yin, Changyi Wan, Ranchen Ming, Xiaoniu Song, Xing Chen, Yu Zhou, Deshan Sun, Deyu Zhou, Jian Zhou, Kaijun Tan, Kang An, Mei Chen, Wei Ji, Qiling Wu, Wen Sun, Xin Han, Yanan Wei, Zheng Ge, Aojie Li, Bin Wang, Bizhu Huang, Bo Wang, Brian Li, Changxing Miao, Chen Xu, Chenfei Wu, Chenguang Yu, Dapeng Shi, Dingyuan Hu, Enle Liu, Gang Yu, Ge Yang, Guanzhe Huang, Gulin Yan, Haiyang Feng, Hao Nie, Haonan Jia, Hanpeng Hu, Hanqi Chen, Haolong Yan, Heng Wang, Hongcheng Guo, Huilin Xiong, Huixin Xiong, Jiahao Gong, Jianchang Wu, Jiaoren Wu, Jie Wu, Jie Yang, Jiashuai Liu, Jiashuo Li, Jingyang Zhang, Junjing Guo, Junzhe Lin, Kaixiang Li, Lei Liu, Lei Xia, Liang Zhao, Liguo Tan, Liwen Huang, Liying Shi, Ming Li, Mingliang Li, Muhua Cheng, Na Wang, Qiaohui Chen, Qinglin He, Qiuyan Liang, Quan Sun, Ran Sun, Rui Wang, Shaoliang Pang, Shiliang Yang, Sitong Liu, Siqi Liu, Shuli Gao, Tiancheng Cao, Tianyu Wang, Weipeng Ming, Wenqing He, Xu Zhao, Xuelin Zhang, Xianfang Zeng, Xiaojia Liu, Xuan Yang, Yaqi Dai, Yanbo Yu, Yang Li, Yineng Deng, Yingming Wang, Yilei Wang, Yuanwei Lu, Yu Chen, Yu Luo, Yuchu Luo, Yuhe Yin, Yuheng Feng, Yuxiang Yang, Zecheng Tang, Zekai Zhang, Zidong Yang, Binxing Jiao, Jiansheng Chen, Jing Li, Shuchang Zhou, Xiangyu Zhang, Xinhao Zhang, Yibo Zhu, Heung-Yeung Shum, and Daxin Jiang. Step-video-t2v technical report: The practice, challenges, and future of video foundation model, 2025.
+[20] SkyworkAI. Skyreels-v1, 2025.
+[21] Xiangyu Peng, Zangwei Zheng, Chenhui Shen, Tom Young, Xinying Guo, Binluo Wang, Hang Xu, Hongxin Liu, Mingyan Jiang, Wenjun Li, et al. Open-sora 2.0: Training a commercial-level video generation model in $200 k. arXiv preprint arXiv:2503.09642, 2025.
+[22] Olaf Ronneberger, Philipp Fischer, and Thomas Brox. U-net: Convolutional networks for biomedical image segmentation. In Medical image computing and computer-assisted intervention–MICCAI 2015: 18th international conference, Munich, Germany, October 5-9, 2015, proceedings, part III 18, pages 234–241. Springer, 2015.
+[23] William Peebles and Saining Xie. Scalable diffusion models with transformers. arXiv preprint arXiv:2212.09748, 2022.
+[24] Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas Müller, Harry Saini, Yam Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, et al. Scaling rectified flow transformers for high-resolution image synthesis. In Forty-first international conference on machine learning, 2024.
+[25] Patrick Esser, Robin Rombach, and Bjorn Ommer. Taming transformers for high-resolution image synthesis. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 12873–12883, 2021.
+[26] Zangwei Zheng, Xiangyu Peng, Tianji Yang, Chenhui Shen, Shenggui Li, Hongxin Liu, Yukun Zhou, Tianyi Li, and Yang You. Open-sora: Democratizing efficient video production for all. arXiv preprint arXiv:2412.20404, 2024.
+[27] Zongjian Li, Bin Lin, Yang Ye, Liuhan Chen, Xinhua Cheng, Shenghai Yuan, and Li Yuan. Wf-vae: Enhancing video vae by wavelet-driven energy flow for latent video diffusion model. arXiv preprint arXiv:2411.17459, 2024.
+23
+
+
+[28] Sijie Zhao, Yong Zhang, Xiaodong Cun, Shaoshu Yang, Muyao Niu, Xiaoyu Li, Wenbo Hu, and Ying Shan. Cv-vae: A compatible video vae for latent generative video models. https://arxiv.org/abs/2405.20279, 2024.
+[29] NVIDIA et. al. Cosmos world foundation model platform for physical ai. arXiv preprint arXiv:2501.03575, 2025.
+[30] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In International conference on machine learning, pages 8748–8763. PmLR, 2021.
+[31] Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J Liu. Exploring the limits of transfer learning with a unified text-to-text transformer. Journal of machine learning research, 21(140):1–67, 2020.
+[32] Hyung Won Chung, Noah Constant, Xavier Garcia, Adam Roberts, Yi Tay, Sharan Narang, and Orhan Firat. Unimax: Fairer and more effective language sampling for large-scale multilingual pretraining. arXiv preprint arXiv:2304.09151, 2023.
+[33] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. Advances in neural information processing systems, 33:6840–6851, 2020.
+[34] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 10684–10695, June 2022.
+[35] Yaron Lipman, Ricky TQ Chen, Heli Ben-Hamu, Maximilian Nickel, and Matt Le. Flow matching for generative modeling. arXiv preprint arXiv:2210.02747, 2022.
+[36] OpenAI. Gpt-4o, 2024.
+[37] DeepMind. Gemini 2.5 pro, 2025.
+[38] Liping Yuan, Jiawei Wang, Haomiao Sun, Yuchen Zhang, and Yuan Lin. Tarsier2: Advancing large vision-language models from detailed video description to comprehensive video understanding, 2025.
+[39] Long Ouyang, Jeff Wu, Xu Jiang, Diogo Almeida, Carroll L. Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, John Schulman, Jacob Hilton, Fraser Kelton, Luke Miller, Maddie Simens, Amanda Askell, Peter Welinder, Paul Christiano, Jan Leike, and Ryan Lowe. Training language models to follow instructions with human feedback, 2022.
+[40] Xue Bin Peng, Aviral Kumar, Grace Zhang, and Sergey Levine. Advantage-weighted regression: Simple and scalable off-policy reinforcement learning. 2021.
+[41] Tao Liu, Huafeng Kuang, and Xianming Lin. Aligning text-to-image diffusion models without human feedback. In ICASSP 2025 - 2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP).
+[42] Bram Wallace, Meihua Dang, Rafael Rafailov, Linqi Zhou, Aaron Lou, Senthil Purushwalkam, Stefano Ermon, Caiming Xiong, Shafiq Joty, and Nikhil Naik. Diffusion model alignment using direct preference optimization. IEEE, 2023.
+[43] Kai Yang, Jian Tao, Jiafei Lyu, Chunjiang Ge, Jiaxin Chen, Qimai Li, Weihan Shen, Xiaolong Zhu, and Xiu Li. Using human feedback to fine-tune diffusion models without any reward model. IEEE, 2023.
+[44] Zhanhao Liang, Yuhui Yuan, Shuyang Gu, Bohan Chen, Tiankai Hang, Ji Li, and Liang Zheng. Step-aware preference optimization: Aligning preference with denoising performance at each step. 2024.
+[45] Runtao Liu, Haoyu Wu, Zheng Ziqiang, Chen Wei, Yingqing He, Renjie Pi, and Qifeng Chen. Videodpo: Omni-preference alignment for video diffusion generation, 2024.
+[46] Jie Liu, Gongye Liu, Jiajun Liang, Ziyang Yuan, Xiaokun Liu, Mingwu Zheng, Xiele Wu, Qiulin Wang, Wenyu Qin, Menghan Xia, Xintao Wang, Xiaohong Liu, Fei Yang, Pengfei Wan, Di Zhang, Kun Gai, Yujiu Yang, and Wanli Ouyang. Improving video generation with human feedback. arXiv preprint arXiv:2501.13918, 2025.
+[47] Junjie Ke, Qifei Wang, Yilin Wang, Peyman Milanfar, and Feng Yang. Musiq: Multi-scale image quality transformer. 2021.
+[48] Yibin Wang, Yuhang Zang, Hao Li, Cheng Jin, and Jiaqi Wang. Unified reward model for multimodal understanding and generation, 2025.
+[49] Haibo Tong, Zhaoyang Wang, Zhaorun Chen, Haonian Ji, Shi Qiu, Siwei Han, Kexin Geng, Zhongkai Xue, Yiyang Zhou, Peng Xia, Mingyu Ding, Rafael Rafailov, Chelsea Finn, and Huaxiu Yao. Mj-video: Fine-grained benchmarking and rewarding video preferences in video generation, 2025.
+[50] Boyuan Chen, Diego Marti Monso, Yilun Du, Max Simchowitz, Russ Tedrake, and Vincent Sitzmann. Diffusion forcing: Next-token prediction meets full-sequence diffusion, 2024.
+24
+
+
+[51] Mingzhen Sun, Weining Wang, Gen Li, Jiawei Liu, Jiahui Sun, Wanquan Feng, Shanshan Lao, SiYu Zhou, Qian He, and Jing Liu. Ar-diffusion: Asynchronous video generation with auto-regressive diffusion, 2025.
+[52] Kiwhan Song, Boyuan Chen, Max Simchowitz, Yilun Du, Russ Tedrake, and Vincent Sitzmann. History-guided video diffusion, 2025.
+[53] Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance, 2022.
+[54] Tianwei Yin, Qiang Zhang, Richard Zhang, William T. Freeman, Fredo Durand, Eli Shechtman, and Xun Huang. From slow bidirectional to fast autoregressive video diffusion models, 2025.
+[55] Tianwei Yin, Michaël Gharbi, Richard Zhang, Eli Shechtman, Fredo Durand, William T. Freeman, and Taesung Park. One-step diffusion with distribution matching distillation, 2024.
+[56] Tianwei Yin, Michaël Gharbi, Taesung Park, Richard Zhang, Eli Shechtman, Fredo Durand, and William T. Freeman. Improved distribution matching distillation for fast image synthesis, 2024.
+[57] Yuwei Guo, Ceyuan Yang, Ziyan Yang, Zhibei Ma, Zhijie Lin, Zhenheng Yang, Dahua Lin, and Lu Jiang. Long context tuning for video generation, 2025.
+[58] Qiuheng Wang, Yukai Shi, Jiarong Ou, Rui Chen, Ke Lin, Jiahao Wang, Boyuan Jiang, Haotian Yang, Mingwu Zheng, Xin Tao, Fei Yang, Pengfei Wan, and Di Zhang. Koala-36m: A large-scale video dataset improving consistency between fine-grained conditions and video content, 2024.
+[59] Zhenzhi Wang, Yixuan Li, Yanhong Zeng, Youqing Fang, Yuwei Guo, Wenran Liu, Jing Tan, Kai Chen, Tianfan Xue, Bo Dai, and Dahua Lin. Humanvid: Demystifying training data for camera-controllable human image animation. In NeurIPS, 2024.
+[60] Tomáš Souˇcek and Jakub Lokoˇc. Transnet v2: An effective deep network architecture for fast shot transition detection. arXiv preprint arXiv:2008.04838, 2020.
+[61] Verb. aesthetic-predictor-v2-5. https://github.com/discus0434/aesthetic-predictor-v2-5, 2024. Accessed: 2024.11.12.
+[62] Ed Pizzi, Sreya Dutta Roy, Sugosh Nagavara Ravindra, Priya Goyal, and Matthijs Douze. A self-supervised descriptor for image copy detection. Proc. CVPR, 2022.
+[63] Haoning Wu, Chaofeng Chen, Jingwen Hou, Liang Liao, Annan Wang, Wenxiu Sun, Qiong Yan, and Weisi Lin. Fast-vqa: Efficient end-to-end video quality assessment with fragment sampling. In Proceedings of European Conference of Computer Vision (ECCV), 2022.
+[64] Haoning Wu, Erli Zhang, Liang Liao, Chaofeng Chen, Jingwen Hou Hou, Annan Wang, Wenxiu Sun Sun, Qiong Yan, and Weisi Lin. Exploring video quality assessment on user generated contents from aesthetic and technical perspectives. In International Conference on Computer Vision (ICCV), 2023.
+[65] Haoning Wu. Open source deep end-to-end video quality assessment toolbox, 2022.
+[66] Lorenzo Agnolucci, Leonardo Galteri, Marco Bertini, and Alberto Del Bimbo. Arniqa: Learning distortion manifold for image quality assessment. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision, pages 189–198, 2024.
+[67] Youngmin Baek, Bado Lee, Dongyoon Han, Sangdoo Yun, and Hwalsuk Lee. Character region awareness for text detection. In Proceedings of the IEEE/CVF conference on Computer Vision and Pattern Recognition (CVPR), pages 9365–9374, 2019.
+[68] Yuan Yao, Tianyu Yu, Ao Zhang, Chongyi Wang, Junbo Cui, Hongji Zhu, Tianchi Cai, Haoyu Li, Weilin Zhao, Zhihui He, et al. Minicpm-v: A gpt-4v level mllm on your phone. arXiv preprint arXiv:2408.01800, 2024.
+[69] Yin Chen, Jia Li, Shiguang Shan, Meng Wang, and Richang Hong. From static to dynamic: Adapting landmarkaware image models for facial expression recognition in videos. IEEE Transactions on Affective Computing, page 1–15, 2024.
+[70] Feng Liu, Shiwei Zhang, Xiaofeng Wang, Yujie Wei, Haonan Qiu, Yuzhong Zhao, Yingya Zhang, Qixiang Ye, and Fang Wan. Timestep embedding tells: It’s time to cache for video diffusion model. arXiv preprint arXiv:2411.19108, 2024.
+[71] Pejaver V Rao and Lawrence L Kupper. Ties in paired-comparison experiments: A generalization of the bradley-terry model. Journal of the American Statistical Association, 62(317):194–204, 1967.
+[72] Sam Ade Jacobs, Masahiro Tanaka, Chengming Zhang, Minjia Zhang, Shuaiwen Leon Song, Samyam Rajbhandari, and Yuxiong He. Deepspeed ulysses: System optimizations for enabling training of extreme long sequence transformer models, 2023.
+25
+
+
+[73] Jintao Zhang, Haofeng Huang, Pengle Zhang, Jia Wei, Jun Zhu, and Jianfei Chen. Sageattention2: Efficient attention with thorough outlier smoothing and per-thread int4 quantization, 2025.
+[74] RunwayML. Gen-3 alpha, 2025.
+[75] Xiangyu Peng, Zangwei Zheng, Chenhui Shen, Tom Young, Xinying Guo, Binluo Wang, Hang Xu, Hongxin Liu, Mingyan Jiang, Wenjun Li, Yuhui Wang, Anbang Ye, Gang Ren, Qianran Ma, Wanying Liang, Xiang Lian, Xiwen Wu, Yuting Zhong, Zhuangyan Li, Chaoyu Gong, Guojun Lei, Leijun Cheng, Limin Zhang, Minghao Li, Ruijie Zhang, Silan Hu, Shijie Huang, Xiaokang Wang, Yuanheng Zhao, Yuqi Wang, Ziang Wei, and Yang You. Open-sora 2.0: Training a commercial-level video generation model in $200k. arXiv preprint arXiv:2503.09642, 2025.
+[76] Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J. Liu. Exploring the limits of transfer learning with a unified text-to-text transformer, 2019.
+[77] Zhengcong Fei, Debang Li, Di Qiu, Jiahua Wang, Yikun Dou, Rui Wang, Jingtao Xu, Mingyuan Fan, Guibin Chen, Yang Li, et al. Skyreels-a2: Compose anything in video diffusion transformers. arXiv preprint arXiv:2504.02436, 2025.
+[78] Di Qiu, Zhengcong Fei, Rui Wang, Jialin Bai, Changqian Yu, Mingyuan Fan, Guibin Chen, and Xiang Wen. Skyreels-a1: Expressive portrait animation in video diffusion transformers. arXiv preprint arXiv:2502.10841, 2025.
+26
+
+
+A SkyReels-Bench scoring guidelines
+Detailed scoring guidelines for SkyReels-Bench
+Evaluation Scoring Guidelines (1-5 scale)
+Instruction Adherence Score 1: Complete failure to follow instructions, with severe deviations in video theme and key elements from the prompt Score 2: Partial adherence with significant deviations; key elements or themes are somewhat present but incomplete and inaccurate Score 3: Basic adherence with complete representation of prompt content; main content and key elements align with instructions but may contain minor inaccuracies or omissions in details Score 4: High adherence with accurate representation of all key content and elements from the instructions without any deviations Score 5: Perfect adherence with extensions; video completely follows all aspects of instructions (theme, elements, style) and enhances them with appropriate extensions for superior results
+Consistency Score 1: Complete inconsistency with severe discrepancies in subjects, style, and scenes; extreme frame-to-frame differences Score 2: Multiple significant inconsistencies that substantially impact overall video coherence
+Score 3: Partial inconsistencies limited to minor details (extremely localized areas); slight abnormalities in specific elements Score 4: Complete consistency with stable subjects, style, and scenes; minor imperfections only in non-primary elements that don’t affect the overall viewing experience Score 5: Perfect consistency with extensions; all aspects of the video (subjects, style, scenes) are completely aligned with instructions, creating exceptional visual harmony
+Visual Quality Score 1: Severe quality issues with significant blurriness, pixelation, or other visual artifacts making the video nearly unwatchable Score 2: Poor quality with noticeable blurriness and obvious issues; content is barely recognizable and significantly impacts viewing experience Score 3: Average quality with minor visual flaws such as slight blurriness or minimal noise; does not affect comprehension of main content Score 4: Good quality reaching normal viewing standards; clear imagery without notable flaws, presenting well across various devices Score 5: Perfect quality at professional standards; impeccable resolution, color, contrast, and detail presentation suitable for high-quality exhibitions and distribution
+Motion Quality Score 1: Severely flawed movements with extreme jerkiness and discontinuity, resulting in extremely poor viewing experience Score 2: Poor motion with obvious stuttering and disconnected transitions; movements appear unnatural with abrupt shifts between scenes Score 3: Adequate motion with occasional stuttering or discontinuities; generally follows movement rhythm without significantly affecting content comprehension Score 4: Good motion quality with smooth, natural movement throughout; no obvious stuttering and overall fluid viewing experience Score 5: Exceptional motion quality with perfect fluidity and naturalness; completely free of stuttering or discontinuities, achieving human-like movement without any AI artifacts
+Table A1: Comprehensive Evaluation Rubric. This scoring guideline was used by human evaluators to assess video generation models across four dimensions. Each dimension was scored on a 1-5 scale, where 1 indicates complete failure and 5 represents exceptional quality beyond base requirements.
+27
+
+
+B Data Processing Pipeline
+The pseudo-code of finding largest interior rectangle in data processing is shown in following.
+Algorithm A1 Pseudo-code of finding largest interior rectangle
+Require: A 0-1 matrix M ∈ Rm×n Ensure: The coordinate of largest interior rectangle rect_coords
+1: Initialize: max_area ← 0, rect_coords ← (0, 0, 0, 0), heights ← [0] × n 2: for i ← 0 to m − 1 do 3: for j ← 0 to n − 1 do
+4: if matrix[i][j] = 1 then
+5: heights[j] ← heights[j] + 1 6: else
+7: heights[j] ← 0 8: end if 9: end for
+10: stack ← ∅, lef t ← [−1] × n 11: for j ← 0 to n − 1 do
+12: while stack ̸= ∅ and heights[j] ≤ heights[top(stack)] do 13: pop(stack) 14: end while 15: if stack ̸= ∅ then
+16: lef t[j] ← top(stack) 17: else
+18: lef t[j] ← −1 19: end if
+20: push(stack, j) 21: end for
+22: stack ← ∅, right ← [n] × n 23: for j ← n − 1 downto 0 do
+24: while stack ̸= ∅ and heights[j] ≤ heights[top(stack)] do 25: pop(stack) 26: end while 27: if stack ̸= ∅ then
+28: right[j] ← top(stack) 29: else
+30: right[j] ← n 31: end if
+32: push(stack, j) 33: end for 34: for j ← 0 to n − 1 do
+35: height ← heights[j] 36: width ← right[j] − lef t[j] − 1 37: area ← height × width 38: if area > max_area then 39: max_area ← area 40: top ← i − height + 1 41: bottom ← i 42: lef t_col ← lef t[j] + 1 43: right_col ← right[j] − 1 44: rect_coords ← (top, lef t_col, bottom, right_col) 45: end if 46: end for 47: end for
+48: return rect_coords
+28
+
+
+C System Prompts of the SkyCaptioner-V1
+The system prompt for the SkyCaptioner-V1 to generate structural caption is illustrated in Table 3. We also use the same system prompt for the baseline models during the evaluation.
+System Prompt of Generating Structural Caption for Video
+I need you to generate a structured and detailed caption for the provided video. The structured output and the requirements for each field are as shown in the following JSON content: {
+“subjects": [ {
+“TYPES": { “type": “Main category (e.g., Human)", “sub_type": “Sub-category (e.g., Man)" }, “appearance": “Main subject appearance description", “action": “Main subject action", “expression": “Main subject expression (Only for human/animal categories, empty otherwise)", “position": “Subject position in the video (Can be relative position to other objects or spatial description)", “is_main_subject": true }, {
+“TYPES": { “type": “Main category (e.g., Vehicles)", “sub_type": “Sub-category (e.g., Ship)" }, “appearance": “Nonmain subject appearance description", “action": “Nonmain subject action", “expression": “Nonmain subject expression (Only for human/animal categories, empty otherwise)", “position": “Position of nonmain subject 1", “is_main_subject": false } ], “shot_type": “Shot type(Options: long_shot/full_shot/medium_shot/close_up/extreme_close_up/other)", “shot_angle": “Camera angle(Options: eye_level/high_angle/low_angle/other)", “shot_position": “Camera position(Options: front_view/back_view/side_view/over_the_shoulder/ overhead_view/point_of_view/aerial_view/overlooking_view/other)", “camera_motion": “Camera movement description", “environment": “Video background/environment description", “lighting": “Lighting information in the video" }
+Following the generation of structural captions via the SkyCaptioner-V1 model, we design a caption fusion pipeline to get final captions for text-to-video (T2V) and image-to-video (I2V) model training. Our pipeline utilizes the Qwen2.532B-Instruct model to intelligently combine structured caption fields, producing either dense or sparse final captions depending on application requirements.
+System Prompt for T2V Prompt Fusion
+You are an expert in video captioning. You are given a structured video caption and you need to compose it to be more natural and fluent in English. ## Structured Input {structured_caption} ## Notes
+- According to the action field information, change its name field to the subject pronoun in the action. - If there has an empty field, just ignore it and do not mention it in the output.
+29
+
+
+- Do not make any semantic changes to the original fields. Please be sure to follow the original meaning. ## Output Principles and Orders
+- First, declare the shot type, shot angle, shot position if these field are not empty. - Second, eliminate information in the action field that is not related to the timing action, such as background or environment information. - Third, describe each subject with its pure action, appearance, expression, position if these fields exist. - Finally, declare the environment, lighting and camera motion if fields are not empty. ## Output
+Please directly output the final composed caption without any additional information.
+System Prompt for I2V Prompt Fusion
+You are an expert in video captioning. You are given a structured video caption and you need to compose it to be more natural and fluent in English. ## Structured Input {structured_caption} ## Notes
+- If there has an empty field, just ignore it and do not mention it in the output. - Do not make any semantic changes to the original fields. Please be sure to follow the original meaning. - If the action field is not empty, eliminate the irrelevant information in the action field that is not related to the timing action(such as wearings, background and environment information) to make a pure action field. ## Output Principles and Orders
+- First, eliminate the static information in the action field that is not related to the timing action, such as background or environment information. - Second, describe each subject with its pure action and expression if these fields exist. - Finally, add camera motion field to the final composed caption if the camera motion field is not empty. ## Output
+Please directly output the final composed caption without any additional information.
+30
+
+
+D Video Motion Quality Scoring Criteria For Human Annotation
+Video Motion Quality Assessment Criteria
+Insufficient Motion Amplitude (1 point/instance)
+Subject’s motion range significantly less than reasonable real-world range
+Rigid limb movements (insufficient arm swing)
+Facial expressions lack detail (insufficient smile uplift)
+Object trajectories too gentle (vehicles moving too slowly)
+Excessive Motion Amplitude (2 points/instance)
+Motion speed/range exceeds realistic physical laws or human behavior
+Abnormal object speeds (car instantly accelerating to extreme speed)
+Exaggerated limb movements (arm bending beyond physiological limits)
+Subject Distortion (3 points/instance)
+Unnatural distortion of subject shape/structure during movement
+Body parts stretching during walking (waist becoming thin)
+Legs separating from torso while running
+Surface wrinkles or tears when objects rotate
+Facial muscles causing misaligned features
+Local Detail Distortion (1 point/instance)
+Local areas appear blurry, incorrect, or missing
+Hair breaks or color blocks disappear during movement
+Blurry object surface textures (unclear fabric wrinkles)
+Unrecognizable text or identifiers in background
+Vehicle wheels remaining stationary while driving
+Basic Physics Violations (3 points/instance)
+Content violates basic laws of physics
+No physical feedback after collisions (ball passing through wall)
+Fluid movements inconsistent with fluid dynamics
+Interaction Violations (2 points/instance)
+Subject interactions with environment/other subjects defy reality
+Unreasonable object collisions/penetrations (person passing through closed door)
+Objects colliding without reaction (balls not bouncing after collision)
+Hand-object interaction misalignment (hand not touching cup handle when holding)
+Unnatural/Monotonous Movement (1 point/instance)
+Movements lack fluidity or diversity
+Single actions repeated back and forth
+Movements not following conventional paths
+Objects moving in single trajectories (straight lines only)
+Abrupt movement transitions (sudden acceleration/deceleration)
+Table A2: Video Motion Quality Assessment Criteria. This scoring system identifies and quantifies motion-related issues in generated videos, with point values assigned based on severity and type of motion problem.
+31

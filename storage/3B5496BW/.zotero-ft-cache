@@ -1,0 +1,61 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2502.10248 (cs)
+[Submitted on 14 Feb 2025 (v1), last revised 24 Feb 2025 (this version, v3)]
+Step-Video-T2V Technical Report: The Practice, Challenges, and Future of Video Foundation Model
+Guoqing Ma, Haoyang Huang, Kun Yan, Liangyu Chen, Nan Duan, Shengming Yin, Changyi Wan, Ranchen Ming, Xiaoniu Song, Xing Chen, Yu Zhou, Deshan Sun, Deyu Zhou, Jian Zhou, Kaijun Tan, Kang An, Mei Chen, Wei Ji, Qiling Wu, Wen Sun, Xin Han, Yanan Wei, Zheng Ge, Aojie Li, Bin Wang, Bizhu Huang, Bo Wang, Brian Li, Changxing Miao, Chen Xu, Chenfei Wu, Chenguang Yu, Dapeng Shi, Dingyuan Hu, Enle Liu, Gang Yu, Ge Yang, Guanzhe Huang, Gulin Yan, Haiyang Feng, Hao Nie, Haonan Jia, Hanpeng Hu, Hanqi Chen, Haolong Yan, Heng Wang, Hongcheng Guo, Huilin Xiong, Huixin Xiong, Jiahao Gong, Jianchang Wu, Jiaoren Wu, Jie Wu, Jie Yang, Jiashuai Liu, Jiashuo Li, Jingyang Zhang, Junjing Guo, Junzhe Lin, Kaixiang Li, Lei Liu, Lei Xia, Liang Zhao, Liguo Tan, Liwen Huang, Liying Shi, Ming Li, Mingliang Li, Muhua Cheng, Na Wang, Qiaohui Chen, Qinglin He, Qiuyan Liang, Quan Sun, Ran Sun, Rui Wang, Shaoliang Pang, Shiliang Yang, Sitong Liu, Siqi Liu, Shuli Gao, Tiancheng Cao, Tianyu Wang, Weipeng Ming, Wenqing He, Xu Zhao, Xuelin Zhang, Xianfang Zeng, Xiaojia Liu, Xuan Yang, Yaqi Dai, Yanbo Yu, Yang Li, Yineng Deng, Yingming Wang, Yilei Wang, Yuanwei Lu, Yu Chen, Yu Luo, Yuchu Luo et al. (15 additional authors not shown)
+View PDF
+HTML (experimental)
+We present Step-Video-T2V, a state-of-the-art text-to-video pre-trained model with 30B parameters and the ability to generate videos up to 204 frames in length. A deep compression Variational Autoencoder, Video-VAE, is designed for video generation tasks, achieving 16x16 spatial and 8x temporal compression ratios, while maintaining exceptional video reconstruction quality. User prompts are encoded using two bilingual text encoders to handle both English and Chinese. A DiT with 3D full attention is trained using Flow Matching and is employed to denoise input noise into latent frames. A video-based DPO approach, Video-DPO, is applied to reduce artifacts and improve the visual quality of the generated videos. We also detail our training strategies and share key observations and insights. Step-Video-T2V's performance is evaluated on a novel video generation benchmark, Step-Video-T2V-Eval, demonstrating its state-of-the-art text-to-video quality when compared with both open-source and commercial engines. Additionally, we discuss the limitations of current diffusion-based model paradigm and outline future directions for video foundation models. We make both Step-Video-T2V and Step-Video-T2V-Eval available at this https URL. The online version can be accessed from this https URL as well. Our goal is to accelerate the innovation of video foundation models and empower video content creators.
+Comments:	36 pages, 14 figures
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Computation and Language (cs.CL)
+Cite as:	arXiv:2502.10248 [cs.CV]
+ 	(or arXiv:2502.10248v3 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2502.10248
+Focus to learn more
+Submission history
+From: Haoyang Huang [view email]
+[v1] Fri, 14 Feb 2025 15:58:10 UTC (39,918 KB)
+[v2] Mon, 17 Feb 2025 08:58:33 UTC (39,919 KB)
+[v3] Mon, 24 Feb 2025 10:12:11 UTC (39,919 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2025-02
+Change to browse by: cs cs.CL
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

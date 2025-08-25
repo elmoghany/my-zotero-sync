@@ -1,0 +1,58 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2306.01732 (cs)
+[Submitted on 2 Jun 2023]
+Video Colorization with Pre-trained Text-to-Image Diffusion Models
+Hanyuan Liu, Minshan Xie, Jinbo Xing, Chengze Li, Tien-Tsin Wong
+View PDF
+Video colorization is a challenging task that involves inferring plausible and temporally consistent colors for grayscale frames. In this paper, we present ColorDiffuser, an adaptation of a pre-trained text-to-image latent diffusion model for video colorization. With the proposed adapter-based approach, we repropose the pre-trained text-to-image model to accept input grayscale video frames, with the optional text description, for video colorization. To enhance the temporal coherence and maintain the vividness of colorization across frames, we propose two novel techniques: the Color Propagation Attention and Alternated Sampling Strategy. Color Propagation Attention enables the model to refine its colorization decision based on a reference latent frame, while Alternated Sampling Strategy captures spatiotemporal dependencies by using the next and previous adjacent latent frames alternatively as reference during the generative diffusion sampling steps. This encourages bidirectional color information propagation between adjacent video frames, leading to improved color consistency across frames. We conduct extensive experiments on benchmark datasets, and the results demonstrate the effectiveness of our proposed framework. The evaluations show that ColorDiffuser achieves state-of-the-art performance in video colorization, surpassing existing methods in terms of color fidelity, temporal consistency, and visual quality.
+Comments:	project page: this https URL
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI); Graphics (cs.GR)
+Cite as:	arXiv:2306.01732 [cs.CV]
+ 	(or arXiv:2306.01732v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2306.01732
+Focus to learn more
+Submission history
+From: Hanyuan Liu [view email]
+[v1] Fri, 2 Jun 2023 17:58:00 UTC (18,850 KB)
+
+Access Paper:
+View PDFTeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2023-06
+Change to browse by: cs cs.AI cs.GR
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack

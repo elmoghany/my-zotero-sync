@@ -1,0 +1,59 @@
+Skip to main content
+Computer Science > Computer Vision and Pattern Recognition
+arXiv:2412.00131 (cs)
+[Submitted on 28 Nov 2024]
+Open-Sora Plan: Open-Source Large Video Generation Model
+Bin Lin, Yunyang Ge, Xinhua Cheng, Zongjian Li, Bin Zhu, Shaodong Wang, Xianyi He, Yang Ye, Shenghai Yuan, Liuhan Chen, Tanghui Jia, Junwu Zhang, Zhenyu Tang, Yatian Pang, Bin She, Cen Yan, Zhiheng Hu, Xiaoyi Dong, Lin Chen, Zhang Pan, Xing Zhou, Shaoling Dong, Yonghong Tian, Li Yuan
+View PDF
+HTML (experimental)
+We introduce Open-Sora Plan, an open-source project that aims to contribute a large generation model for generating desired high-resolution videos with long durations based on various user inputs. Our project comprises multiple components for the entire video generation process, including a Wavelet-Flow Variational Autoencoder, a Joint Image-Video Skiparse Denoiser, and various condition controllers. Moreover, many assistant strategies for efficient training and inference are designed, and a multi-dimensional data curation pipeline is proposed for obtaining desired high-quality data. Benefiting from efficient thoughts, our Open-Sora Plan achieves impressive video generation results in both qualitative and quantitative evaluations. We hope our careful design and practical experience can inspire the video generation research community. All our codes and model weights are publicly available at \url{this https URL}.
+Comments:	v1.3
+Subjects:	Computer Vision and Pattern Recognition (cs.CV); Artificial Intelligence (cs.AI)
+Cite as:	arXiv:2412.00131 [cs.CV]
+ 	(or arXiv:2412.00131v1 [cs.CV] for this version)
+ 	
+https://doi.org/10.48550/arXiv.2412.00131
+Focus to learn more
+Submission history
+From: Lin Bin [view email]
+[v1] Thu, 28 Nov 2024 14:07:45 UTC (11,454 KB)
+
+Access Paper:
+View PDFHTML (experimental)TeX SourceOther Formats
+view license
+Current browse context: cs.CV
+< prev next >
+
+newrecent2024-12
+Change to browse by: cs cs.AI
+References & Citations
+NASA ADS
+Google Scholar
+Semantic Scholar
+Export BibTeX Citation
+Bookmark
+Bibliographic Tools
+Bibliographic and Citation Tools
+Bibliographic Explorer Toggle
+Bibliographic Explorer (What is the Explorer?)
+Connected Papers Toggle
+Connected Papers (What is Connected Papers?)
+Litmaps Toggle
+Litmaps (What is Litmaps?)
+scite.ai Toggle
+scite Smart Citations (What are Smart Citations?)
+Code, Data, Media
+Demos
+Related Papers
+About arXivLabs
+Which authors of this paper are endorsers? | Disable MathJax (What is MathJax?)
+About
+Help
+Contact
+Subscribe
+Copyright
+Privacy Policy
+Web Accessibility Assistance
+
+arXiv Operational Status 
+Get status notifications via email or slack
